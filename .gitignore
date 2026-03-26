@@ -1,0 +1,53 @@
+# ========================
+# WatchSync AI - .gitignore
+# ========================
+
+# === ORTAM DOSYALARI (KRİTİK - ASLA REPO'YA GİRMEMELİ) ===
+.env
+.env.local
+.env.production
+.env.staging
+.env.*.local
+
+# === BACKEND (Laravel / PHP) ===
+backend/vendor/
+backend/node_modules/
+backend/.env
+backend/storage/*.key
+backend/storage/app/public/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+backend/bootstrap/cache/*
+backend/composer.lock
+
+# === FRONTEND (Next.js / React) ===
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env
+frontend/.env.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# === AI SERVİSİ (Python / FastAPI) ===
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/.venv/
+ai-service/venv/
+ai-service/.env
+ai-service/models/*.pth
+ai-service/models/*.pt
+ai-service/models/*.bin
+
+# === IDE & OS ===
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+.DS_Store
+desktop.ini

@@ -1,0 +1,24 @@
+# ============================================
+# WatchSync AI — CODEOWNERS
+# ============================================
+# Bu dosya, hangi klasörün kime ait olduğunu belirler.
+# PR açıldığında GitHub otomatik olarak ilgili kişiyi
+# reviewer (gözden geçirici) olarak atar.
+#
+# KULLANIM: Aşağıdaki @kullanici-adi kısımlarını
+# GitHub kullanıcı adlarınızla DEĞİŞTİRİN.
+# ============================================
+
+# --- BACKEND: Sadece Senior dokunur ---
+/backend/                           @SENIOR-GITHUB-KULLANICI-ADI
+
+# --- AI SERVİSİ: Sadece Senior dokunur ---
+/ai-service/                        @SENIOR-GITHUB-KULLANICI-ADI
+
+# --- FRONTEND: Junior sorumlu, Senior review eder ---
+/frontend/                          @JUNIOR-GITHUB-KULLANICI-ADI @SENIOR-GITHUB-KULLANICI-ADI
+
+# --- KRİTİK DOSYALAR: Sadece Senior değiştirebilir ---
+docker-compose.yml                  @SENIOR-GITHUB-KULLANICI-ADI
+.env.example                        @SENIOR-GITHUB-KULLANICI-ADI
+.github/                            @SENIOR-GITHUB-KULLANICI-ADI
