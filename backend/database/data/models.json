@@ -1,0 +1,14 @@
+[
+    {"brand": "Rolex", "name": "Submariner"},
+    {"brand": "Rolex", "name": "Datejust"},
+    {"brand": "Rolex", "name": "Daytona"},
+    {"brand": "Rolex", "name": "GMT-Master II"},
+    {"brand": "Patek Philippe", "name": "Nautilus"},
+    {"brand": "Patek Philippe", "name": "Aquanaut"},
+    {"brand": "Audemars Piguet", "name": "Royal Oak"},
+    {"brand": "Audemars Piguet", "name": "Royal Oak Offshore"},
+    {"brand": "Omega", "name": "Speedmaster"},
+    {"brand": "Omega", "name": "Seamaster"},
+    {"brand": "Cartier", "name": "Santos"},
+    {"brand": "Cartier", "name": "Tank"}
+]

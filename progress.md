@@ -11,55 +11,55 @@
 ### 🏗 Hafta 1: Proje Altyapısı & Geliştirme Ortamı
 
 #### Senior (S) — Backend Altyapısı
-- [ ] Laravel 11 projesi oluşturuldu
-- [ ] `.env` yapılandırması tamamlandı
-- [ ] Sanctum kurulumu yapıldı
-- [ ] MySQL/PostgreSQL bağlantısı kuruldu
-- [ ] Veritabanı Migration'ları yazıldı
-  - [ ] `users` tablosu
-  - [ ] `dealers` tablosu (çok kiracılı yapı)
-  - [ ] `watches` tablosu (JSONB sütunlar dahil)
-  - [ ] `watch_images` tablosu
-  - [ ] `platforms` tablosu
-  - [ ] `platform_connections` tablosu
-  - [ ] `sync_logs` tablosu
-  - [ ] `inventory_status_history` tablosu
-- [ ] Redis Docker container çalışıyor
-- [ ] RabbitMQ Docker container çalışıyor
-- [ ] Laravel Queue → RabbitMQ bağlantısı test edildi
+- [x] Laravel 11 projesi oluşturuldu
+- [x] `.env` yapılandırması tamamlandı
+- [x] Sanctum kurulumu yapıldı
+- [x] MySQL/PostgreSQL bağlantısı kuruldu
+- [x] Veritabanı Migration'ları yazıldı
+  - [x] `users` tablosu
+  - [x] `dealers` tablosu (çok kiracılı yapı)
+  - [x] `watches` tablosu (JSONB sütunlar dahil)
+  - [x] `watch_images` tablosu
+  - [x] `platforms` tablosu
+  - [x] `platform_connections` tablosu
+  - [x] `sync_logs` tablosu
+  - [x] `inventory_status_history` tablosu
+- [x] Redis Docker container çalışıyor
+- [x] RabbitMQ Docker container çalışıyor (iptal/redis alternatifi)
+- [x] Laravel Queue → Redis bağlantısı test edildi
 
 #### Junior (J) — Frontend Altyapısı
-- [ ] Next.js 14+ (App Router) projesi oluşturuldu
-- [ ] TailwindCSS kurulumu ve `tailwind.config.js` yapılandırması
-- [ ] Inter + JetBrains Mono fontları eklendi
-- [ ] Dark Mode tema değişkenleri tanımlandı
-- [ ] Sidebar bileşeni oluşturuldu
-- [ ] TopBar bileşeni oluşturuldu
-- [ ] Dashboard Layout bileşeni oluşturuldu
-- [ ] Landing Page üretildi ve entegre edildi
+- [x] Next.js 16 (App Router) projesi oluşturuldu
+- [x] Tailwind CSS v4 yapılandırması (globals.css @theme inline)
+- [x] Inter + JetBrains Mono fontları eklendi
+- [x] Dark Mode tema değişkenleri tanımlandı
+- [x] Sidebar bileşeni oluşturuldu
+- [x] TopBar bileşeni oluşturuldu
+- [x] Dashboard Layout bileşeni oluşturuldu
+- [x] Landing Page üretildi ve entegre edildi
 
 ---
 
 ### 📊 Hafta 2: Veri Modelleri & Dashboard UI
 
 #### Senior (S) — API & Auth
-- [ ] Eloquent Modelleri oluşturuldu
-  - [ ] `Watch` model + JSONB cast
-  - [ ] `Platform` model
-  - [ ] `SyncLog` model
-  - [ ] `Dealer` model
-  - [ ] Model ilişkileri (relationships) tanımlandı
-- [ ] Auth API endpoint'leri
-  - [ ] `POST /api/auth/register`
-  - [ ] `POST /api/auth/login`
-  - [ ] `POST /api/auth/logout`
-  - [ ] `GET /api/auth/me`
-  - [ ] Auth Middleware yapılandırması
-- [ ] Seeder'lar
-  - [ ] Marka referans verileri (brands.json)
-  - [ ] Model referans verileri (models.json)
-  - [ ] Durum (condition) referans verileri
-  - [ ] Demo kullanıcı ve demo saatler
+- [x] Eloquent Modelleri oluşturuldu
+  - [x] `Watch` model + JSONB cast
+  - [x] `Platform` model
+  - [x] `SyncLog` model
+  - [x] `Dealer` model
+  - [x] Model ilişkileri (relationships) tanımlandı
+- [x] Auth API endpoint'leri
+  - [x] `POST /api/auth/register`
+  - [x] `POST /api/auth/login`
+  - [x] `POST /api/auth/logout`
+  - [x] `GET /api/auth/me`
+  - [x] Auth Middleware yapılandırması
+- [x] Seeder'lar
+  - [x] Marka referans verileri (brands.json)
+  - [x] Model referans verileri (models.json)
+  - [x] Durum (condition) referans verileri
+  - [x] Demo kullanıcı ve demo saatler
 
 #### Junior (J) — Dashboard UI
 - [ ] KPI Kartları bileşeni

@@ -1,0 +1,17 @@
+[
+    {"name": "Rolex", "country": "Switzerland"},
+    {"name": "Patek Philippe", "country": "Switzerland"},
+    {"name": "Audemars Piguet", "country": "Switzerland"},
+    {"name": "Omega", "country": "Switzerland"},
+    {"name": "Cartier", "country": "France"},
+    {"name": "IWC", "country": "Switzerland"},
+    {"name": "Jaeger-LeCoultre", "country": "Switzerland"},
+    {"name": "Vacheron Constantin", "country": "Switzerland"},
+    {"name": "A. Lange & Söhne", "country": "Germany"},
+    {"name": "Breitling", "country": "Switzerland"},
+    {"name": "Tudor", "country": "Switzerland"},
+    {"name": "Panerai", "country": "Italy"},
+    {"name": "Hublot", "country": "Switzerland"},
+    {"name": "TAG Heuer", "country": "Switzerland"},
+    {"name": "Zenith", "country": "Switzerland"}
+]
