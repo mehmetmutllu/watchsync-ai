@@ -32,7 +32,104 @@ develop     ← Tüm geliştirme bu dal üzerinden akar.
 
 ## 🟢 BERAT (JUNIOR) İÇİN ADIM ADIM REHBER
 
-### 📥 İlk Kurulum (BİR KEZ YAPILIR)
+### �️ Mac + Docker Geliştirme Ortamı Kurulumu
+
+> Berat **Mac** kullanıyor. Backend (Laravel + MySQL + Redis) Docker ile kendi makinesinde çalışacak. MAMP'a gerek yok.
+
+#### Gerekli Yazılımlar
+
+| Yazılım | Kontrol Komutu | Kurulum |
+|---------|----------------|---------|
+| Git | `git --version` | `brew install git` |
+| Node.js 20+ | `node --version` | `brew install node` |
+| Docker Desktop | `docker --version` | https://docs.docker.com/desktop/setup/install/mac-install/ |
+
+> ⚠️ **Docker Desktop** uygulamasını açmayı unutma! Sadece yüklemek yetmez, çalışıyor olmalı.
+
+#### Backend Kurulumu (Bir Kez)
+
+```bash
+# 1. Backend klasörüne gir
+cd watchsync-ai/backend
+
+# 2. Ortam dosyasını oluştur
+cp .env.example .env
+
+# 3. Docker container'ları başlat (ilk sefer 5-10 dk sürebilir)
+docker compose up -d
+
+# 4. PHP bağımlılıklarını yükle
+docker compose exec laravel.test composer install
+
+# 5. Uygulama anahtarı oluştur
+docker compose exec laravel.test php artisan key:generate
+
+# 6. Veritabanını kur ve demo veri yükle
+docker compose exec laravel.test php artisan migrate --seed
+
+# 7. Test et — aşağıdaki komut token döndürmeli:
+curl http://localhost:8000/api/auth/login \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"email":"demo@watchsync.ai","password":"password"}'
+```
+
+#### Frontend Kurulumu (Bir Kez)
+
+```bash
+cd watchsync-ai/frontend
+npm install
+npm run dev
+# → http://localhost:3000 açılacak
+# → Demo giriş: demo@watchsync.ai / password
+```
+
+#### Günlük Kullanım
+
+```bash
+# Mac'i açtığında Docker Desktop otomatik başlar.
+# Eğer container'lar duraklamışsa:
+cd backend
+docker compose up -d
+
+# Frontend başlat:
+cd ../frontend
+npm run dev
+```
+
+#### Port Çakışması (MAMP ile)
+
+MAMP açıkken port çakışması olabilir. Çözüm:
+- **En kolay:** MAMP'ı kapat (bu proje için gerek yok)
+- **MAMP da lazımsa:** `backend/.env` dosyasında portları değiştir:
+  ```
+  APP_PORT=8001
+  FORWARD_DB_PORT=3308
+  ```
+
+#### Faydalı Docker Komutları
+
+```bash
+# Container durumlarını gör
+docker compose ps
+
+# Logları izle
+docker compose logs -f laravel.test
+
+# Artisan komutu çalıştır
+docker compose exec laravel.test php artisan migrate
+
+# Container'ları durdur (verileri korur)
+docker compose stop
+
+# Container'ları tamamen sil (DİKKAT: veritabanı sıfırlanır)
+docker compose down -v
+```
+
+---
+
+### 📥 İlk Git Kurulumu (BİR KEZ YAPILIR)
 
 ```bash
 # 1. Repo'yu bilgisayarına indir
