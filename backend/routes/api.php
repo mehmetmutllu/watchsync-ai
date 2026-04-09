@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chrono24FeedController;
 use App\Http\Controllers\Api\DashboardController;
@@ -74,4 +75,10 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/notifications', [DashboardController::class, 'notifications']);
     Route::post('/notifications/read-all', [DashboardController::class, 'markAllNotificationsRead']);
     Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead']);
+
+    // AI Service
+    Route::post('/watches/{id}/ai-enhance', [AiController::class, 'enhance']);
+    Route::post('/ai/segment', [AiController::class, 'segment']);
+    Route::post('/ai/replace-background', [AiController::class, 'replaceBackground']);
+    Route::get('/ai/health', [AiController::class, 'health']);
 });

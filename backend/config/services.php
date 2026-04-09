@@ -74,4 +74,14 @@ return [
         'webhook_secret' => env('SHOPIFY_WEBHOOK_SECRET', ''),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | AI Service Configuration
+    |--------------------------------------------------------------------------
+    */
+    'ai' => [
+        'base_url' => env('AI_SERVICE_URL', 'http://ai-service:8001'),
+        'timeout'  => 120,
+    ],
+
 ];
