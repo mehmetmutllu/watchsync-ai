@@ -60,6 +60,7 @@ class AuthTest extends TestCase
     {
         $dealer = Dealer::create([
             'name'   => 'Login Test Dealer',
+            'email'  => 'login-dealer@test.com',
             'status' => 'active',
         ]);
 
@@ -83,7 +84,8 @@ class AuthTest extends TestCase
     public function test_login_fails_with_wrong_credentials()
     {
         $dealer = Dealer::create([
-            'name'   => 'Login Test Dealer',
+            'name'   => 'Login Fail Dealer',
+            'email'  => 'fail-dealer@test.com',
             'status' => 'active',
         ]);
 
@@ -106,7 +108,7 @@ class AuthTest extends TestCase
 
     public function test_user_can_get_profile()
     {
-        $dealer = Dealer::create(['name' => 'Me Dealer', 'status' => 'active']);
+        $dealer = Dealer::create(['name' => 'Me Dealer', 'email' => 'me-dealer@test.com', 'status' => 'active']);
         $user = User::create([
             'dealer_id' => $dealer->id,
             'name'      => 'Me User',

@@ -540,19 +540,19 @@
   - [x] Envanter durum geçiş testleri (`InventoryStateMachineTest.php` — 11 test)
   - [x] Redis Lock eşzamanlılık testleri (mevcut — `InventoryLockTest.php`)
   - [x] Chrono24 XML Feed format testleri (`Chrono24FeedTest.php` — 4 test)
-  - [ ] eBay API entegrasyon testleri (mock)
-  - [ ] Shopify API entegrasyon testleri (mock)
+  - [x] eBay API entegrasyon testleri (mock) — `EbayIntegrationTest.php` (11 test)
+  - [x] Shopify API entegrasyon testleri (mock) — `ShopifyIntegrationTest.php` (9 test)
   - [x] Webhook işleme testleri (`WebhookTest.php` — 4 test)
   - [x] Fatura oluşturma testleri (`InvoiceTest.php` — 12 test)
   - [x] Dashboard endpoint testleri (`DashboardTest.php` — 7 test)
   - [x] Settings endpoint testleri (`SettingsTest.php` — 7 test)
   - [x] Health check testleri (`HealthCheckTest.php` — 5 test)
   - [x] Customer CRUD testleri (`CustomerCrudTest.php` — 12 test)
-- [ ] AI Servis testleri
-  - [ ] SAM 2 maskeleme doğruluk testleri
-  - [ ] LLM açıklama üretim testleri
-  - [ ] Scraping pipeline testleri
-- [ ] Bug bash — kritik hataların giderilmesi
+- [x] AI Servis testleri — `AiServiceTest.php` (14 test) + `test_ai_endpoints.py` (Python)
+  - [x] SAM 2 maskeleme doğruluk testleri
+  - [x] LLM açıklama üretim testleri
+  - [x] Scraping pipeline testleri
+- [x] Bug bash — 130 backend test + 63 frontend test tamamı geçiyor ✅
 
 #### Frontend Testleri & Polish
 - [x] Frontend test altyapısı kurulumu (Vitest + React Testing Library + jsdom)
@@ -575,11 +575,11 @@
   - [x] `auth.spec.ts` — login/register render, validation, navigation (5 test)
   - [x] `navigation.spec.ts` — protected routes redirect (5 test)
   - [x] `visual.spec.ts` — layout, responsive, input types, password toggle (4 test)
-- [ ] UI/UX son dokunuşlar
-  - [ ] Mikro-animasyonlar (buton tıklama, kart geçişleri)
-  - [ ] Transition animasyonlar (sayfa geçişleri)
-  - [ ] Empty state illüstrasyonları
-  - [ ] Onboarding turu (ilk kullanım yönlendirmesi)
+- [x] UI/UX son dokunuşlar
+  - [x] Mikro-animasyonlar (CSS keyframes + utility classes: btn-press, card-hover, shimmer)
+  - [x] Transition animasyonlar (`PageTransition.tsx` — sayfa geçiş wrapperi)
+  - [x] Empty state illüstrasyonları (inline SVG saat illüstrasyonu)
+  - [x] Onboarding turu (`OnboardingTour.tsx` — 4 adımlı rehber, localStorage ile tek sefer)
 
 ---
 

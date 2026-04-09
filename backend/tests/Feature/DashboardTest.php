@@ -116,26 +116,28 @@ class DashboardTest extends TestCase
         $platform = Platform::create(['name' => 'eBay', 'api_url' => 'https://api.ebay.com']);
 
         // Old log
-        SyncLog::create([
+        $oldLog = SyncLog::create([
             'watch_id' => $watch->id,
             'platform_id' => $platform->id,
             'status' => 'success',
-            'created_at' => now()->subDays(2),
         ]);
+        $oldLog->forceFill(['created_at' => now()->subDays(2)])->save();
 
         // Recent log
         SyncLog::create([
             'watch_id' => $watch->id,
             'platform_id' => $platform->id,
             'status' => 'pending',
-            'created_at' => now(),
         ]);
 
-        $since = now()->subDay()->toIso8601String();
+        $since = urlencode(now()->subDay()->toIso8601String());
         $response = $this->withHeaders($this->authHeader())
             ->getJson("/api/dashboard/activities?since={$since}");
 
-        $this->assertCount(1, $response->json('activities'));
+        $response->assertStatus(200);
+        $activities = $response->json('activities');
+        $this->assertIsArray($activities);
+        $this->assertCount(1, $activities);
     }
 
     // ─── NOTIFICATIONS ──────────────────────────────────────

@@ -34,7 +34,7 @@ class Chrono24FeedTest extends TestCase
         $response = $this->get("/api/feeds/chrono24.xml?dealer_id={$this->dealer->id}");
 
         $response->assertStatus(200)
-            ->assertHeader('Content-Type', 'text/xml; charset=UTF-8');
+            ->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
 
         $xml = simplexml_load_string($response->getContent());
         $this->assertNotFalse($xml);

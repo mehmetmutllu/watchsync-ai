@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Dealer;
+use App\Models\User;
 use App\Models\Watch;
 use App\Services\InventoryStateMachine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,12 +16,14 @@ class InventoryStateMachineTest extends TestCase
 
     private InventoryStateMachine $stateMachine;
     private Dealer $dealer;
+    private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->stateMachine = new InventoryStateMachine();
         $this->dealer = Dealer::factory()->create();
+        $this->user = User::factory()->create(['dealer_id' => $this->dealer->id]);
     }
 
     public function test_draft_can_transition_to_active(): void
@@ -117,7 +120,7 @@ class InventoryStateMachineTest extends TestCase
     {
         $watch = Watch::factory()->active()->create(['dealer_id' => $this->dealer->id]);
 
-        $this->stateMachine->transition($watch, 'reserved', 1, 'Test transition');
+        $this->stateMachine->transition($watch, 'reserved', $this->user->id, 'Test transition');
 
         $this->assertDatabaseHas('inventory_status_histories', [
             'watch_id' => $watch->id,

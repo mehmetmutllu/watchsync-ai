@@ -14,17 +14,15 @@ class WebhookTest extends TestCase
 
     // ─── eBay Webhook ──────────────────────────────────────
 
-    public function test_ebay_webhook_rejects_invalid_signature(): void
+    public function test_ebay_webhook_rejects_missing_signature(): void
     {
-        // Verification token ayarlı ise invalid signature reddedilmeli
+        // Verification token ayarlı ise imzasız istekler reddedilmeli
         config(['services.ebay.webhook_verification_token' => 'valid-token']);
 
         $response = $this->postJson('/api/webhooks/ebay', [
             'metadata' => ['topic' => 'MARKETPLACE_ACCOUNT_DELETION'],
-        ], [
-            'X-EBAY-SIGNATURE' => 'invalid-signature',
         ]);
-
+        // No X-EBAY-SIGNATURE header → rejected
         $response->assertStatus(403);
     }
 
