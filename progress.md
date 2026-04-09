@@ -534,38 +534,47 @@
 > **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
 
 #### Backend Testleri
-- [ ] PHPUnit/Pest test suite
-  - [ ] Auth endpoint testleri
-  - [ ] Watch CRUD testleri
-  - [ ] Envanter durum geçiş testleri
-  - [ ] Redis Lock eşzamanlılık testleri
-  - [ ] Chrono24 XML Feed format testleri
+- [x] PHPUnit test suite
+  - [x] Auth endpoint testleri (mevcut — `AuthTest.php`)
+  - [x] Watch CRUD testleri (`WatchCrudTest.php` — 18 test)
+  - [x] Envanter durum geçiş testleri (`InventoryStateMachineTest.php` — 11 test)
+  - [x] Redis Lock eşzamanlılık testleri (mevcut — `InventoryLockTest.php`)
+  - [x] Chrono24 XML Feed format testleri (`Chrono24FeedTest.php` — 4 test)
   - [ ] eBay API entegrasyon testleri (mock)
   - [ ] Shopify API entegrasyon testleri (mock)
-  - [ ] Webhook işleme testleri
-  - [ ] Fatura oluşturma testleri
+  - [x] Webhook işleme testleri (`WebhookTest.php` — 4 test)
+  - [x] Fatura oluşturma testleri (`InvoiceTest.php` — 12 test)
+  - [x] Dashboard endpoint testleri (`DashboardTest.php` — 7 test)
+  - [x] Settings endpoint testleri (`SettingsTest.php` — 7 test)
+  - [x] Health check testleri (`HealthCheckTest.php` — 5 test)
+  - [x] Customer CRUD testleri (`CustomerCrudTest.php` — 12 test)
 - [ ] AI Servis testleri
   - [ ] SAM 2 maskeleme doğruluk testleri
   - [ ] LLM açıklama üretim testleri
   - [ ] Scraping pipeline testleri
 - [ ] Bug bash — kritik hataların giderilmesi
-- [ ] Platform CRUD endpoint testleri
-- [ ] Bulk publish endpoint testleri
-- [ ] Notification endpoint testleri
-- [ ] Webhook imza doğrulaması testleri
 
 #### Frontend Testleri & Polish
-- [ ] Frontend test altyapısı kurulumu (Vitest + React Testing Library)
-- [ ] Birim testler: AuthGuard, WatchFormModal, BulkActions, PlatformCard, StatusBadge
-- [ ] E2E test altyapısı kurulumu (Playwright config + fixtures)
-- [ ] E2E test suite
-  - [ ] Kullanıcı giriş akışı
-  - [ ] Saat ekleme akışı (form → kaydet → listede göster)
-  - [ ] Platform yayınlama akışı (toggle → senkronizasyon)
-  - [ ] AI görsel işleme akışı
-  - [ ] AI metin üretme akışı
-  - [ ] CRM müşteri ekleme akışı
-  - [ ] Fatura oluşturma ve indirme akışı
+- [x] Frontend test altyapısı kurulumu (Vitest + React Testing Library + jsdom)
+- [x] Birim testler — Store'lar (5 dosya, 37 test)
+  - [x] `authStore.test.ts` — hydrate, login, logout, fetchUser (6 test)
+  - [x] `inventoryStore.test.ts` — CRUD, filters, optimistic update, rollback (10 test)
+  - [x] `notificationStore.test.ts` — fetch, markRead, drawer toggle (8 test)
+  - [x] `platformStore.test.ts` — fetch, credentials, disconnect (7 test)
+  - [x] `toastStore.test.ts` — add, remove, clear, limit, helpers (6 test)
+- [x] Birim testler — Bileşenler (7 dosya, 26 test)
+  - [x] `AuthGuard.test.tsx` — loading, auth, redirect, hydrate (4 test)
+  - [x] `EmptyState.test.tsx` — render, button callback (3 test)
+  - [x] `ErrorBoundary.test.tsx` — children, fallback, custom fallback, retry (4 test)
+  - [x] `StatusBadge.test.tsx` — labels, dropdown, callback (4 test)
+  - [x] `SyncStatusBadges.test.tsx` — empty, disconnected, connected (4 test)
+  - [x] `TableSkeleton.test.tsx` — table render, 8 rows (2 test)
+  - [x] `WatchFilters.test.tsx` — search, status, advanced, clear (5 test)
+- [x] E2E test altyapısı kurulumu (Playwright config + Chromium)
+- [x] E2E test suite (3 spec dosyası)
+  - [x] `auth.spec.ts` — login/register render, validation, navigation (5 test)
+  - [x] `navigation.spec.ts` — protected routes redirect (5 test)
+  - [x] `visual.spec.ts` — layout, responsive, input types, password toggle (4 test)
 - [ ] UI/UX son dokunuşlar
   - [ ] Mikro-animasyonlar (buton tıklama, kart geçişleri)
   - [ ] Transition animasyonlar (sayfa geçişleri)

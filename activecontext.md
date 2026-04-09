@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-04-09  
-> **Mevcut Faz:** FAZ 2 devam ediyor — Hafta 6 tamamlandı (iyileştirmeler dahil), Hafta 7'ye hazır  
-> **Sıradaki:** Hafta 7 — AI Görsel İşleme Mikroservisi  
+> **Son Güncelleme:** 2026-04-10  
+> **Mevcut Faz:** FAZ 3 — Hafta 11 devam ediyor (Test & Hata Giderme)  
+> **Sıradaki:** Hafta 11 kalan: Bug bash + UI/UX polish, sonra Hafta 12 — Staging & Lansman  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -261,6 +261,65 @@ POST   /api/notifications/read-all (auth) → tümünü okundu işaretle
 - `statefulApi()` kaldırıldı (bootstrap/app.php) — sadece token-based auth kullanılıyor
 - `.env` ayarları: `CACHE_STORE=redis`, `SESSION_DRIVER=redis`, `BCRYPT_ROUNDS=10` (dev)
 - Auth token `localStorage`'da — production'da httpOnly cookie'ye geçilecek
+
+---
+
+## Hafta 11 — Uçtan Uca Test & Hata Giderme (Devam Ediyor)
+
+### Tamamlanan İşler
+- Branch: `berat/feature/week11-testing` (develop'tan, CRM + AI branch'ları merge edildi)
+- **Backend Test Suite (PHPUnit):** 9 test dosyası (~80 test)
+  - Factory'ler: WatchFactory, CustomerFactory, InvoiceFactory
+  - Feature testler: WatchCrud, CustomerCrud, Invoice, Dashboard, Settings, Chrono24Feed, Webhook, HealthCheck
+  - Unit testler: InventoryStateMachine (11 test — tüm geçerli/geçersiz geçişler)
+  - Model'lere HasFactory trait eklendi (Watch, Customer, Invoice, Dealer)
+- **Frontend Test Suite (Vitest):** 12 test dosyası, 63 test (tamamı geçiyor)
+  - Store testleri: auth, inventory, notification, platform, toast (5 dosya, 37 test)
+  - Bileşen testleri: AuthGuard, EmptyState, ErrorBoundary, StatusBadge, SyncStatusBadges, TableSkeleton, WatchFilters (7 dosya, 26 test)
+  - Setup: Vitest + @testing-library/react + jsdom, Next.js mock'ları
+- **E2E Altyapısı (Playwright):** Config + Chromium + 3 spec dosyası
+  - auth.spec.ts (login/register render, validation, navigation)
+  - navigation.spec.ts (protected route redirect)
+  - visual.spec.ts (layout, responsive, input types)
+
+### Kalan İşler
+- [ ] Bug bash — backend + frontend testleri çalıştır, hataları düzelt
+- [ ] AI servis testleri (SAM 2, LLM, scraping)
+- [ ] UI/UX son dokunuşlar (mikro-animasyonlar, transition, empty state illüstrasyonları)
+
+### Yeni Dosyalar (Hafta 11)
+```
+backend/database/factories/WatchFactory.php
+backend/database/factories/CustomerFactory.php
+backend/database/factories/InvoiceFactory.php
+backend/tests/Feature/WatchCrudTest.php
+backend/tests/Feature/CustomerCrudTest.php
+backend/tests/Feature/InvoiceTest.php
+backend/tests/Feature/DashboardTest.php
+backend/tests/Feature/SettingsTest.php
+backend/tests/Feature/Chrono24FeedTest.php
+backend/tests/Feature/WebhookTest.php
+backend/tests/Feature/HealthCheckTest.php
+backend/tests/Unit/InventoryStateMachineTest.php
+frontend/vitest.config.ts
+frontend/playwright.config.ts
+frontend/src/__tests__/setup.tsx
+frontend/src/__tests__/stores/authStore.test.ts
+frontend/src/__tests__/stores/inventoryStore.test.ts
+frontend/src/__tests__/stores/notificationStore.test.ts
+frontend/src/__tests__/stores/platformStore.test.ts
+frontend/src/__tests__/stores/toastStore.test.ts
+frontend/src/__tests__/components/AuthGuard.test.tsx
+frontend/src/__tests__/components/EmptyState.test.tsx
+frontend/src/__tests__/components/ErrorBoundary.test.tsx
+frontend/src/__tests__/components/StatusBadge.test.tsx
+frontend/src/__tests__/components/SyncStatusBadges.test.tsx
+frontend/src/__tests__/components/TableSkeleton.test.tsx
+frontend/src/__tests__/components/WatchFilters.test.tsx
+frontend/e2e/auth.spec.ts
+frontend/e2e/navigation.spec.ts
+frontend/e2e/visual.spec.ts
+```
 
 ---
 
