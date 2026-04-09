@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chrono24FeedController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DescriptionController;
 use App\Http\Controllers\Api\EbayController;
+use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\WatchController;
 use App\Http\Controllers\Api\WebhookController;
@@ -81,4 +83,18 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::post('/ai/segment', [AiController::class, 'segment']);
     Route::post('/ai/replace-background', [AiController::class, 'replaceBackground']);
     Route::get('/ai/health', [AiController::class, 'health']);
+
+    // AI Text Generation
+    Route::post('/ai/generate-description', [DescriptionController::class, 'generate']);
+    Route::post('/watches/{id}/generate-description', [DescriptionController::class, 'generateForWatch']);
+
+    // Market Scanner
+    Route::get('/market/prices/{ref}', [MarketController::class, 'prices']);
+    Route::get('/market/competitors/{ref}', [MarketController::class, 'competitors']);
+    Route::post('/market/scan', [MarketController::class, 'scan']);
+
+    // Price Alerts
+    Route::get('/price-alerts', [MarketController::class, 'alertIndex']);
+    Route::post('/price-alerts', [MarketController::class, 'alertStore']);
+    Route::delete('/price-alerts/{id}', [MarketController::class, 'alertDestroy']);
 });

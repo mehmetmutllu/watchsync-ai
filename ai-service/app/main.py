@@ -5,6 +5,7 @@ import os
 
 from app.config import get_settings
 from app.routers import ai
+from app.routers import scraping
 
 settings = get_settings()
 
@@ -38,6 +39,7 @@ def create_app() -> FastAPI:
 
     # Routers
     application.include_router(ai.router, prefix="/api/ai", tags=["AI"])
+    application.include_router(scraping.router, prefix="/api/scraping", tags=["Scraping"])
 
     @application.get("/health")
     async def health_check():
