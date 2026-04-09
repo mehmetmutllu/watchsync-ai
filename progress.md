@@ -62,86 +62,120 @@
   - [x] Demo kullanıcı ve demo saatler
 
 #### Junior (J) — Dashboard UI
-- [ ] KPI Kartları bileşeni
-  - [ ] Total Inventory Value kartı
-  - [ ] Sold This Month kartı
-  - [ ] Pending Syncs kartı
-  - [ ] Sync Success Rate kartı
-- [ ] Login sayfası
-  - [ ] Form yapısı (React Hook Form + Zod)
-  - [ ] API bağlantısı
-  - [ ] Hata gösterimi
-- [ ] Register sayfası
-- [ ] Dashboard → API bağlantısı (`GET /api/dashboard/stats`)
-- [ ] Auth store (Zustand) kurulumu
+- [x] KPI Kartları bileşeni
+  - [x] Total Inventory Value kartı
+  - [x] Sold This Month kartı
+  - [x] Pending Syncs kartı
+  - [x] Sync Success Rate kartı
+- [x] Login sayfası
+  - [x] Form yapısı (React Hook Form + Zod)
+  - [x] API bağlantısı
+  - [x] Hata gösterimi
+- [x] Register sayfası
+- [x] Dashboard → API bağlantısı (`GET /api/dashboard/stats`)
+- [x] Auth store (Zustand) kurulumu
 
 ---
 
 ### 📦 Hafta 3: Envanter CRUD & Tablo UI
 
 #### Senior (S) — Watch CRUD API
-- [ ] `GET /api/watches` — sayfalama + filtreleme + sıralama
-- [ ] `POST /api/watches` — yeni saat ekleme
-- [ ] `GET /api/watches/{id}` — saat detayı
-- [ ] `PUT /api/watches/{id}` — saat güncelleme
-- [ ] `DELETE /api/watches/{id}` — saat silme
-- [ ] `POST /api/watches/{id}/images` — görsel yükleme
-- [ ] `DELETE /api/watches/{id}/images/{imageId}` — görsel silme
-- [ ] S3/MinIO entegrasyonu — görsel depolama
-- [ ] Thumbnail oluşturma (intervention/image)
-- [ ] Envanter durum makinesi (State Machine)
-  - [ ] `draft → active → reserved → sold` geçişleri
-  - [ ] `active → maintenance` geçişi
-  - [ ] Durum geçiş kuralları ve validasyonu
+- [x] `GET /api/watches` — sayfalama + filtreleme + sıralama
+- [x] `POST /api/watches` — yeni saat ekleme
+- [x] `GET /api/watches/{id}` — saat detayı
+- [x] `PUT /api/watches/{id}` — saat güncelleme
+- [x] `DELETE /api/watches/{id}` — saat silme
+- [x] `POST /api/watches/{id}/images` — görsel yükleme
+- [x] `DELETE /api/watches/{id}/images/{imageId}` — görsel silme
+- [x] S3/MinIO entegrasyonu — görsel depolama (local disk + S3 hazır)
+- [x] Thumbnail oluşturma (GD ile 300x300)
+- [x] Envanter durum makinesi (State Machine)
+  - [x] `draft → active → reserved → sold` geçişleri
+  - [x] `active → maintenance` geçişi
+  - [x] Durum geçiş kuralları ve validasyonu
 
 #### Junior (J) — Envanter UI
-- [ ] Envanter Tablosu bileşeni
-  - [ ] Sütunlar: Thumbnail, Marka/Model, Ref No, Durum, Maliyet, Pazar Fiyatı
-  - [ ] Platform toggle switch'leri (eBay, Chrono24, Shopify)
-  - [ ] Satır seçimi (checkbox)
-  - [ ] Sıralama (sort) fonksiyonu
-  - [ ] Sayfalama bileşeni
-- [ ] Saat Ekleme/Düzenleme Formu
-  - [ ] Adım 1: Marka & Model seçimi
-  - [ ] Adım 2: Detaylar (referans no, yıl, durum, kasa malzemesi vs.)
-  - [ ] Adım 3: Fiyatlandırma (maliyet, satış fiyatı)
-  - [ ] Adım 4: Görseller (sürükle-bırak yükleme)
-  - [ ] Zod validasyon şeması
-- [ ] Optimistic update mekanizması
-- [ ] Boş durum (empty state) bileşeni
-- [ ] Loading skeleton'lar
+- [x] Envanter Tablosu bileşeni
+  - [x] Sütunlar: Thumbnail, Marka/Model, Ref No, Durum, Maliyet, Pazar Fiyatı
+  - [x] Platform toggle switch'leri (eBay, Chrono24, Shopify) — Hafta 5'te eklendi
+  - [x] Satır seçimi (checkbox)
+  - [x] Sıralama (sort) fonksiyonu
+  - [x] Sayfalama bileşeni
+- [x] Saat Ekleme/Düzenleme Formu
+  - [x] Adım 1: Marka & Model seçimi
+  - [x] Adım 2: Detaylar (referans no, yıl, durum, kasa malzemesi vs.)
+  - [x] Adım 3: Fiyatlandırma (maliyet, satış fiyatı)
+  - [x] Adım 4: Görseller (sürükle-bırak yükleme)
+  - [x] Zod validasyon şeması
+- [x] Optimistic update mekanizması
+- [x] Boş durum (empty state) bileşeni
+- [x] Loading skeleton'lar
 
 ---
 
 ### 🔒 Hafta 4: Redis Lock & Kuyruk Mimarisi
 
 #### Senior (S) — Kilit & Kuyruk
-- [ ] Redis Mutex implementasyonu
-  - [ ] `Redis::lock('inventory_update_'.$sku, 10)->block(5)`
-  - [ ] Kilit edinme başarısız → LockTimeoutException handling
-  - [ ] Redlock algoritması değerlendirmesi
-- [ ] RabbitMQ Job yapısı
-  - [ ] `SyncInventoryJob` — platform stoku güncelleme
-  - [ ] `UpdatePlatformStockJob` — belirli platform stok 0'lama
-  - [ ] `ProcessWebhookJob` — gelen webhook işleme
-  - [ ] Retry mekanizması (max 3 deneme, exponential backoff)
-  - [ ] Dead-letter queue yapılandırması
-- [ ] Entegrasyon testi: eşzamanlı sipariş simülasyonu
-  - [ ] 10 eşzamanlı istek → yalnızca 1 başarılı
-  - [ ] Diğer 9'un doğru hata kodu alması
+- [x] Redis Mutex implementasyonu
+  - [x] `Redis::lock('inventory_update_'.$sku, 10)->block(5)`
+  - [x] Kilit edinme başarısız → LockTimeoutException handling (409 Conflict response)
+  - [x] `InventoryLockService` — `executeWithLock()` ve `safeStatusTransition()` metodları
+- [x] Redis Job yapısı
+  - [x] `SyncInventoryJob` — platform stoku güncelleme (WithoutOverlapping middleware)
+  - [x] `UpdatePlatformStockJob` — belirli platform stok 0'lama
+  - [x] `ProcessWebhookJob` — gelen webhook işleme (order.created, order.cancelled, stock.updated)
+  - [x] Retry mekanizması (max 3 deneme, exponential backoff: 5s, 30s, 120s)
+  - [x] Dead-letter queue — `failed()` metodu ile kalıcı hata loglaması
+- [x] `SyncStatusUpdated` event — broadcasting desteği hazır
+- [x] `GET /api/dashboard/activities` — polling destekli aktivite feed endpoint'i
+- [x] Entegrasyon testi: eşzamanlı sipariş simülasyonu
+  - [x] 10 eşzamanlı istek → yalnızca 1 başarılı
+  - [x] Diğer 9'un doğru hata kodu alması (ValidationException)
+  - [x] API 409 Conflict testi (kilit varken)
+  - [x] Durum geçiş geçmişi kaydı testi
 
 #### Junior (J) — Gerçek Zamanlı UI
-- [ ] Aktivite Feed tablosu (Dashboard)
-  - [ ] WebSocket/Pusher bağlantısı
-  - [ ] `SyncStatusUpdated` event dinleme
-  - [ ] Gerçek zamanlı satır ekleme animasyonu
-- [ ] Market Scanner sayfa iskeleti
-  - [ ] Fiyat trendi grafik alanı (placeholder)
-  - [ ] Rakip fiyat tablosu (placeholder)
-- [ ] UI Polish
-  - [ ] Loading skeleton bileşenleri (tablo, kart, form)
-  - [ ] Error boundary bileşeni
-  - [ ] Toast notification bileşeni
+- [x] Aktivite Feed tablosu (Dashboard)
+  - [x] Polling tabanlı gerçek zamanlı güncelleme (10s interval)
+  - [x] `ActivityFeed` bileşeni — `since` parametreli differential fetch
+  - [x] Gerçek zamanlı satır ekleme animasyonu (slide-up + highlight)
+  - [x] Live indicator (yeşil ping dot)
+- [x] Market Scanner sayfa iskeleti
+  - [x] Fiyat trendi grafik alanı (SVG placeholder + period selector)
+  - [x] Rakip fiyat tablosu (5 satır örnek veri)
+  - [x] Arama ve filtre UI (disabled, Hafta 8'de aktif)
+- [x] UI Polish
+  - [x] Error boundary bileşeni (retry desteği, dev-mode hata detayı)
+  - [x] Toast notification sistemi (Zustand store + ToastContainer)
+  - [x] 4 toast tipi: success, error, warning, info
+
+---
+
+## 🔍 Ara Audit — Güvenlik, Performans, SEO (2026-04-07)
+
+- [x] Registration bug fix (password_confirmation gönderilmiyordu)
+- [x] CORS kısıtlaması (`*` → `env('FRONTEND_URL')`)
+- [x] Auth rate limiting (login: 10/dk, register: 5/dk)
+- [x] Sanctum token 24 saat expiration
+- [x] Debug error leak kaldırıldı
+- [x] LIKE wildcard injection escape
+- [x] Dashboard query parameters validasyonu
+- [x] Security headers (X-Frame-Options, X-Content-Type-Options, vb.)
+- [x] Dashboard stats: 6 sorgu → 1 aggregate query
+- [x] DB performans indexleri eklendi (5 index)
+- [x] Image upload N+1 düzeltildi
+- [x] ActivityFeed: tab visibility polling
+- [x] WatchFormModal: memory leak fix
+- [x] `robots.txt`, `sitemap.ts`, OG/Twitter meta tags
+- [x] `lang="tr"`, title template, auth sayfaları noindex
+- [x] `$failOnTimeout` type fix, unused code cleanup, type-safe error handling
+
+### Bekleyen Güvenlik / Production Hazırlık Görevleri
+- [ ] Auth token: `localStorage` → `httpOnly cookie` geçişi (production güvenliği)
+- [ ] `Content-Security-Policy` header (production domain belirlendikten sonra)
+- [ ] `favicon.ico` ve `apple-touch-icon` tasarımı ve eklenmesi
+- [ ] FormRequest `authorize()` → role-based yetkilendirme (owner/manager/staff)
+- [ ] ProcessWebhookJob: platform/dealer ownership doğrulaması
 
 ---
 
@@ -150,71 +184,86 @@
 ### 🔗 Hafta 5: Chrono24 & eBay Bağlantıları
 
 #### Senior (S) — API Entegrasyonları
-- [ ] Chrono24 XML Feed
-  - [ ] `GET /api/feeds/chrono24.xml` endpoint'i
-  - [ ] Zorunlu XML düğümleri: `<article_id>`, `<price>`, `<Manufacturer>`, `<Model name>`, `<Production year>`, `<Condition>`, `<Scope of delivery>`, `<Case material>`, `<Bracelet/strap material>`, `<Dial color>`, `<Winding mechanism>`, `<Description>`, `<Photos>`
-  - [ ] IP Whitelist middleware
-  - [ ] XML şema validasyonu
-- [ ] eBay OAuth 2.0
-  - [ ] Authorization Code Grant akışı
-  - [ ] Callback handler (`/api/ebay/callback`)
-  - [ ] Access Token & Refresh Token depolama
-  - [ ] Token yenileme cron job'u
-  - [ ] eBay Sandbox test ortamı yapılandırması
-- [ ] eBay Taxonomy API
-  - [ ] `getItemAspectsForCategory(281)` entegrasyonu
-  - [ ] Zorunlu alan eşleştirme motoru
-  - [ ] Authenticity Guarantee uyumluluk kontrolleri
+- [x] Chrono24 XML Feed
+  - [x] `GET /api/feeds/chrono24.xml` endpoint'i
+  - [x] Zorunlu XML düğümleri: `<article_id>`, `<price>`, `<Manufacturer>`, `<Model name>`, `<Production year>`, `<Condition>`, `<Scope of delivery>`, `<Case material>`, `<Bracelet/strap material>`, `<Dial color>`, `<Winding mechanism>`, `<Description>`, `<Photos>`
+  - [x] IP Whitelist middleware
+  - [x] XML şema validasyonu
+- [x] eBay OAuth 2.0
+  - [x] Authorization Code Grant akışı
+  - [x] Callback handler (`/api/ebay/callback`)
+  - [x] Access Token & Refresh Token depolama
+  - [x] Token yenileme cron job'u
+  - [x] eBay Sandbox test ortamı yapılandırması
+- [x] eBay Taxonomy API
+  - [x] `getItemAspectsForCategory(281)` entegrasyonu
+  - [x] Zorunlu alan eşleştirme motoru
+  - [x] Authenticity Guarantee uyumluluk kontrolleri
 
 #### Junior (J) — Platform Ayarları UI
-- [ ] Platform Ayarları sayfası
-  - [ ] eBay bağlantı kartı ("Bağlan" butonu + durum göstergesi)
-  - [ ] Chrono24 bağlantı kartı (durum göstergesi, IP bilgisi)
-  - [ ] Shopify bağlantı kartı
-  - [ ] API anahtarı giriş formları
-- [ ] eBay OAuth UI akışı
-  - [ ] "eBay'e Bağlan" butonu → OAuth popup
-  - [ ] Callback başarı/hata geri bildirimi
-  - [ ] Bağlantı durumu göstergesi (yeşil/kırmızı dot)
-- [ ] Platform toggle fonksiyonelliği (envanter tablosunda)
-  - [ ] Toggle → API çağrısı → senkronizasyon tetikleme
-  - [ ] Toggle durumu güncelleme (optimistic)
+- [x] Platform Ayarları sayfası
+  - [x] eBay bağlantı kartı ("Bağlan" butonu + durum göstergesi)
+  - [x] Chrono24 bağlantı kartı (durum göstergesi, IP bilgisi)
+  - [x] Shopify bağlantı kartı
+  - [x] API anahtarı giriş formları
+- [x] eBay OAuth UI akışı
+  - [x] "eBay'e Bağlan" butonu → OAuth popup
+  - [x] Callback başarı/hata geri bildirimi
+  - [x] Bağlantı durumu göstergesi (yeşil/kırmızı dot)
+- [x] Platform toggle fonksiyonelliği (envanter tablosunda)
+  - [x] Toggle → API çağrısı → senkronizasyon tetikleme
+  - [x] Toggle durumu güncelleme (optimistic)
 
 ---
 
 ### 🛒 Hafta 6: eBay Listeleme & Shopify
 
 #### Senior (S) — Listeleme Motor'ları
-- [ ] eBay Inventory API entegrasyonu
-  - [ ] `createOrReplaceInventoryItem` — ürün oluşturma
-  - [ ] `createOffer` — teklif oluşturma
-  - [ ] `publishOffer` — yayınlama
-  - [ ] Authenticity Guarantee zorunlu alan eşleştirmesi
-  - [ ] Hata yönetimi ve retry mantığı
-- [ ] Shopify Admin API (GraphQL)
-  - [ ] `productCreate` mutation
-  - [ ] `productUpdate` mutation
-  - [ ] `inventoryAdjustQuantities` mutation
-  - [ ] Webhook abonelikleri (sipariş, stok)
-- [ ] Webhook dinleyicileri
-  - [ ] eBay sipariş bildirimi → stok kilitleme
-  - [ ] Shopify sipariş bildirimi → stok kilitleme
-  - [ ] Webhook imza doğrulaması
+- [x] eBay Inventory API entegrasyonu
+  - [x] `createOrReplaceInventoryItem` — ürün oluşturma
+  - [x] `createOffer` — teklif oluşturma
+  - [x] `publishOffer` — yayınlama
+  - [x] Authenticity Guarantee zorunlu alan eşleştirmesi
+  - [x] Hata yönetimi ve retry mantığı
+- [x] Shopify Admin API (GraphQL)
+  - [x] `productCreate` mutation
+  - [x] `productUpdate` mutation
+  - [x] `inventoryAdjustQuantities` mutation
+  - [x] Webhook abonelikleri (sipariş, stok)
+- [x] Webhook dinleyicileri
+  - [x] eBay sipariş bildirimi → stok kilitleme
+  - [x] Shopify sipariş bildirimi → stok kilitleme
+  - [x] Webhook imza doğrulaması
+
+#### Hafta 6 Tamamlama Görevleri (İyileştirme)
+- [ ] Platform referans ID'leri migration (`platform_connections.settings` veya `watches` tablosuna `ebay_listing_id`, `ebay_offer_id`, `shopify_product_id`, `shopify_variant_id`)
+- [ ] eBay listing güncelleme (fiyat/stok değiştiğinde mevcut listing update)
+- [ ] eBay listing kaldırma (`withdrawOffer`) metodu — toggle off yapıldığında
+- [ ] Shopify product silme (`productDelete`) metodu — toggle off yapıldığında
+- [ ] Shopify/eBay rate limiting yönetimi (API throttle handling + retry)
+- [ ] `toggleSync` endpoint'inde `enabled: false` → platformdan listing kaldırma
+- [ ] SyncStatusBadges N+1 sorunu: sync status verisini `GET /api/watches` tablo API'sine dahil et
+- [ ] BulkActions: gerçek ilerleme yüzdesi (polling ile job durumu takibi)
+- [ ] BulkActions: publish sonrası envanter tablosu otomatik yenileme
+- [ ] NotificationDrawer: tek bildirim okundu işaretleme
+- [ ] NotificationDrawer: bildirime tıklayınca ilgili saate yönlendirme
+- [ ] Webhook subscription otomasyonu (platform bağlantısı kurulunca otomatik kayıt)
 
 #### Junior (J) — Senkronizasyon UI
-- [ ] Senkronizasyon durum göstergeleri
-  - [ ] `Synced ✓` (yeşil badge)
-  - [ ] `Pending ⏳` (turuncu badge)
-  - [ ] `Error ✗` (kırmızı badge + hata detayı tooltip)
-- [ ] Toplu İşlem (Bulk Actions) UI
-  - [ ] Çoklu saat seçimi
-  - [ ] "Hepsini eBay'e Yayınla" aksiyonu
-  - [ ] "Hepsini Chrono24'e Yayınla" aksiyonu
-  - [ ] İlerleme çubuğu (progress bar) gösterimi
-- [ ] Bildirim sistemi
-  - [ ] Toast notification bileşeni (başarı, hata, uyarı, bilgi)
-  - [ ] Bildirim çekmecesi (notification drawer)
-  - [ ] Okunmamış bildirim sayacı (TopBar badge)
+- [x] Senkronizasyon durum göstergeleri
+  - [x] `Synced ✓` (yeşil badge)
+  - [x] `Pending ⏳` (turuncu badge)
+  - [x] `Error ✗` (kırmızı badge + hata detayı tooltip)
+- [x] Toplu İşlem (Bulk Actions) UI
+  - [x] Çoklu saat seçimi
+  - [x] "Hepsini eBay'e Yayınla" aksiyonu
+  - [x] "Hepsini Chrono24'e Yayınla" aksiyonu
+  - [x] İlerleme çubuğu (progress bar) gösterimi
+- [x] Bildirim sistemi
+  - [x] Toast notification bileşeni (başarı, hata, uyarı, bilgi)
+  - [x] Bildirim çekmecesi (notification drawer)
+  - [x] Okunmamış bildirim sayacı (TopBar badge)
+- [x] 3 nokta (İşlem) menüsü — fixed pozisyon düzeltmesi (overflow-hidden sorunu çözüldü)
 
 ---
 
@@ -238,9 +287,13 @@
 - [ ] Laravel → FastAPI iletişim katmanı
   - [ ] HTTP istemci servisi
   - [ ] Asenkron job entegrasyonu
+- [ ] Docker Compose'a FastAPI servis container eklenmesi
+- [ ] FastAPI Dockerfile oluşturulması
+- [ ] SAM 2 model ağırlıklarının indirilmesi ve volume mount'u
+- [ ] Laravel proxy endpoint: `POST /api/watches/{id}/ai-enhance` → FastAPI forward
 
 #### Junior (J) — AI Studio UI
-- [ ] AI Studio sayfası — Split layout
+- [ ] AI Studio sayfası route'u: `/dashboard/ai-studio`
   - [ ] Sol panel: yüksek çözünürlüklü görsel önizleme
   - [ ] Sağ panel: saat bilgi formu + AI araçları
 - [ ] "AI Enhance (Preserve Original)" butonu
@@ -273,6 +326,12 @@
 - [ ] Fine-tuning hazırlığı
   - [ ] Saat katalog verilerinden eğitim seti oluşturma
   - [ ] Veri temizleme ve formatlandırma scripti
+- [ ] LLM API anahtarı yapılandırması (`.env` + `config/services.php`)
+- [ ] Fiyat geçmişi veritabanı tablosu migration'ı (`price_histories`)
+- [ ] Fiyat uyarı tablosu migration'ı (`price_alerts`)
+- [ ] Fiyat uyarı CRUD API endpoint'leri
+- [ ] Scraping servisi rate limiting ve proxy yönetimi
+- [ ] AI metin üretimi prompt template'leri (çok dilli: EN, DE, TR)
 
 #### Junior (J) — Scanner & Metin UI
 - [ ] AI Açıklama Üretimi UI
@@ -305,7 +364,7 @@
   - [ ] Notlar ve etiketleme sistemi
   - [ ] Müşteri arama ve filtreleme
 - [ ] Fatura motoru
-  - [ ] `invoices` tablosu migration
+  - [ ] `invoices` + `invoice_items` tablosu migration
   - [ ] PDF fatura oluşturma (DomPDF/Snappy)
   - [ ] Yasal uyumluluk: KDV hesaplama, fatura numarası sıralaması
   - [ ] `GET /api/invoices/{id}/pdf` — PDF indirme
@@ -315,6 +374,7 @@
   - [ ] Fatura gönderim e-postası
   - [ ] Stok uyarı e-postası
   - [ ] Laravel Notification + Mail yapılandırması
+  - [ ] E-posta template'leri (Blade veya Markdown)
 
 #### Junior (J) — CRM & Fatura UI
 - [ ] CRM sayfası
@@ -333,6 +393,12 @@
   - [ ] Bildirim tercihleri toggle'ları
   - [ ] API anahtarları yönetimi sayfası
   - [ ] Şirket bilgileri (fatura için)
+- [ ] **Platform "Nasıl Bağlanılır" Yardım Modal'ları**
+  - [ ] Her PlatformCard'a `?` yardım ikonu butonu
+  - [ ] eBay: Developer hesap → App oluşturma → OAuth URI → Sandbox test adımları
+  - [ ] Chrono24: Dealer başvurusu → IP Whitelist → XML Feed URL bildirimi adımları
+  - [ ] Shopify: Custom App oluşturma → Admin API scope'ları → Shop domain adımları
+  - [ ] Bağlantı testi butonu ("Test Connection" — credential sonrası doğrulama)
 
 ---
 
@@ -350,7 +416,9 @@
   - [ ] Laravel Telescope kurulumu
   - [ ] Laravel Horizon kurulumu (kuyruk izleme)
   - [ ] Yavaş sorgu tespiti ve indeksleme optimizasyonu
-  - [ ] Hata takibi (Sentry entegrasyonu)
+  - [ ] Hata takibi (Sentry entegrasyonu — Laravel + Next.js)
+  - [ ] Health check endpoint'leri (`/api/health`, `/api/health/db`, `/api/health/redis`)
+  - [ ] API response cache header'ları (`Cache-Control`, `ETag`)
 - [ ] Yük testi
   - [ ] k6/Artillery ile 100 eşzamanlı kullanıcı simülasyonu
   - [ ] Darboğaz tespiti ve iyileştirme
@@ -360,7 +428,7 @@
 - [ ] Lighthouse performans optimizasyonu
   - [ ] Lazy loading (route bazlı code splitting)
   - [ ] Image optimization (next/image)
-  - [ ] Bundle boyutu analizi ve azaltma
+  - [ ] Bundle boyutu analizi ve azaltma (`@next/bundle-analyzer`)
   - [ ] Critical CSS extraction
 - [ ] Erişilebilirlik (a11y) denetimi
   - [ ] ARIA label'lar → tüm interaktif elemanlar
@@ -369,9 +437,35 @@
   - [ ] Screen reader uyumluluğu
 - [ ] Responsive tasarım denetimi
   - [ ] 320px (mobil küçük)
+    - [ ] Sidebar → hamburger menü (off-canvas)
+    - [ ] WatchTable → card layout'a dönüşüm (mobilde tablo yerine kart)
+    - [ ] WatchFormModal → full-screen modal
+    - [ ] Dashboard KPI kartları → 1 sütun, yatay scroll
+    - [ ] TopBar → kompakt versiyon (logo + hamburger + bildirim)
+    - [ ] BulkActions → alt sabit bar (sticky bottom)
+    - [ ] NotificationDrawer → full-screen overlay
+    - [ ] Settings PlatformCard → tam genişlik, stack layout
+    - [ ] Filtreler → collapsible (daraltılabilir) panel
+    - [ ] Sayfalama → basitleştirilmiş (önceki/sonraki)
   - [ ] 768px (tablet)
+    - [ ] Sidebar → daraltılmış (icon-only) varsayılan
+    - [ ] WatchTable → yatay scroll + sabit sol sütun (sticky brand col)
+    - [ ] Dashboard grid → 2 sütun
+    - [ ] WatchFormModal → max-width: 600px centered
+    - [ ] AI Studio → stacked layout (alt-üst)
   - [ ] 1024px (masaüstü)
+    - [ ] Sidebar → genişletilmiş varsayılan
+    - [ ] Tüm paneller standart genişlikte
   - [ ] 1440px+ (geniş ekran)
+    - [ ] Max-content genişliği (merkez hizalı)
+    - [ ] Dashboard → 4 sütun KPI kartları
+  - [ ] Touch & gesture desteği
+    - [ ] Swipe-to-delete (mobilde saat kartlarında)
+    - [ ] Pull-to-refresh (mobilde envanter listesinde)
+    - [ ] Touch-friendly buton boyutları (min 44x44px tap target)
+  - [ ] Responsive test otomasyonu
+    - [ ] Playwright viewport testleri (320, 768, 1024, 1440)
+    - [ ] Görsel regresyon testi (screenshot karşılaştırma)
 
 ---
 
@@ -393,9 +487,16 @@
   - [ ] LLM açıklama üretim testleri
   - [ ] Scraping pipeline testleri
 - [ ] Bug bash — kritik hataların giderilmesi
+- [ ] Platform CRUD endpoint testleri
+- [ ] Bulk publish endpoint testleri
+- [ ] Notification endpoint testleri
+- [ ] Webhook imza doğrulaması testleri
 
 #### Junior (J) — Frontend Testleri & Polish
-- [ ] E2E test suite (Cypress/Playwright)
+- [ ] Frontend test altyapısı kurulumu (Vitest + React Testing Library)
+- [ ] Birim testler: AuthGuard, WatchFormModal, BulkActions, PlatformCard, StatusBadge
+- [ ] E2E test altyapısı kurulumu (Playwright config + fixtures)
+- [ ] E2E test suite
   - [ ] Kullanıcı giriş akışı
   - [ ] Saat ekleme akışı (form → kaydet → listede göster)
   - [ ] Platform yayınlama akışı (toggle → senkronizasyon)
@@ -431,8 +532,10 @@
   - [ ] DNS yapılandırması
   - [ ] Veritabanı migration'ı
   - [ ] Monitoring & alerting (uptime, error rate)
-  - [ ] Yedekleme (backup) stratejisi
+  - [ ] Yedekleme (backup) stratejisi + cron job yapılandırması
   - [ ] Log yönetimi (log rotation, centralized logging)
+  - [ ] `.env.production` template'i
+  - [ ] Database seed stratejisi (production için temiz seed vs. migration-only)
 - [ ] **🚀 GO-LIVE**
 
 #### Junior (J) — Dokümantasyon & Landing

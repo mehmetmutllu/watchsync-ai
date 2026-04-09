@@ -22,6 +22,14 @@ class WatchImage extends Model
         ];
     }
 
+    /**
+     * Thumbnail yolunu döner.
+     */
+    public function getThumbnailUrlAttribute(): string
+    {
+        return dirname($this->image_url) . '/thumbnails/' . basename($this->image_url);
+    }
+
     // ─── Relationships ─────────────────────────────────────────
 
     public function watch(): BelongsTo

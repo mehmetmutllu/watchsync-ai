@@ -14,6 +14,9 @@ class PlatformConnection extends Model
         'api_key',
         'api_secret',
         'access_token',
+        'refresh_token',
+        'token_expires_at',
+        'settings',
         'status',
         'last_synced_at',
     ];
@@ -21,11 +24,38 @@ class PlatformConnection extends Model
     protected function casts(): array
     {
         return [
-            'api_key'        => 'encrypted',
-            'api_secret'     => 'encrypted',
-            'access_token'   => 'encrypted',
-            'last_synced_at' => 'datetime',
+            'api_key'          => 'encrypted',
+            'api_secret'       => 'encrypted',
+            'access_token'     => 'encrypted',
+            'refresh_token'    => 'encrypted',
+            'token_expires_at' => 'datetime',
+            'settings'         => 'array',
+            'last_synced_at'   => 'datetime',
         ];
+    }
+
+    /**
+     * Token süresi dolmuş mu?
+     */
+    public function isTokenExpired(): bool
+    {
+        if (!$this->token_expires_at) {
+            return true;
+        }
+
+        return $this->token_expires_at->isPast();
+    }
+
+    /**
+     * Token yakında (15 dk içinde) dolacak mı?
+     */
+    public function isTokenExpiringSoon(): bool
+    {
+        if (!$this->token_expires_at) {
+            return true;
+        }
+
+        return $this->token_expires_at->subMinutes(15)->isPast();
     }
 
     // ─── Relationships ─────────────────────────────────────────

@@ -20,6 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'notifications_read_at',
     ];
 
     protected $hidden = [
@@ -35,8 +36,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'email_verified_at'     => 'datetime',
+            'password'              => 'hashed',
+            'notifications_read_at' => 'datetime',
         ];
     }
 

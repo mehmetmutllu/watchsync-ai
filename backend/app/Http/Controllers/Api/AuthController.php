@@ -55,7 +55,6 @@ class AuthController extends Controller
             
             return response()->json([
                 'message' => 'Kayıt işlemi sırasında bir sunucu hatası oluştu.',
-                'error'   => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
