@@ -159,6 +159,14 @@ git pull origin develop
 ```
 > ⚠️ **Her yeni göreve başlamadan MUTLAKA bunu yap!** Yoksa eski kod üzerinde çalışırsın.
 
+#### ✅ Adım 1.5: Veritabanını güncelle (her pull sonrası)
+```bash
+cd backend
+docker compose exec laravel.test php artisan migrate
+cd ..
+```
+> ⚡ Mehmet yeni tablo veya sütun eklemiş olabilir. Bu komutu çalıştırmazsan frontend'de API hataları alabilirsin.
+
 #### ✅ Adım 2: Yeni branch oluştur
 ```bash
 git checkout -b junior/feature/gorev-adi

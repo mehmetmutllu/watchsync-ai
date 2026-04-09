@@ -37,6 +37,9 @@ ADIM 4 — Frontend'i kur:
 - Docker Desktop açık olduğu sürece backend çalışır.
 - Eğer Mac'i kapattıysan, açtığında Docker Desktop otomatik başlar ve "docker compose up -d" ile backend tekrar ayağa kalkar.
 - Port çakışması olursa (MAMP 3306 kullanıyordur): MAMP'ı kapat veya .env dosyasında FORWARD_DB_PORT=3308 yap.
+- Her "git pull origin develop" sonrası veritabanını güncelle:
+  cd backend && docker compose exec laravel.test php artisan migrate
+  (Mehmet yeni tablo/sütun eklemiş olabilir)
 
 ÖNCELİKLE:
 1. activecontext.md dosyasını oku — tamamlanan haftalar, mimari ve proje yapısını öğren
