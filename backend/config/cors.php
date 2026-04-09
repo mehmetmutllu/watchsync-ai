@@ -27,11 +27,21 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['*'],
+    'allowed_headers' => [
+        'Content-Type',
+        'X-Requested-With',
+        'Authorization',
+        'Accept',
+        'Origin',
+    ],
 
-    'exposed_headers' => [],
+    'exposed_headers' => [
+        'X-RateLimit-Limit',
+        'X-RateLimit-Remaining',
+        'Retry-After',
+    ],
 
-    'max_age' => 0,
+    'max_age' => 3600,
 
     'supports_credentials' => true,
 

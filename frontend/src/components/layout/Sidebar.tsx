@@ -45,6 +45,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
+        role="navigation"
+        aria-label="Ana menü"
         className={`
           fixed top-0 left-0 z-50 h-full
           glass-strong
@@ -74,7 +76,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav aria-label="Sayfa navigasyonu" className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -86,6 +88,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? "page" : undefined}
                 onMouseEnter={() => setHoveredItem(item.href)}
                 onMouseLeave={() => setHoveredItem(null)}
                 className={`

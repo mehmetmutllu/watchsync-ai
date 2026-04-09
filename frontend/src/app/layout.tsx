@@ -67,6 +67,12 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-midnight text-primary-text font-sans">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-accent-blue focus:text-white focus:text-sm"
+        >
+          İçeriğe geç
+        </a>
         {children}
         <ToastContainer />
       </body>

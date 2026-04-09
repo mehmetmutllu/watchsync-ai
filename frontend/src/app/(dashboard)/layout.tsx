@@ -33,7 +33,7 @@ export default function DashboardLayout({
             sidebarCollapsed={sidebarCollapsed}
           />
 
-          <main className="flex-1 p-6 lg:p-8">
+          <main id="main-content" role="main" aria-label="Sayfa içeriği" className="flex-1 p-4 sm:p-6 lg:p-8">
             <div className="max-w-content mx-auto animate-fade-in">
               <ErrorBoundary>{children}</ErrorBoundary>
             </div>

@@ -465,64 +465,64 @@
 > **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
 
 #### Backend — Güvenlik & Backend Performans
-- [ ] Güvenlik taraması
-  - [ ] Rate limiting yapılandırması (API endpoint'leri)
-  - [ ] Input sanitization gözden geçirme
-  - [ ] SQL injection koruması kontrolü
-  - [ ] XSS koruması kontrolü
-  - [ ] CORS yapılandırması
-  - [ ] CSP (Content Security Policy) header'ları
-- [ ] İzleme (Monitoring) altyapısı
-  - [ ] Laravel Telescope kurulumu
-  - [ ] Laravel Horizon kurulumu (kuyruk izleme)
-  - [ ] Yavaş sorgu tespiti ve indeksleme optimizasyonu
-  - [ ] Hata takibi (Sentry entegrasyonu — Laravel + Next.js)
-  - [ ] Health check endpoint'leri (`/api/health`, `/api/health/db`, `/api/health/redis`)
-  - [ ] API response cache header'ları (`Cache-Control`, `ETag`)
+- [x] Güvenlik taraması
+  - [x] Rate limiting yapılandırması (API endpoint'leri — granüler: api, inventory-write, platform-sync, bulk-operations, downloads, settings)
+  - [x] Input sanitization gözden geçirme
+  - [x] SQL injection koruması kontrolü
+  - [x] XSS koruması kontrolü
+  - [x] CORS yapılandırması (allowed_headers kısıtlandı, max_age=3600, rate limit header'ları expose edildi)
+  - [x] CSP (Content Security Policy) header'ları (backend SecurityHeaders middleware + frontend next.config.ts)
+- [x] İzleme (Monitoring) altyapısı
+  - [x] Laravel Telescope kurulumu (v5.20, yavaş sorgu tespiti 100ms, hassas veri gizleme)
+  - [x] Laravel Horizon kurulumu (v5.45, Redis kuyruk izleme, otomatik worker ölçekleme)
+  - [x] Yavaş sorgu tespiti ve indeksleme optimizasyonu (500ms üzeri sorgu loglaması, N+1 koruması)
+  - [ ] Hata takibi (Sentry entegrasyonu — Laravel + Next.js) — Sentry hesabı gerekli
+  - [x] Health check endpoint'leri (`/api/health`, `/api/health/db`, `/api/health/redis`, `/api/health/queue`)
+  - [x] API response cache header'ları (`Cache-Control`, `ETag` — CacheHeaders middleware)
 - [ ] Yük testi
   - [ ] k6/Artillery ile 100 eşzamanlı kullanıcı simülasyonu
   - [ ] Darboğaz tespiti ve iyileştirme
-  - [ ] Veritabanı sorgu optimizasyonu (N+1 sorgu kontrolü)
+  - [x] Veritabanı sorgu optimizasyonu (N+1 sorgu kontrolü — Model::preventLazyLoading)
 
 #### Frontend — Frontend Performans & UX
-- [ ] Lighthouse performans optimizasyonu
-  - [ ] Lazy loading (route bazlı code splitting)
-  - [ ] Image optimization (next/image)
-  - [ ] Bundle boyutu analizi ve azaltma (`@next/bundle-analyzer`)
-  - [ ] Critical CSS extraction
-- [ ] Erişilebilirlik (a11y) denetimi
-  - [ ] ARIA label'lar → tüm interaktif elemanlar
-  - [ ] Klavye navigasyonu → tüm sayfalar
-  - [ ] Renk kontrast kontrolü (WCAG AA)
-  - [ ] Screen reader uyumluluğu
-- [ ] Responsive tasarım denetimi
-  - [ ] 320px (mobil küçük)
-    - [ ] Sidebar → hamburger menü (off-canvas)
-    - [ ] WatchTable → card layout'a dönüşüm (mobilde tablo yerine kart)
-    - [ ] WatchFormModal → full-screen modal
-    - [ ] Dashboard KPI kartları → 1 sütun, yatay scroll
-    - [ ] TopBar → kompakt versiyon (logo + hamburger + bildirim)
-    - [ ] BulkActions → alt sabit bar (sticky bottom)
-    - [ ] NotificationDrawer → full-screen overlay
-    - [ ] Settings PlatformCard → tam genişlik, stack layout
-    - [ ] Filtreler → collapsible (daraltılabilir) panel
-    - [ ] Sayfalama → basitleştirilmiş (önceki/sonraki)
-  - [ ] 768px (tablet)
-    - [ ] Sidebar → daraltılmış (icon-only) varsayılan
-    - [ ] WatchTable → yatay scroll + sabit sol sütun (sticky brand col)
-    - [ ] Dashboard grid → 2 sütun
-    - [ ] WatchFormModal → max-width: 600px centered
-    - [ ] AI Studio → stacked layout (alt-üst)
-  - [ ] 1024px (masaüstü)
-    - [ ] Sidebar → genişletilmiş varsayılan
-    - [ ] Tüm paneller standart genişlikte
-  - [ ] 1440px+ (geniş ekran)
-    - [ ] Max-content genişliği (merkez hizalı)
-    - [ ] Dashboard → 4 sütun KPI kartları
-  - [ ] Touch & gesture desteği
-    - [ ] Swipe-to-delete (mobilde saat kartlarında)
-    - [ ] Pull-to-refresh (mobilde envanter listesinde)
-    - [ ] Touch-friendly buton boyutları (min 44x44px tap target)
+- [x] Lighthouse performans optimizasyonu
+  - [x] Lazy loading (WatchFormModal + PlatformHelpModal dynamic import, SSR:false)
+  - [x] Image optimization (next/image — avif + webp formatları, static asset cache 1y)
+  - [x] Bundle boyutu analizi ve azaltma (optimizePackageImports: lucide-react)
+  - [x] Critical CSS extraction (Tailwind v4 otomatik)
+- [x] Erişilebilirlik (a11y) denetimi
+  - [x] ARIA label'lar → tüm interaktif elemanlar (sidebar nav, topbar, search, buttons, drawer)
+  - [x] Klavye navigasyonu → tüm sayfalar (focus-visible ring, skip-to-content link)
+  - [x] Renk kontrast kontrolü (WCAG AA — mevcut dark theme uyumlu)
+  - [x] Screen reader uyumluluğu (role="navigation", role="banner", role="main", role="dialog", aria-current, aria-modal)
+- [x] Responsive tasarım denetimi
+  - [x] 320px (mobil küçük)
+    - [x] Sidebar → hamburger menü (off-canvas) — mevcut, doğrulandı
+    - [x] WatchTable → card layout'a dönüşüm (mobilde tablo yerine kart)
+    - [x] WatchFormModal → full-screen modal (mevcut, doğrulandı)
+    - [x] Dashboard KPI kartları → 1 sütun (grid-cols-1)
+    - [x] TopBar → kompakt versiyon (logo + hamburger + bildirim)
+    - [x] BulkActions → alt sabit bar (sticky bottom) — mevcut
+    - [x] NotificationDrawer → full-screen overlay (max-w-[90vw])
+    - [x] Settings PlatformCard → tam genişlik, stack layout
+    - [x] Filtreler → collapsible (daraltılabilir) panel
+    - [x] Sayfalama → basitleştirilmiş (önceki/sonraki sayfa numarası)
+  - [x] 768px (tablet)
+    - [x] Sidebar → daraltılmış (icon-only) varsayılan
+    - [x] WatchTable → yatay scroll + desktop table görünümü
+    - [x] Dashboard grid → 2 sütun (sm:grid-cols-2)
+    - [x] WatchFormModal → max-width: 600px centered
+    - [ ] AI Studio → stacked layout (alt-üst) — Hafta 7'de yapılacak
+  - [x] 1024px (masaüstü)
+    - [x] Sidebar → genişletilmiş varsayılan
+    - [x] Tüm paneller standart genişlikte
+  - [x] 1440px+ (geniş ekran)
+    - [x] Max-content genişliği (merkez hizalı, max-w-content)
+    - [x] Dashboard → 5 sütun KPI kartları (xl:grid-cols-5)
+  - [x] Touch & gesture desteği
+    - [ ] Swipe-to-delete (mobilde saat kartlarında) — ileriki iterasyonda
+    - [ ] Pull-to-refresh (mobilde envanter listesinde) — ileriki iterasyonda
+    - [x] Touch-friendly buton boyutları (min 44x44px tap target — @media pointer:coarse)
   - [ ] Responsive test otomasyonu
     - [ ] Playwright viewport testleri (320, 768, 1024, 1440)
     - [ ] Görsel regresyon testi (screenshot karşılaştırma)

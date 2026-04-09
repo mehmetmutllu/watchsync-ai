@@ -12,8 +12,13 @@ import {
   ExternalLink,
   HelpCircle,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import type { PlatformInfo } from '@/types';
-import PlatformHelpModal from './PlatformHelpModal';
+
+// Lazy load — modal sadece kullanıcı ? butonuna tıklayınca yüklenir
+const PlatformHelpModal = dynamic(() => import('./PlatformHelpModal'), {
+  ssr: false,
+});
 
 interface PlatformCardProps {
   platform: PlatformInfo;
