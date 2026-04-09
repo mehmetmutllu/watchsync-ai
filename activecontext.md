@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-04-09  
-> **Mevcut Faz:** FAZ 2 devam ediyor — Hafta 6 tamamlandı (iyileştirmeler dahil), Hafta 7'ye hazır  
-> **Sıradaki:** Hafta 7 — AI Görsel İşleme Mikroservisi  
+> **Son Güncelleme:** 2026-04-11  
+> **Mevcut Faz:** FAZ 3 — Hafta 11 TAMAMLANDI ✅  
+> **Sıradaki:** Hafta 12 — Staging & Lansman  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -261,6 +261,81 @@ POST   /api/notifications/read-all (auth) → tümünü okundu işaretle
 - `statefulApi()` kaldırıldı (bootstrap/app.php) — sadece token-based auth kullanılıyor
 - `.env` ayarları: `CACHE_STORE=redis`, `SESSION_DRIVER=redis`, `BCRYPT_ROUNDS=10` (dev)
 - Auth token `localStorage`'da — production'da httpOnly cookie'ye geçilecek
+
+---
+
+## Hafta 11 — Uçtan Uca Test & Hata Giderme ✅ (TAMAMLANDI)
+
+### Tamamlanan İşler
+- Branch: `berat/feature/week11-testing` (develop'tan, CRM + AI branch'ları merge edildi)
+- **Backend Test Suite (PHPUnit):** 130 test, 353 assertion — TAMAMI GEÇİYOR (1 skip: Redis health)
+  - Factory'ler: WatchFactory, CustomerFactory, InvoiceFactory
+  - Feature testler: WatchCrud, CustomerCrud, Invoice, Dashboard, Settings, Chrono24Feed, Webhook, HealthCheck, Auth
+  - Unit testler: InventoryStateMachine (11 test — tüm geçerli/geçersiz geçişler)
+  - **YENİ:** EbayIntegrationTest (11 test), ShopifyIntegrationTest (9 test), AiServiceTest (14 test)
+  - Bug bash: 128 hata → 0'a indirildi (Mass Assignment, FK constraint, Content-Type, URL encoding düzeltmeleri)
+  - InventoryLockService: Redis::lock → Cache::lock (test ortamında array driver ile çalışır)
+  - bootstrap/providers.php: Horizon/Telescope koşullu yükleme (class_exists + extension_loaded)
+  - composer.json: dont-discover (horizon, telescope)
+- **Frontend Test Suite (Vitest):** 12 test dosyası, 63 test (tamamı geçiyor)
+  - Store testleri: auth, inventory, notification, platform, toast (5 dosya, 37 test)
+  - Bileşen testleri: AuthGuard, EmptyState, ErrorBoundary, StatusBadge, SyncStatusBadges, TableSkeleton, WatchFilters (7 dosya, 26 test)
+- **E2E Altyapısı (Playwright):** Config + Chromium + 3 spec dosyası
+  - auth.spec.ts, navigation.spec.ts, visual.spec.ts
+- **AI Servis Testleri (Python):** `test_ai_endpoints.py` — SAM2, LLM, scraping pipeline mock testleri
+- **UI/UX Son Dokunuşlar:**
+  - Mikro-animasyonlar: CSS keyframes (scaleIn, bounceIn, shimmer, pageEnter) + utility classes (btn-press, card-hover, input-glow, stagger, shimmer)
+  - `PageTransition.tsx` — sayfa geçiş animasyon wrapper'ı (dashboard layout'a entegre)
+  - `EmptyState.tsx` — inline SVG saat illüstrasyonu + animasyonlar (Package ikonu yerine)
+  - `OnboardingTour.tsx` — 4 adımlı ilk kullanım rehberi (localStorage ile tek sefer gösterim)
+
+### Yeni / Değişen Dosyalar (Hafta 11)
+```
+backend/database/factories/WatchFactory.php
+backend/database/factories/CustomerFactory.php
+backend/database/factories/InvoiceFactory.php
+backend/tests/Feature/WatchCrudTest.php
+backend/tests/Feature/CustomerCrudTest.php
+backend/tests/Feature/InvoiceTest.php
+backend/tests/Feature/DashboardTest.php
+backend/tests/Feature/SettingsTest.php
+backend/tests/Feature/Chrono24FeedTest.php
+backend/tests/Feature/WebhookTest.php
+backend/tests/Feature/HealthCheckTest.php
+backend/tests/Feature/AuthTest.php (düzeltildi)
+backend/tests/Feature/InventoryLockTest.php (yeniden yazıldı — Cache::lock)
+backend/tests/Feature/EbayIntegrationTest.php (yeni — 11 test)
+backend/tests/Feature/ShopifyIntegrationTest.php (yeni — 9 test)
+backend/tests/Feature/AiServiceTest.php (yeni — 14 test)
+backend/tests/Unit/InventoryStateMachineTest.php
+backend/app/Services/InventoryLockService.php (Redis::lock → Cache::lock)
+backend/bootstrap/providers.php (koşullu Horizon/Telescope)
+backend/composer.json (dont-discover)
+ai-service/tests/test_ai_endpoints.py (yeni — Python pytest)
+frontend/vitest.config.ts
+frontend/playwright.config.ts
+frontend/src/__tests__/setup.tsx
+frontend/src/__tests__/stores/authStore.test.ts
+frontend/src/__tests__/stores/inventoryStore.test.ts
+frontend/src/__tests__/stores/notificationStore.test.ts
+frontend/src/__tests__/stores/platformStore.test.ts
+frontend/src/__tests__/stores/toastStore.test.ts
+frontend/src/__tests__/components/AuthGuard.test.tsx
+frontend/src/__tests__/components/EmptyState.test.tsx
+frontend/src/__tests__/components/ErrorBoundary.test.tsx
+frontend/src/__tests__/components/StatusBadge.test.tsx
+frontend/src/__tests__/components/SyncStatusBadges.test.tsx
+frontend/src/__tests__/components/TableSkeleton.test.tsx
+frontend/src/__tests__/components/WatchFilters.test.tsx
+frontend/e2e/auth.spec.ts
+frontend/e2e/navigation.spec.ts
+frontend/e2e/visual.spec.ts
+frontend/src/app/globals.css (animasyonlar eklendi)
+frontend/src/app/(dashboard)/layout.tsx (PageTransition + OnboardingTour)
+frontend/src/components/ui/PageTransition.tsx (yeni)
+frontend/src/components/ui/OnboardingTour.tsx (yeni)
+frontend/src/components/inventory/EmptyState.tsx (SVG illüstrasyon)
+```
 
 ---
 

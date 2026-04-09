@@ -17,24 +17,28 @@ class DemoSeeder extends Seeder
     public function run(): void
     {
         // 1. Create a Dealer
-        $dealer = Dealer::create([
-            'name'         => 'WatchSync Demo Dealer',
-            'company_name' => 'WatchSync AI Ltd.',
-            'email'        => 'contact@watchsync.ai',
-            'phone'        => '+1 234 567 8900',
-            'status'       => 'active',
-        ]);
+        $dealer = Dealer::firstOrCreate(
+            ['email' => 'contact@watchsync.ai'],
+            [
+                'name'         => 'WatchSync Demo Dealer',
+                'company_name' => 'WatchSync AI Ltd.',
+                'phone'        => '+1 234 567 8900',
+                'status'       => 'active',
+            ]
+        );
 
         // 2. Create the main Demo User
-        $user = User::create([
-            'dealer_id'         => $dealer->id,
-            'name'              => 'Demo Admin',
-            'email'             => 'demo@watchsync.ai',
-            'password'          => Hash::make('password'),
-            'role'              => 'owner',
-            'email_verified_at' => now(),
-            'remember_token'    => Str::random(10),
-        ]);
+        $user = User::firstOrCreate(
+            ['email' => 'demo@watchsync.ai'],
+            [
+                'dealer_id'         => $dealer->id,
+                'name'              => 'Demo Admin',
+                'password'          => Hash::make('password'),
+                'role'              => 'owner',
+                'email_verified_at' => now(),
+                'remember_token'    => Str::random(10),
+            ]
+        );
 
         $this->command->info("Demo User created: demo@watchsync.ai / password");
 

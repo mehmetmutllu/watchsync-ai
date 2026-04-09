@@ -71,6 +71,9 @@ export default function NotificationDrawer() {
       {/* Drawer */}
       <div
         ref={drawerRef}
+        role="dialog"
+        aria-label="Bildirimler"
+        aria-modal="true"
         className="fixed top-0 right-0 z-50 h-full w-96 max-w-[90vw] bg-surface border-l border-border-subtle shadow-2xl flex flex-col animate-slide-in-right"
       >
         {/* Header */}

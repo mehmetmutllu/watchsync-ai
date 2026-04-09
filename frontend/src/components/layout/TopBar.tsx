@@ -40,6 +40,8 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
 
   return (
     <header
+      role="banner"
+      aria-label="Üst menü"
       className={`
         sticky top-0 z-30 h-16
         glass
@@ -68,7 +70,9 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
             strokeWidth={1.5}
           />
           <input
-            type="text"
+            type="search"
+            role="searchbox"
+            aria-label="Saat, SKU veya müşteri ara"
             placeholder="Search watches, SKUs, customers..."
             className="w-64 lg:w-80 h-9 pl-10 pr-4 rounded-lg
               bg-surface text-sm text-primary-text placeholder-disabled-text

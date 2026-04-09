@@ -10,6 +10,8 @@ class Platform extends Model
 {
     protected $fillable = [
         'name',
+        'slug',
+        'is_active',
         'api_url',
     ];
 

@@ -17,6 +17,7 @@ services:
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
+            AI_SERVICE_URL: '${AI_SERVICE_URL:-http://ai-service:8001}'
         volumes:
             - '.:/var/www/html'
             - 'sail-vendor:/var/www/html/vendor'
@@ -26,6 +27,33 @@ services:
             - mysql
             - redis
             - rabbitmq
+            - ai-service
+    ai-service:
+        build:
+            context: '../ai-service'
+            dockerfile: Dockerfile
+        image: 'watchsync-ai-service'
+        ports:
+            - '${FORWARD_AI_PORT:-8001}:8001'
+        environment:
+            AI_DEBUG: '${AI_DEBUG:-true}'
+            AI_SAM2_CHECKPOINT: '/app/models/sam2_hiera_small.pt'
+            AI_SAM2_MODEL_CFG: 'sam2_hiera_s'
+        volumes:
+            - '../ai-service:/app'
+            - 'ai-models:/app/models'
+            - 'ai-outputs:/app/outputs'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - curl
+                - '-f'
+                - 'http://localhost:8001/health'
+            interval: 30s
+            retries: 3
+            timeout: 5s
     mysql:
         image: 'mysql:8.4'
         ports:
@@ -97,6 +125,10 @@ volumes:
     sail-vendor:
         driver: local
     sail-mysql:
+        driver: local
+    ai-models:
+        driver: local
+    ai-outputs:
         driver: local
     sail-redis:
         driver: local

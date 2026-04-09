@@ -86,10 +86,10 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-primary-text">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary-text">Dashboard</h1>
         <p className="mt-1 text-sm text-secondary-text">
-          Welcome back, {user?.name || "User"}. Here&apos;s your inventory
-          overview.
+          Welcome back, {user?.name || "User"}.
+          <span className="hidden sm:inline"> Here&apos;s your inventory overview.</span>
         </p>
       </div>
 

@@ -1,7 +1,11 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-
-return [
-    AppServiceProvider::class,
-];
+return array_filter([
+    App\Providers\AppServiceProvider::class,
+    class_exists(\Laravel\Horizon\HorizonApplicationServiceProvider::class) && extension_loaded('redis')
+        ? App\Providers\HorizonServiceProvider::class
+        : null,
+    class_exists(\Laravel\Telescope\TelescopeApplicationServiceProvider::class) && extension_loaded('redis')
+        ? App\Providers\TelescopeServiceProvider::class
+        : null,
+]);

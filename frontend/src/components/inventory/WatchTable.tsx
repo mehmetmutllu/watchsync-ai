@@ -120,8 +120,84 @@ export default function WatchTable({
 
   return (
     <div className="bg-surface border border-border-subtle rounded-lg overflow-hidden">
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Mobile Card View (< 768px) */}
+      <div className="md:hidden divide-y divide-border-subtle">
+        {watches.map((watch) => (
+          <div
+            key={watch.id}
+            className={`p-4 space-y-3 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+          >
+            <div className="flex items-start gap-3">
+              {/* Checkbox + Thumbnail */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(watch.id)}
+                  onChange={() => handleSelectRow(watch.id)}
+                  className="rounded border-border-strong bg-surface-elevated"
+                  aria-label={`${watch.brand} ${watch.model} seç`}
+                />
+                {watch.thumbnail_url ? (
+                  <img
+                    src={watch.thumbnail_url}
+                    alt={`${watch.brand} ${watch.model}`}
+                    className="w-12 h-12 rounded-md object-cover bg-surface-elevated"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-md bg-surface-elevated flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-disabled-text" />
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-primary-text truncate">
+                  {watch.brand} {watch.model}
+                </p>
+                <p className="text-xs font-mono text-secondary-text">
+                  {watch.reference_number || '—'} {watch.year ? `· ${watch.year}` : ''}
+                </p>
+              </div>
+
+              {/* Status + Actions */}
+              <div className="flex items-center gap-2">
+                <StatusBadge
+                  status={watch.status}
+                  onStatusChange={(newStatus) => onStatusChange(watch.id, newStatus)}
+                  allowedTransitions={watch.allowed_transitions}
+                />
+                <button
+                  onClick={(e) => openMenu(watch.id, e.currentTarget)}
+                  className="p-1.5 rounded-md hover:bg-surface-elevated transition-colors text-secondary-text"
+                  aria-label="İşlemler"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Price Row */}
+            <div className="flex items-center justify-between text-sm">
+              <div>
+                <span className="text-xs text-secondary-text">Maliyet: </span>
+                <span className="font-mono text-secondary-text">
+                  {formatPrice(watch.cost_price, watch.currency)}
+                </span>
+              </div>
+              <div>
+                <span className="text-xs text-secondary-text">Satış: </span>
+                <span className="font-mono text-primary-text font-medium">
+                  {formatPrice(watch.sale_price, watch.currency)}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table View (>= 768px) */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border-subtle">
@@ -313,21 +389,30 @@ export default function WatchTable({
       {/* Pagination */}
       {pagination.last_page > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-border-subtle">
-          <p className="text-sm text-secondary-text">
-            Toplam {pagination.total} kayıttan{' '}
+          <p className="text-xs sm:text-sm text-secondary-text">
+            <span className="hidden sm:inline">Toplam {pagination.total} kayıttan{' '}</span>
             {(pagination.current_page - 1) * pagination.per_page + 1}-
-            {Math.min(pagination.current_page * pagination.per_page, pagination.total)}{' '}
-            gösteriliyor
+            {Math.min(pagination.current_page * pagination.per_page, pagination.total)}
+            <span className="sm:hidden"> / {pagination.total}</span>
+            <span className="hidden sm:inline">{' '}gösteriliyor</span>
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => goToPage(pagination.current_page - 1)}
               disabled={pagination.current_page <= 1}
               className="p-2 rounded-md text-secondary-text hover:text-primary-text hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Önceki sayfa"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
+            {/* Mobile: sadece geçerli sayfa */}
+            <span className="sm:hidden px-3 text-sm text-primary-text">
+              {pagination.current_page} / {pagination.last_page}
+            </span>
+
+            {/* Desktop: sayfa numaraları */}
+            <span className="hidden sm:contents">
             {Array.from({ length: pagination.last_page }, (_, i) => i + 1)
               .filter((page) => {
                 const current = pagination.current_page;
@@ -359,11 +444,13 @@ export default function WatchTable({
                   </button>
                 )
               )}
+            </span>
 
             <button
               onClick={() => goToPage(pagination.current_page + 1)}
               disabled={pagination.current_page >= pagination.last_page}
               className="p-2 rounded-md text-secondary-text hover:text-primary-text hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Sonraki sayfa"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

@@ -1,15 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
 import WatchTable from '@/components/inventory/WatchTable';
 import WatchFilters from '@/components/inventory/WatchFilters';
 import EmptyState from '@/components/inventory/EmptyState';
 import TableSkeleton from '@/components/inventory/TableSkeleton';
-import WatchFormModal from '@/components/inventory/WatchFormModal';
 import BulkActions from '@/components/inventory/BulkActions';
 import { Plus } from 'lucide-react';
+
+// Ağır modal bileşenleri — lazy load (766 satır, form + validation + image upload)
+const WatchFormModal = dynamic(
+  () => import('@/components/inventory/WatchFormModal'),
+  { ssr: false }
+);
 
 export default function InventoryPage() {
   const { watches, pagination, isLoading, error, fetchWatches, deleteWatch, updateWatchStatus } =

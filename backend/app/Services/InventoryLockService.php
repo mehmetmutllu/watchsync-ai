@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Watch;
 use Illuminate\Cache\Lock;
 use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
 
 class InventoryLockService
 {
@@ -27,7 +27,7 @@ class InventoryLockService
         $lockKey = "inventory_update_{$sku}";
 
         /** @var Lock $lock */
-        $lock = Redis::lock($lockKey, $lockTtl);
+        $lock = Cache::lock($lockKey, $lockTtl);
 
         try {
             return $lock->block($blockFor, $callback);
