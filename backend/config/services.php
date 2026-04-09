@@ -74,4 +74,25 @@ return [
         'webhook_secret' => env('SHOPIFY_WEBHOOK_SECRET', ''),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | AI Service Configuration
+    |--------------------------------------------------------------------------
+    */
+    'ai' => [
+        'base_url' => env('AI_SERVICE_URL', 'http://ai-service:8001'),
+        'timeout'  => 120,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | OpenAI / LLM Configuration
+    |--------------------------------------------------------------------------
+    */
+    'openai' => [
+        'api_key'  => env('OPENAI_API_KEY', ''),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        'model'    => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    ],
+
 ];

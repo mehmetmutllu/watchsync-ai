@@ -1,12 +1,15 @@
 <?php
 
+use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chrono24FeedController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DescriptionController;
 use App\Http\Controllers\Api\EbayController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\WatchController;
@@ -115,4 +118,24 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::get('/settings/notifications', [SettingsController::class, 'getNotifications']);
         Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications']);
     });
+
+    // AI Service
+    Route::post('/watches/{id}/ai-enhance', [AiController::class, 'enhance']);
+    Route::post('/ai/segment', [AiController::class, 'segment']);
+    Route::post('/ai/replace-background', [AiController::class, 'replaceBackground']);
+    Route::get('/ai/health', [AiController::class, 'health']);
+
+    // AI Text Generation
+    Route::post('/ai/generate-description', [DescriptionController::class, 'generate']);
+    Route::post('/watches/{id}/generate-description', [DescriptionController::class, 'generateForWatch']);
+
+    // Market Scanner
+    Route::get('/market/prices/{ref}', [MarketController::class, 'prices']);
+    Route::get('/market/competitors/{ref}', [MarketController::class, 'competitors']);
+    Route::post('/market/scan', [MarketController::class, 'scan']);
+
+    // Price Alerts
+    Route::get('/price-alerts', [MarketController::class, 'alertIndex']);
+    Route::post('/price-alerts', [MarketController::class, 'alertStore']);
+    Route::delete('/price-alerts/{id}', [MarketController::class, 'alertDestroy']);
 });

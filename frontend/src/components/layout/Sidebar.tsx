@@ -13,11 +13,13 @@ import {
   ChevronRight,
   Watch,
   FileText,
+  Sparkles,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard/inventory", label: "Inventory", icon: Package },
+  { href: "/dashboard/ai-studio", label: "AI Studio", icon: Sparkles },
   { href: "/dashboard/market-scanner", label: "Market Scanner", icon: BarChart3 },
   { href: "/dashboard/crm", label: "CRM", icon: Users },
   { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
