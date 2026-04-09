@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Chrono24FeedController;
+use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EbayController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\WatchController;
 use App\Http\Controllers\Api\WebhookController;
@@ -74,4 +76,22 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::get('/notifications', [DashboardController::class, 'notifications']);
     Route::post('/notifications/read-all', [DashboardController::class, 'markAllNotificationsRead']);
     Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead']);
+
+    // Customer CRM
+    Route::get('/customers', [CustomerController::class, 'index']);
+    Route::post('/customers', [CustomerController::class, 'store']);
+    Route::get('/customers/{id}', [CustomerController::class, 'show']);
+    Route::put('/customers/{id}', [CustomerController::class, 'update']);
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+    Route::post('/customers/{id}/notes', [CustomerController::class, 'storeNote']);
+    Route::delete('/customers/{customerId}/notes/{noteId}', [CustomerController::class, 'destroyNote']);
+
+    // Invoices
+    Route::get('/invoices', [InvoiceController::class, 'index']);
+    Route::post('/invoices', [InvoiceController::class, 'store']);
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
+    Route::put('/invoices/{id}', [InvoiceController::class, 'update']);
+    Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
+    Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf']);
+    Route::post('/invoices/{id}/send', [InvoiceController::class, 'send']);
 });

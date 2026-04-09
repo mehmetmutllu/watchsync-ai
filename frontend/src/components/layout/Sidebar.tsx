@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Watch,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/dashboard/inventory", label: "Inventory", icon: Package },
   { href: "/dashboard/market-scanner", label: "Market Scanner", icon: BarChart3 },
   { href: "/dashboard/crm", label: "CRM", icon: Users },
+  { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
