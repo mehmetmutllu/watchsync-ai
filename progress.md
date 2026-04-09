@@ -179,6 +179,53 @@
 
 ---
 
+## ⚠️ AÇILMASI GEREKEN HESAPLAR & API ANAHTARLARI
+
+> **Her haftanın başında bu listeyi kontrol et. İlgili haftanın hesapları önceden hazır olmalı!**
+
+### 🔓 Hafta 5-6 — Platform Entegrasyonları (ŞİMDİ GEREKLİ)
+| Hesap/Servis | Durum | Açıklama | Link |
+|---|---|---|---|
+| eBay Developer Account | ⬜ Açılmalı | API key + secret gerekli | https://developer.ebay.com |
+| eBay Sandbox Test Account | ⬜ Açılmalı | Test kullanıcısı oluştur | eBay Developer Portal → Sandbox |
+| Shopify Partner Account | ⬜ Açılmalı | Custom App oluştur, Admin API erişimi | https://partners.shopify.com |
+| Shopify Development Store | ⬜ Açılmalı | Test mağazası (Partner hesabından ücretsiz) | Partner Dashboard → Stores |
+| Chrono24 Dealer Account | ⬜ Başvur | XML Feed erişimi için dealer başvurusu | https://www.chrono24.com/dealer |
+
+### 🤖 Hafta 7 — AI Görsel İşleme
+| Hesap/Servis | Durum | Açıklama | Link |
+|---|---|---|---|
+| SAM 2 Model | ✅ Ücretsiz | Meta'nın açık kaynak modeli, lokal çalışır | https://github.com/facebookresearch/sam2 |
+| Python 3.10+ | ⬜ Kontrol et | FastAPI servisi için gerekli | https://python.org |
+| CUDA / GPU (opsiyonel) | ⬜ Kontrol et | SAM 2 CPU'da da çalışır ama yavaş. GPU varsa CUDA kur | https://developer.nvidia.com/cuda |
+
+### 📝 Hafta 8 — AI Metin & Pazar Tarayıcı
+| Hesap/Servis | Durum | Açıklama | Link |
+|---|---|---|---|
+| OpenAI API Key | ⬜ Açılmalı | GPT-4o / GPT-4o-mini için. ~$10-20 kredi yeterli | https://platform.openai.com |
+| VEYA Groq API Key | ⬜ Alternatif | Llama-3 çalıştırmak için (ücretsiz tier mevcut) | https://console.groq.com |
+| Playwright | ⬜ Kur | Web scraping için headless browser | `pip install playwright && playwright install` |
+
+### 💰 Hafta 9 — CRM & Fatura
+| Hesap/Servis | Durum | Açıklama | Link |
+|---|---|---|---|
+| SMTP Servisi | ⬜ Açılmalı | E-posta göndermek için (Mailtrap test, production'da Mailgun/SES) | https://mailtrap.io |
+
+### 🔐 Hafta 10 — Monitoring
+| Hesap/Servis | Durum | Açıklama | Link |
+|---|---|---|---|
+| Sentry Account | ⬜ Açılmalı | Hata takibi (Laravel + Next.js). Developer tier ücretsiz | https://sentry.io |
+
+### 🚀 Hafta 12 — Production
+| Hesap/Servis | Durum | Açıklama | Link |
+|---|---|---|---|
+| Domain Name | ⬜ Satın al | watchsync.ai veya alternatif | Namecheap / Cloudflare |
+| SSL Sertifika | ✅ Ücretsiz | Let's Encrypt ile otomatik | Cloudflare veya Certbot |
+| VPS / Cloud | ⬜ Seç | DigitalOcean, Hetzner, AWS EC2 | - |
+| Google Analytics / Plausible | ⬜ Aç | Kullanıcı analitiği | https://plausible.io |
+
+---
+
 ## FAZ 2 — ENTEGRASYONLAR & YAPAY ZEKA (Hafta 5-8)
 
 ### 🔗 Hafta 5: Chrono24 & eBay Bağlantıları

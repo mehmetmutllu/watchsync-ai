@@ -309,3 +309,123 @@ git diff develop..junior/feature/gorev-adi --stat
   GitHub'da PR aç → Mehmet'i reviewer ata
   Mehmet onaylayana kadar bekle veya yeni branch'te başla
 ```
+
+---
+
+## 🤖 AI İLE ÇALIŞMA REHBERİ (Berat için)
+
+> Bu bölüm, AI asistanla (Claude / Copilot) birlikte frontend geliştirme yaparken izlenecek akışı anlatır.
+
+### 📋 Gerekli Ortam (Bir Kez Kur)
+
+1. **Git** → `git --version` ile kontrol et
+2. **Node.js 20+** → `node --version` ile kontrol et (yoksa https://nodejs.org)
+3. **VS Code** → GitHub Copilot Chat eklentisi kurulu olmalı
+4. **GitHub hesabı** → Mehmet'in davetini kabul et (e-posta veya https://github.com/notifications)
+
+### 🚀 İlk Kurulum Promptu (BİR KEZ YAPILIR)
+
+Aşağıdaki promptu AI chat'e yapıştır. AI her şeyi otomatik yapacak:
+
+```
+WatchSync AI projesinde Junior Frontend Developer olarak çalışıyorum.
+
+İLK KURULUM ADIMLARI — Aşağıdakileri sırasıyla yap:
+1. Repoyu klonla: git clone https://github.com/mehmetmutllu/watchsync-ai.git
+2. develop branch'ine geç: git checkout develop
+3. Git kimliğimi ayarla: git config user.name "Berat" ve git config user.email "berat'ın e-postası"
+4. Frontend bağımlılıklarını kur: cd frontend && npm install
+5. Frontend'i çalıştır: npm run dev
+6. Tarayıcıda http://localhost:3000 açılacak — çalıştığını doğrula
+
+Sonra şunları yap:
+- activecontext.md dosyasını oku — tamamlanan haftalar, mimari ve proje yapısını öğren
+- progress.md dosyasını oku — benim (Junior) yapacağım görevleri bul
+- İlk yapılacak görevleri listele ve "Başlayalım mı?" diye sor
+
+NOT: Ben SADECE frontend/ klasöründe çalışıyorum. backend/ ve ai-service/'e DOKUNMAM.
+```
+
+### 🔄 Her Oturumda Kullanılacak Devam Promptu
+
+Her yeni AI chat oturumunda aşağıdaki formatı kullan. AI her oturum sonunda sana güncellenmiş bir prompt verecek — onu kopyala ve bir sonraki chat'te yapıştır:
+
+```
+WatchSync AI projesinde Junior Frontend Developer olarak devam ediyorum.
+
+ÖNCELİKLE:
+1. git checkout develop && git pull origin develop (güncel kodu çek)
+2. activecontext.md dosyasını oku — proje durumu ve mimari bilgisi orada
+3. progress.md dosyasını oku — Junior görevlerimin durumunu gör
+
+YAPILACAK GÖREVLER:
+[Buraya mevcut haftanın Junior görevlerini yaz — Mehmet sana söyleyecek]
+
+KURALLAR:
+- SADECE frontend/ klasöründe çalış. backend/ ve ai-service/ DOKUNULMAZ.
+- Her değişiklikte build kontrolü yap: npm run build
+- Commit prefix: feat: / fix: / style: / refactor:
+- Branch adı: junior/feature/[görev-adı]
+
+GÖREV BİTTİĞİNDE (HER OTURUM SONUNDA MUTLAKA YAP):
+1. Tüm değişiklikleri commit et: git add frontend/ && git commit -m "feat: açıklama"
+2. Push et: git push origin junior/feature/[branch-adı]
+3. activecontext.md dosyasını güncelle — ne yaptığını, hangi dosyaları oluşturduğunu yaz
+4. progress.md dosyasını güncelle — tamamlanan Junior görevlerinin checkbox'larını [x] yap
+5. Bana kopyalanabilir bir DEVAM PROMPTU üret — aşağıdaki şablonda:
+
+--- KOPYALA BAŞLA ---
+WatchSync AI projesinde Junior Frontend Developer olarak devam ediyorum.
+
+ÖNCELİKLE:
+1. git checkout develop && git pull origin develop
+2. activecontext.md dosyasını oku
+3. progress.md dosyasını oku
+
+YAPILACAK GÖREVLER:
+[Tamamlanmamış kalan Junior görevleri + sıradaki hafta]
+
+SON OTURUMDA YAPILAN:
+[Bu oturumda tamamlanan görevlerin kısa özeti]
+
+KURALLAR:
+- SADECE frontend/ klasöründe çalış
+- Her değişiklikte build kontrolü: npm run build
+- Branch: junior/feature/[görev-adı]
+
+GÖREV BİTTİĞİNDE:
+1. Commit + push
+2. activecontext.md güncelle
+3. progress.md güncelle
+4. Yeni devam promptu üret
+--- KOPYALA BİTİR ---
+```
+
+### 💡 Oturum Akışı Özeti
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. Yeni AI Chat aç                                     │
+│  2. Devam promptunu yapıştır (ilk seferde kurulum       │
+│     promptunu kullan)                                    │
+│  3. AI otomatik olarak:                                  │
+│     - Kodu çeker (git pull)                              │
+│     - Proje durumunu okur                                │
+│     - Görevleri listeler                                 │
+│     - "Başlayalım mı?" der                              │
+│  4. "Başla" de → AI kodlamaya başlar                     │
+│  5. Görev bitince AI otomatik olarak:                    │
+│     - Commit + push yapar                                │
+│     - Dokümanları günceller                              │
+│     - Yeni devam promptu üretir                          │
+│  6. Promptu kopyala → yeni chat'e yapıştır → Adım 1     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### ⚠️ ÖNEMLİ UYARILAR
+
+- **Backend Docker çalışıyor olmalı** — Frontend API'ye bağlanır. Eğer backend çalışmıyorsa Mehmet'e sor.
+- **`npm run build` her zaman başarılı olmalı** — Build hata veriyorsa push YAPMA, önce düzelt.
+- **PR açmayı unutma** — Push yaptıktan sonra GitHub'da Pull Request aç ve Mehmet'i reviewer ata.
+- **Commit mesajları anlamlı olsun** — "düzeltme" veya "test" gibi mesajlar YASAK.
+- **Branch isimlendirmesi** — Her zaman `junior/feature/görev-adı` formatında.

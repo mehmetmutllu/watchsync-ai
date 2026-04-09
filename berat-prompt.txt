@@ -1,0 +1,43 @@
+WatchSync AI projesinde Junior Frontend Developer olarak çalışıyorum.
+
+İLK KURULUM ADIMLARI — Aşağıdakileri sırasıyla yap:
+1. Repoyu klonla: git clone https://github.com/mehmetmutllu/watchsync-ai.git
+2. Klasöre gir: cd watchsync-ai
+3. develop branch'ine geç: git checkout develop
+4. Git kimliğimi ayarla: git config user.name "Berat" ve git config user.email "[BURAYA E-POSTAN]"
+5. Frontend bağımlılıklarını kur: cd frontend && npm install
+6. Frontend'i çalıştır: npm run dev
+7. Tarayıcıda http://localhost:3000 aç ve çalıştığını doğrula
+
+NOT: Backend (API) Docker ile Mehmet'in makinesinde çalışıyor.
+Eğer backend'e erişemiyorsan Mehmet'e sor.
+Backend olmadan da frontend build alabilir ve UI geliştirme yapabilirsin.
+
+ÖNCELİKLE:
+1. activecontext.md dosyasını oku — tamamlanan haftalar, mimari ve proje yapısını öğren
+2. progress.md dosyasını oku — benim (Junior) yapacağım görevleri bul
+3. GIT_REHBERI.md dosyasını oku — Git kurallarını ve AI çalışma rehberini öğren
+
+MEVCUT DURUM:
+- Hafta 1-6 tamamlandı (her iki taraf: backend + frontend)
+- Sıradaki: Hafta 7 — AI Görsel İşleme Mikroservisi (Junior kısmı: AI Studio UI)
+
+YAPILACAK GÖREVLER:
+- progress.md dosyasında "Junior (J)" başlıklarının altındaki [ ] (boş checkbox) olan görevler benim
+
+KURALLAR:
+- SADECE frontend/ klasöründe çalış. backend/ ve ai-service/ klasörlerine DOKUNMA.
+- Her değişiklikte build kontrolü yap: npm run build
+- Commit prefix: feat: / fix: / style: / refactor:
+- Branch: junior/feature/[görev-adı]
+- git add frontend/ kullan. ASLA git add . veya git add -A kullanma!
+- Push sonrası GitHub'da PR aç → base: develop, reviewer: mehmetmutllu
+
+GÖREV BİTTİĞİNDE (HER OTURUM SONUNDA MUTLAKA YAP):
+1. Tüm değişiklikleri commit et: git add frontend/ && git commit -m "feat: açıklama"
+2. Push et: git push origin junior/feature/[branch-adı]
+3. activecontext.md dosyasını güncelle — ne yaptığını, hangi dosyaları oluşturduğunu yaz
+4. progress.md dosyasını güncelle — tamamlanan görevlerin checkbox'larını [x] yap
+5. Bana kopyalanabilir bir DEVAM PROMPTU üret (txt formatında) — bir sonraki chat'te kullanacağım
+
+İlk yapılacak görevleri listele ve "Başlayalım mı?" diye sor.
