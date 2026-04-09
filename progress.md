@@ -428,9 +428,9 @@
   - [x] `GET /api/invoices/{id}/pdf` — PDF indirme (stream)
   - [x] Otomatik fatura e-posta gönderimi (`POST /api/invoices/{id}/send`)
 - [x] E-posta bildirimleri
-  - [ ] Sipariş onayı e-postası
+  - [x] Sipariş onayı e-postası (OrderConfirmationNotification, queued)
   - [x] Fatura gönderim e-postası (InvoiceSentNotification, queued)
-  - [ ] Stok uyarı e-postası
+  - [x] Stok uyarı e-postası (LowStockAlertNotification, queued)
   - [x] Laravel Notification + Mail yapılandırması
   - [x] E-posta template'leri (Blade PDF + Notification Mail)
 
@@ -446,16 +446,16 @@
   - [x] Fatura detay görünümü (kalemler, toplamlar, PDF, e-posta)
   - [x] PDF indirme butonu
   - [x] "Yeni Fatura Oluştur" formu (müşteri seçici, kalem satırları, KDV hesaplama)
-- [ ] Ayarlar sayfası
-  - [ ] Profil düzenleme formu
-  - [ ] Bildirim tercihleri toggle'ları
-  - [ ] API anahtarları yönetimi sayfası
-  - [ ] Şirket bilgileri (fatura için)
-- [ ] **Platform "Nasıl Bağlanılır" Yardım Modal'ları**
-  - [ ] Her PlatformCard'a `?` yardım ikonu butonu
-  - [ ] eBay: Developer hesap → App oluşturma → OAuth URI → Sandbox test adımları
-  - [ ] Chrono24: Dealer başvurusu → IP Whitelist → XML Feed URL bildirimi adımları
-  - [ ] Shopify: Custom App oluşturma → Admin API scope'ları → Shop domain adımları
+- [x] Ayarlar sayfası (4 sekmeli: Profil, Şirket, Bildirimler, Platformlar)
+  - [x] Profil düzenleme formu (isim, email, şifre değiştirme)
+  - [x] Bildirim tercihleri toggle'ları (fatura, senkronizasyon, stok, haftalık rapor)
+  - [x] API anahtarları yönetimi sayfası (Platformlar sekmesi)
+  - [x] Şirket bilgileri (fatura için — adres, vergi no, website)
+- [x] **Platform "Nasıl Bağlanılır" Yardım Modal'ları**
+  - [x] Her PlatformCard'a `?` yardım ikonu butonu (HelpCircle icon)
+  - [x] eBay: Developer hesap → App oluşturma → OAuth URI → Sandbox test adımları
+  - [x] Chrono24: Dealer başvurusu → IP Whitelist → XML Feed URL bildirimi adımları
+  - [x] Shopify: Custom App oluşturma → Admin API scope'ları → Shop domain adımları
   - [ ] Bağlantı testi butonu ("Test Connection" — credential sonrası doğrulama)
 
 ---

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\EbayController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\PlatformController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\WatchController;
 use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Http\Request;
@@ -94,4 +95,11 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
     Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf']);
     Route::post('/invoices/{id}/send', [InvoiceController::class, 'send']);
+
+    // Settings
+    Route::put('/settings/profile', [SettingsController::class, 'updateProfile']);
+    Route::put('/settings/password', [SettingsController::class, 'changePassword']);
+    Route::put('/settings/company', [SettingsController::class, 'updateCompany']);
+    Route::get('/settings/notifications', [SettingsController::class, 'getNotifications']);
+    Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications']);
 });

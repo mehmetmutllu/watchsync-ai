@@ -15,6 +15,14 @@ export interface Dealer {
   company_name: string | null;
   email: string;
   phone: string | null;
+  tax_number: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  postal_code: string | null;
+  country: string | null;
+  website: string | null;
+  notification_preferences: Record<string, boolean> | null;
   status: 'active' | 'suspended' | 'pending';
   created_at: string;
   updated_at: string;

@@ -10,8 +10,10 @@ import {
   AlertTriangle,
   Loader2,
   ExternalLink,
+  HelpCircle,
 } from 'lucide-react';
 import type { PlatformInfo } from '@/types';
+import PlatformHelpModal from './PlatformHelpModal';
 
 interface PlatformCardProps {
   platform: PlatformInfo;
@@ -49,6 +51,7 @@ export default function PlatformCard({
   const [apiSecret, setApiSecret] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const config = PLATFORM_CONFIG[platform.name] || {
     color: 'text-accent-blue',
@@ -117,6 +120,13 @@ export default function PlatformCard({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHelp(true)}
+            title="Nasıl bağlanılır?"
+            className="p-1 text-secondary-text hover:text-accent-blue rounded-md hover:bg-surface-elevated transition-colors"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
           <StatusIcon />
           <span className={`text-sm font-medium ${statusColor[platform.status]}`}>
             {statusLabel[platform.status]}
@@ -201,7 +211,6 @@ export default function PlatformCard({
         )}
       </div>
 
-      {/* API Key Form */}
       {showForm && !isOAuthPlatform && (
         <div className="mt-4 p-4 bg-surface-elevated rounded-lg border border-border-subtle space-y-3 animate-fade-in">
           <div>
@@ -253,6 +262,13 @@ export default function PlatformCard({
             </button>
           </div>
         </div>
+      )}
+
+      {showHelp && (
+        <PlatformHelpModal
+          platformName={platform.name}
+          onClose={() => setShowHelp(false)}
+        />
       )}
     </div>
   );

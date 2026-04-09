@@ -15,8 +15,22 @@ class Dealer extends Model
         'email',
         'phone',
         'tax_number',
+        'address_line1',
+        'address_line2',
+        'city',
+        'postal_code',
+        'country',
+        'website',
+        'notification_preferences',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'notification_preferences' => 'array',
+        ];
+    }
 
     // ─── Relationships ─────────────────────────────────────────
 
