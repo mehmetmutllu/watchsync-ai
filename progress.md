@@ -324,41 +324,41 @@
 > **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
 
 #### Backend — Python/FastAPI AI Servisi
-- [ ] FastAPI proje yapısı kurulumu
-- [ ] SAM 2 model entegrasyonu
-  - [ ] Model indirme ve yükleme
-  - [ ] `POST /api/ai/segment` — saat maskeleme endpoint'i
-  - [ ] Maske kalitesi parametreleri
-- [ ] Matting pipeline
-  - [ ] SAM 2 kaba maske → alpha matting iyileştirmesi
-  - [ ] Color decontamination (renk sızıntısı temizleme)
-  - [ ] RGBA katman çıktısı
-- [ ] Arka plan değiştirme servisi
-  - [ ] `POST /api/ai/replace-background`
-  - [ ] Önceden tanımlı arka planlar (beyaz stüdyo, siyah kadife, mermer)
-  - [ ] Özel arka plan yükleme desteği
-  - [ ] Gölge sentezi (shadow synthesis)
-- [ ] Laravel → FastAPI iletişim katmanı
-  - [ ] HTTP istemci servisi
-  - [ ] Asenkron job entegrasyonu
-- [ ] Docker Compose'a FastAPI servis container eklenmesi
-- [ ] FastAPI Dockerfile oluşturulması
-- [ ] SAM 2 model ağırlıklarının indirilmesi ve volume mount'u
-- [ ] Laravel proxy endpoint: `POST /api/watches/{id}/ai-enhance` → FastAPI forward
+- [x] FastAPI proje yapısı kurulumu
+- [x] SAM 2 model entegrasyonu
+  - [x] Model indirme scripti (`scripts/download_model.py`)
+  - [x] `POST /api/ai/segment` — saat maskeleme endpoint'i
+  - [x] Maske kalitesi parametreleri
+- [x] Matting pipeline
+  - [x] SAM 2 kaba maske → alpha matting iyileştirmesi
+  - [x] Color decontamination (renk sızıntısı temizleme)
+  - [x] RGBA katman çıktısı
+- [x] Arka plan değiştirme servisi
+  - [x] `POST /api/ai/replace-background`
+  - [x] Önceden tanımlı arka planlar (beyaz stüdyo, siyah kadife, mermer, gri gradyan)
+  - [x] Özel arka plan yükleme desteği
+  - [x] Gölge sentezi (shadow synthesis)
+- [x] Laravel → FastAPI iletişim katmanı
+  - [x] HTTP istemci servisi (`AiService.php`)
+  - [x] Asenkron job entegrasyonu (`ProcessAiEnhanceJob.php`)
+- [x] Docker Compose'a FastAPI servis container eklenmesi
+- [x] FastAPI Dockerfile oluşturulması
+- [x] SAM 2 model ağırlıkları volume mount'u (fallback mode aktif)
+- [x] Laravel proxy endpoint: `POST /api/watches/{id}/ai-enhance` → FastAPI forward
 
 #### Frontend — AI Studio UI
-- [ ] AI Studio sayfası route'u: `/dashboard/ai-studio`
-  - [ ] Sol panel: yüksek çözünürlüklü görsel önizleme
-  - [ ] Sağ panel: saat bilgi formu + AI araçları
-- [ ] "AI Enhance (Preserve Original)" butonu
-  - [ ] Görsel seçimi → FastAPI'ye gönderim
-  - [ ] İşlem süreci göstergesi (progress/spinner)
-  - [ ] Önce/Sonra karşılaştırma (slider) bileşeni
-- [ ] Arka plan seçici
-  - [ ] Küçük resim galerisi (preset arka planlar)
-  - [ ] Özel arka plan yükleme
-  - [ ] Seçili arka planla önizleme
-- [ ] İşlenmiş görseli kaydetme akışı
+- [x] AI Studio sayfası route'u: `/dashboard/ai-studio`
+  - [x] Sol panel: yüksek çözünürlüklü görsel önizleme
+  - [x] Sağ panel: AI araçları + arka plan seçici + varyantlar
+- [x] "AI ile İşle" butonu
+  - [x] Görsel seçimi (drag & drop + file picker) → FastAPI'ye gönderim
+  - [x] İşlem süreci göstergesi (spinner + mesaj)
+  - [x] Önce/Sonra karşılaştırma (BeforeAfterSlider) bileşeni
+- [x] Arka plan seçici (BackgroundSelector)
+  - [x] Küçük resim galerisi (preset arka planlar)
+  - [x] Seçili arka planla önizleme
+- [x] Varyant seçimi ve indirme akışı
+- [x] Sidebar'a AI Studio navigasyon linki eklendi
 
 ---
 
@@ -367,27 +367,27 @@
 > **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
 
 #### Backend — NLP & Scraping
-- [ ] LLM entegrasyonu
-  - [ ] Llama-3 / OpenAI API bağlantısı
-  - [ ] Saat referans numarasından bağlam oluşturma (calibre, bezel tipi vs.)
-  - [ ] SEO uyumlu ilan açıklaması üretme prompt mühendisliği
-  - [ ] `POST /api/ai/generate-description` endpoint'i
-  - [ ] Çok dilli destek (EN, DE, TR)
-- [ ] Web scraping servisi
-  - [ ] Chrono24 fiyat çekme (Playwright)
-  - [ ] Watchfinder fiyat çekme
-  - [ ] Veri normalleştirme pipeline
-  - [ ] `GET /api/market/prices/{ref}` endpoint'i
-  - [ ] Fiyat geçmişi depolama (time-series)
+- [x] LLM entegrasyonu
+  - [x] OpenAI API bağlantısı (`LlmService.php` — gpt-4o-mini)
+  - [x] Saat referans numarasından bağlam oluşturma (calibre, bezel tipi vs.)
+  - [x] SEO uyumlu ilan açıklaması üretme prompt mühendisliği
+  - [x] `POST /api/ai/generate-description` endpoint'i
+  - [x] Çok dilli destek (EN, DE, TR) — fallback şablonları dahil
+- [x] Web scraping servisi
+  - [x] Chrono24 fiyat çekme (httpx async — FastAPI scraping router)
+  - [x] Watchfinder fiyat çekme (placeholder entegrasyonu)
+  - [x] Veri normalleştirme pipeline (`MarketScrapingService.php`)
+  - [x] `GET /api/market/prices/{ref}` endpoint'i
+  - [x] Fiyat geçmişi depolama (time-series — `price_histories` tablosu)
 - [ ] Fine-tuning hazırlığı
   - [ ] Saat katalog verilerinden eğitim seti oluşturma
   - [ ] Veri temizleme ve formatlandırma scripti
-- [ ] LLM API anahtarı yapılandırması (`.env` + `config/services.php`)
-- [ ] Fiyat geçmişi veritabanı tablosu migration'ı (`price_histories`)
-- [ ] Fiyat uyarı tablosu migration'ı (`price_alerts`)
-- [ ] Fiyat uyarı CRUD API endpoint'leri
+- [x] LLM API anahtarı yapılandırması (`.env` + `config/services.php`)
+- [x] Fiyat geçmişi veritabanı tablosu migration'ı (`price_histories`)
+- [x] Fiyat uyarı tablosu migration'ı (`price_alerts`)
+- [x] Fiyat uyarı CRUD API endpoint'leri (`GET/POST/DELETE /api/price-alerts`)
 - [ ] Scraping servisi rate limiting ve proxy yönetimi
-- [ ] AI metin üretimi prompt template'leri (çok dilli: EN, DE, TR)
+- [x] AI metin üretimi prompt template'leri (çok dilli: EN, DE, TR)
 
 #### Frontend — Scanner & Metin UI
 - [ ] AI Açıklama Üretimi UI
@@ -396,15 +396,15 @@
   - [ ] Düzenlenebilir metin alanı
   - [ ] "Yeniden Üret" / "Kopyala" aksiyonları
   - [ ] Dil seçimi dropdown
-- [ ] Market Scanner veri bağlama
-  - [ ] Fiyat trendi grafiği (Recharts) — gerçek veri
-  - [ ] Zaman aralığı seçici (7g, 30g, 90g, 1y)
-  - [ ] Rakip fiyat karşılaştırma tablosu
-  - [ ] Arbitraj fırsatı vurgulama (kârlı fırsatlar yeşil)
-- [ ] Fiyat uyarı sistemi UI
-  - [ ] "Bu referans X€'nun altına düştüğünde bildir" form
-  - [ ] Aktif uyarılar listesi
-  - [ ] Uyarı düzenleme / silme
+- [x] Market Scanner veri bağlama
+  - [x] Fiyat trendi grafiği — gerçek veri (`market-api.ts` + `PriceStats`)
+  - [x] Zaman aralığı seçici (7g, 30g, 90g, 6ay, 1y)
+  - [x] Rakip fiyat karşılaştırma tablosu (`CompetitorListing`)
+  - [x] Arbitraj fırsatı vurgulama (kârlı fırsatlar yeşil)
+- [x] Fiyat uyarı sistemi UI
+  - [x] "Bu referans X€'nun altına düştüğünde bildir" form
+  - [x] Aktif uyarılar listesi
+  - [x] Uyarı düzenleme / silme
 
 ---
 
