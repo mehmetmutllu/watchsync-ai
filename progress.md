@@ -1,8 +1,11 @@
 # WatchSync AI — İlerleme Takip Belgesi (Progress Tracker)
 
-> **Versiyon:** 1.0  
-> **Tarih:** 2026-03-26  
-> **Güncelleme Sıklığı:** Her sprint sonunda (haftalık)
+> **Versiyon:** 2.0  
+> **Tarih:** 2026-04-09  
+> **Güncelleme Sıklığı:** Her sprint sonunda (haftalık)  
+> **Görev Dağılımı:**  
+> - Hafta 1-6: Mehmet (backend + frontend tamamı)  
+> - Hafta 7+: Berat (backend + frontend tamamı, AI ile çalışarak)
 
 ---
 
@@ -10,7 +13,7 @@
 
 ### 🏗 Hafta 1: Proje Altyapısı & Geliştirme Ortamı
 
-#### Senior (S) — Backend Altyapısı
+#### Backend Altyapısı
 - [x] Laravel 11 projesi oluşturuldu
 - [x] `.env` yapılandırması tamamlandı
 - [x] Sanctum kurulumu yapıldı
@@ -28,7 +31,7 @@
 - [x] RabbitMQ Docker container çalışıyor (iptal/redis alternatifi)
 - [x] Laravel Queue → Redis bağlantısı test edildi
 
-#### Junior (J) — Frontend Altyapısı
+#### Frontend Altyapısı
 - [x] Next.js 16 (App Router) projesi oluşturuldu
 - [x] Tailwind CSS v4 yapılandırması (globals.css @theme inline)
 - [x] Inter + JetBrains Mono fontları eklendi
@@ -42,7 +45,7 @@
 
 ### 📊 Hafta 2: Veri Modelleri & Dashboard UI
 
-#### Senior (S) — API & Auth
+#### API & Auth
 - [x] Eloquent Modelleri oluşturuldu
   - [x] `Watch` model + JSONB cast
   - [x] `Platform` model
@@ -61,7 +64,7 @@
   - [x] Durum (condition) referans verileri
   - [x] Demo kullanıcı ve demo saatler
 
-#### Junior (J) — Dashboard UI
+#### Dashboard UI
 - [x] KPI Kartları bileşeni
   - [x] Total Inventory Value kartı
   - [x] Sold This Month kartı
@@ -79,7 +82,7 @@
 
 ### 📦 Hafta 3: Envanter CRUD & Tablo UI
 
-#### Senior (S) — Watch CRUD API
+#### Watch CRUD API
 - [x] `GET /api/watches` — sayfalama + filtreleme + sıralama
 - [x] `POST /api/watches` — yeni saat ekleme
 - [x] `GET /api/watches/{id}` — saat detayı
@@ -94,7 +97,7 @@
   - [x] `active → maintenance` geçişi
   - [x] Durum geçiş kuralları ve validasyonu
 
-#### Junior (J) — Envanter UI
+#### Envanter UI
 - [x] Envanter Tablosu bileşeni
   - [x] Sütunlar: Thumbnail, Marka/Model, Ref No, Durum, Maliyet, Pazar Fiyatı
   - [x] Platform toggle switch'leri (eBay, Chrono24, Shopify) — Hafta 5'te eklendi
@@ -115,7 +118,7 @@
 
 ### 🔒 Hafta 4: Redis Lock & Kuyruk Mimarisi
 
-#### Senior (S) — Kilit & Kuyruk
+#### Kilit & Kuyruk (Backend)
 - [x] Redis Mutex implementasyonu
   - [x] `Redis::lock('inventory_update_'.$sku, 10)->block(5)`
   - [x] Kilit edinme başarısız → LockTimeoutException handling (409 Conflict response)
@@ -134,7 +137,7 @@
   - [x] API 409 Conflict testi (kilit varken)
   - [x] Durum geçiş geçmişi kaydı testi
 
-#### Junior (J) — Gerçek Zamanlı UI
+#### Gerçek Zamanlı UI (Frontend)
 - [x] Aktivite Feed tablosu (Dashboard)
   - [x] Polling tabanlı gerçek zamanlı güncelleme (10s interval)
   - [x] `ActivityFeed` bileşeni — `since` parametreli differential fetch
@@ -230,7 +233,7 @@
 
 ### 🔗 Hafta 5: Chrono24 & eBay Bağlantıları
 
-#### Senior (S) — API Entegrasyonları
+#### API Entegrasyonları
 - [x] Chrono24 XML Feed
   - [x] `GET /api/feeds/chrono24.xml` endpoint'i
   - [x] Zorunlu XML düğümleri: `<article_id>`, `<price>`, `<Manufacturer>`, `<Model name>`, `<Production year>`, `<Condition>`, `<Scope of delivery>`, `<Case material>`, `<Bracelet/strap material>`, `<Dial color>`, `<Winding mechanism>`, `<Description>`, `<Photos>`
@@ -247,7 +250,7 @@
   - [x] Zorunlu alan eşleştirme motoru
   - [x] Authenticity Guarantee uyumluluk kontrolleri
 
-#### Junior (J) — Platform Ayarları UI
+#### Platform Ayarları UI
 - [x] Platform Ayarları sayfası
   - [x] eBay bağlantı kartı ("Bağlan" butonu + durum göstergesi)
   - [x] Chrono24 bağlantı kartı (durum göstergesi, IP bilgisi)
@@ -265,7 +268,7 @@
 
 ### 🛒 Hafta 6: eBay Listeleme & Shopify
 
-#### Senior (S) — Listeleme Motor'ları
+#### Listeleme Motor'ları (Backend)
 - [x] eBay Inventory API entegrasyonu
   - [x] `createOrReplaceInventoryItem` — ürün oluşturma
   - [x] `createOffer` — teklif oluşturma
@@ -296,7 +299,7 @@
 - [ ] NotificationDrawer: bildirime tıklayınca ilgili saate yönlendirme
 - [ ] Webhook subscription otomasyonu (platform bağlantısı kurulunca otomatik kayıt)
 
-#### Junior (J) — Senkronizasyon UI
+#### Senkronizasyon UI (Frontend)
 - [x] Senkronizasyon durum göstergeleri
   - [x] `Synced ✓` (yeşil badge)
   - [x] `Pending ⏳` (turuncu badge)
@@ -316,7 +319,9 @@
 
 ### 🤖 Hafta 7: AI Görsel İşleme Mikroservisi
 
-#### Senior (S) — Python/FastAPI AI Servisi
+> **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
+
+#### Backend — Python/FastAPI AI Servisi
 - [ ] FastAPI proje yapısı kurulumu
 - [ ] SAM 2 model entegrasyonu
   - [ ] Model indirme ve yükleme
@@ -339,7 +344,7 @@
 - [ ] SAM 2 model ağırlıklarının indirilmesi ve volume mount'u
 - [ ] Laravel proxy endpoint: `POST /api/watches/{id}/ai-enhance` → FastAPI forward
 
-#### Junior (J) — AI Studio UI
+#### Frontend — AI Studio UI
 - [ ] AI Studio sayfası route'u: `/dashboard/ai-studio`
   - [ ] Sol panel: yüksek çözünürlüklü görsel önizleme
   - [ ] Sağ panel: saat bilgi formu + AI araçları
@@ -357,7 +362,9 @@
 
 ### 📝 Hafta 8: AI Metin Motoru & Pazar Tarayıcı
 
-#### Senior (S) — NLP & Scraping
+> **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
+
+#### Backend — NLP & Scraping
 - [ ] LLM entegrasyonu
   - [ ] Llama-3 / OpenAI API bağlantısı
   - [ ] Saat referans numarasından bağlam oluşturma (calibre, bezel tipi vs.)
@@ -380,7 +387,7 @@
 - [ ] Scraping servisi rate limiting ve proxy yönetimi
 - [ ] AI metin üretimi prompt template'leri (çok dilli: EN, DE, TR)
 
-#### Junior (J) — Scanner & Metin UI
+#### Frontend — Scanner & Metin UI
 - [ ] AI Açıklama Üretimi UI
   - [ ] "Generate" butonu
   - [ ] Streaming metin gösterimi (karakter karakter)
@@ -403,7 +410,9 @@
 
 ### 👥 Hafta 9: CRM & Finans
 
-#### Senior (S) — CRM & Fatura API
+> **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
+
+#### Backend — CRM & Fatura API
 - [ ] CRM API
   - [ ] `customers` tablosu migration
   - [ ] `GET/POST/PUT/DELETE /api/customers` CRUD
@@ -423,7 +432,7 @@
   - [ ] Laravel Notification + Mail yapılandırması
   - [ ] E-posta template'leri (Blade veya Markdown)
 
-#### Junior (J) — CRM & Fatura UI
+#### Frontend — CRM & Fatura UI
 - [ ] CRM sayfası
   - [ ] Müşteri listesi tablosu (arama, filtreleme)
   - [ ] Müşteri detay sayfası
@@ -451,7 +460,9 @@
 
 ### 🔐 Hafta 10: Performans & Güvenlik
 
-#### Senior (S) — Güvenlik & Backend Performans
+> **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
+
+#### Backend — Güvenlik & Backend Performans
 - [ ] Güvenlik taraması
   - [ ] Rate limiting yapılandırması (API endpoint'leri)
   - [ ] Input sanitization gözden geçirme
@@ -471,7 +482,7 @@
   - [ ] Darboğaz tespiti ve iyileştirme
   - [ ] Veritabanı sorgu optimizasyonu (N+1 sorgu kontrolü)
 
-#### Junior (J) — Frontend Performans & UX
+#### Frontend — Frontend Performans & UX
 - [ ] Lighthouse performans optimizasyonu
   - [ ] Lazy loading (route bazlı code splitting)
   - [ ] Image optimization (next/image)
@@ -518,7 +529,9 @@
 
 ### 🧪 Hafta 11: Uçtan Uca Test & Hata Giderme
 
-#### Senior (S) — Backend Testleri
+> **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
+
+#### Backend Testleri
 - [ ] PHPUnit/Pest test suite
   - [ ] Auth endpoint testleri
   - [ ] Watch CRUD testleri
@@ -539,7 +552,7 @@
 - [ ] Notification endpoint testleri
 - [ ] Webhook imza doğrulaması testleri
 
-#### Junior (J) — Frontend Testleri & Polish
+#### Frontend Testleri & Polish
 - [ ] Frontend test altyapısı kurulumu (Vitest + React Testing Library)
 - [ ] Birim testler: AuthGuard, WatchFormModal, BulkActions, PlatformCard, StatusBadge
 - [ ] E2E test altyapısı kurulumu (Playwright config + fixtures)
@@ -561,7 +574,9 @@
 
 ### 🚀 Hafta 12: Staging & Lansman
 
-#### Senior (S) — DevOps & Canlıya Alınma
+> **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
+
+#### DevOps & Canlıya Alınma
 - [ ] Docker Compose yapılandırması
   - [ ] Laravel API container
   - [ ] MySQL/PostgreSQL container
@@ -585,7 +600,7 @@
   - [ ] Database seed stratejisi (production için temiz seed vs. migration-only)
 - [ ] **🚀 GO-LIVE**
 
-#### Junior (J) — Dokümantasyon & Landing
+#### Dokümantasyon & Landing
 - [ ] Landing Page finalizasyonu
   - [ ] SEO meta tag'leri (title, description, keywords)
   - [ ] Open Graph image'lar

@@ -1,8 +1,8 @@
 # 🔀 WatchSync AI — Git Çalışma Rehberi
 
 > **Repo:** `https://github.com/mehmetmutllu/watchsync-ai`  
-> **Senior:** Mehmet (@mehmetmutllu) → `backend/`, `ai-service/`  
-> **Junior:** Berat (@berat0642) → `frontend/`
+> **Mehmet** (@mehmetmutllu) → Hafta 1-6 tamamladı (backend + frontend)  
+> **Berat** (@berat0642) → Hafta 7+ devam ediyor (backend + frontend + ai-service)
 
 ---
 
@@ -11,8 +11,8 @@
 ```
 main        ← Canlı kod. KİMSE DOKUNMAZ. Sadece develop'dan merge.
 develop     ← Tüm geliştirme bu dal üzerinden akar.
-  ├── senior/feature/xxx   ← Mehmet'in dalları
-  └── junior/feature/xxx   ← Berat'ın dalları
+  ├── mehmet/feature/xxx   ← Mehmet'ın dalları
+  └── berat/feature/xxx    ← Berat'ın dalları
 ```
 
 ---
@@ -21,16 +21,13 @@ develop     ← Tüm geliştirme bu dal üzerinden akar.
 
 1. **`main` branch'ine ASLA direkt push yapılmaz**
 2. **`develop` branch'ine ASLA direkt push yapılmaz** — her zaman PR aç
-3. **Kendi klasörün dışına ASLA dokunma:**
-   - Mehmet (Senior): `backend/` ve `ai-service/`
-   - Berat (Junior): `frontend/`
-4. **`.env` dosyalarını ASLA commit etme** — şifreler sızar
-5. **`node_modules/` ve `vendor/` klasörlerini ASLA commit etme** — `.gitignore` hallediyor
-6. **Her commit mesajı anlamlı olacak** — "asdasd" veya "düzeltme" YASAK
+3. **`.env` dosyalarını ASLA commit etme** — şifreler sızar
+4. **`node_modules/` ve `vendor/` klasörlerini ASLA commit etme** — `.gitignore` hallediyor
+5. **Her commit mesajı anlamlı olacak** — "asdasd" veya "düzeltme" YASAK
 
 ---
 
-## 🟢 BERAT (JUNIOR) İÇİN ADIM ADIM REHBER
+## 🟢 BERAT İÇİN ADIM ADIM REHBER
 
 ### �️ Mac + Docker Geliştirme Ortamı Kurulumu
 
@@ -169,31 +166,32 @@ cd ..
 
 #### ✅ Adım 2: Yeni branch oluştur
 ```bash
-git checkout -b junior/feature/gorev-adi
+git checkout -b berat/feature/gorev-adi
 ```
 **Doğru İsimlendirme Örnekleri:**
 ```
-junior/feature/dashboard-ui
-junior/feature/login-sayfasi
-junior/feature/envanter-tablosu
-junior/fix/kpi-kart-hatasi
-junior/style/sidebar-renk-duzeltme
+berat/feature/ai-studio-ui
+berat/feature/fastapi-service
+berat/feature/crm-api
+berat/fix/sync-hatasi
+berat/style/sidebar-renk-duzeltme
 ```
 **YANLIŞ Örnekler:**
 ```
 ❌ yeni-degisiklik
 ❌ test123
 ❌ berat
-❌ feature/dashboard    ← "junior/" prefix'i yok!
+❌ feature/dashboard    ← "berat/" prefix'i yok!
 ```
 
 #### ✅ Adım 3: Kodunu yaz
 ```
-✅ SADECE frontend/ klasöründe çalış
-⛔ backend/ → DOKUNMA
-⛔ ai-service/ → DOKUNMA
+✅ backend/ — Laravel API, migration, servisler
+✅ frontend/ — Next.js UI bileşenleri
+✅ ai-service/ — Python FastAPI servisi
 ⛔ .github/ → DOKUNMA
-⛔ plan.md, design.md, progress.md → Mehmet'e sor
+⛔ plan.md, design.md → Mehmet'e sor
+✅ progress.md, activecontext.md → Görev bitince güncelle
 ```
 
 #### ✅ Adım 4: Değişiklikleri kaydet
@@ -201,8 +199,8 @@ junior/style/sidebar-renk-duzeltme
 # 1. Neleri değiştirdin bak
 git status
 
-# 2. SADECE frontend klasöründekileri ekle
-git add frontend/
+# 2. Değişen klasörleri ekle
+git add backend/ frontend/ ai-service/
 
 # 3. Commit mesajı yaz
 git commit -m "feat: KPI kartları bileşeni eklendi"
@@ -218,7 +216,7 @@ git commit -m "feat: KPI kartları bileşeni eklendi"
 
 #### ✅ Adım 5: GitHub'a gönder (push)
 ```bash
-git push origin junior/feature/gorev-adi
+git push origin berat/feature/gorev-adi
 ```
 
 #### ✅ Adım 6: Pull Request (PR) aç
@@ -226,7 +224,7 @@ git push origin junior/feature/gorev-adi
 2. Üstte sarı banner'da **"Compare & pull request"** butonuna tıkla
 3. Ayarları kontrol et:
    - **base:** `develop` ← (main DEĞİL!)
-   - **compare:** `junior/feature/gorev-adi`
+   - **compare:** `berat/feature/gorev-adi`
 4. PR şablonundaki kontrol listesini doldur
 5. Sağ tarafta **Reviewers** → `mehmetmutllu` seç
 6. **"Create pull request"** butonuna tıkla
@@ -239,7 +237,7 @@ git push origin junior/feature/gorev-adi
 
 ---
 
-## 🔵 MEHMET (SENIOR) İÇİN REHBER
+## 🔵 MEHMET İÇİN REHBER
 
 ### 🔄 Geliştirme Döngüsü
 
@@ -249,14 +247,14 @@ git checkout develop
 git pull origin develop
 
 # 2. Yeni dal oluştur
-git checkout -b senior/feature/gorev-adi
+git checkout -b mehmet/feature/gorev-adi
 
-# 3. Kodunu yaz (backend/ veya ai-service/)
+# 3. Kodunu yaz (backend/, frontend/, ai-service/)
 
 # 4. Kaydet
-git add backend/
+git add backend/ frontend/ ai-service/
 git commit -m "feat: Redis mutex implementasyonu"
-git push origin senior/feature/gorev-adi
+git push origin mehmet/feature/gorev-adi
 
 # 5. GitHub'da PR aç → develop'a merge et
 ```
@@ -296,9 +294,9 @@ git checkout develop
 git pull origin develop
 
 # 3. Kendi branch'ine geri dön (veya yeni oluştur)
-git checkout junior/feature/mevcut-gorevim
+git checkout berat/feature/mevcut-gorevim
 # veya
-git checkout -b junior/feature/yeni-gorevim
+git checkout -b berat/feature/yeni-gorevim
 ```
 
 ---
@@ -310,23 +308,22 @@ git checkout -b junior/feature/yeni-gorevim
 ```bash
 # 1. Doğru branch'te misin?
 git branch
-# → * junior/feature/xxx   ← Kendi branch'in olmalı
+# → * berat/feature/xxx   ← Kendi branch'in olmalı
 # → ASLA develop veya main olmamalı!
 
 # 2. Neler değişmiş?
 git status
-# → Sadece frontend/ dosyaları olmalı
 
-# 3. Yanlışlıkla başka dosya ekleme!
-git add frontend/          # ✅ DOĞRU: sadece frontend
-# git add .                # ⛔ YANLIŞ: her şeyi ekler!
-# git add -A               # ⛔ YANLIŞ: her şeyi ekler!
+# 3. Değişen klasörleri ekle
+git add backend/ frontend/ ai-service/
+# git add .                # ⛔ YANLIŞ: gereksiz dosyaları da ekler!
+# git add -A               # ⛔ YANLIŞ: gereksiz dosyaları da ekler!
 
 # 4. Commit at
 git commit -m "feat: açıklayıcı mesaj"
 
 # 5. Push et
-git push origin junior/feature/gorev-adi
+git push origin berat/feature/gorev-adi
 ```
 
 > ⚠️ **ÖNEMLİ:** `git add .` veya `git add -A` **KULLANMA!** Sadece kendi klasörünü ekle.
@@ -341,7 +338,7 @@ git push origin junior/feature/gorev-adi
 git stash
 
 # Doğru branch'e geç
-git checkout junior/feature/dogru-branch
+git checkout berat/feature/dogru-branch
 
 # Değişiklikleri geri al
 git stash pop
@@ -355,7 +352,7 @@ git reset --soft HEAD~1
 
 ### "develop'daki güncel kodu branch'ime almak istiyorum"
 ```bash
-git checkout junior/feature/benim-branch
+git checkout berat/feature/benim-branch
 git merge develop
 # Çakışma (conflict) olursa Mehmet'e sor!
 ```
@@ -371,8 +368,8 @@ git checkout -- backend/
 # DİKKAT: Kaydetmediğin tüm değişiklikler SİLİNİR!
 git checkout develop
 git pull origin develop
-git branch -D junior/feature/bozulan-branch
-git checkout -b junior/feature/yeni
+git branch -D berat/feature/bozulan-branch
+git checkout -b berat/feature/yeni
 ```
 
 ---
@@ -391,7 +388,7 @@ git log --oneline --author="Berat" -5
 git log --oneline --author="Mehmet" -5
 
 # Branch'ler arasındaki farkı gör
-git diff develop..junior/feature/gorev-adi --stat
+git diff develop..berat/feature/gorev-adi --stat
 ```
 
 ---
@@ -401,16 +398,16 @@ git diff develop..junior/feature/gorev-adi --stat
 ```
 ☀️ SABAH:
   git checkout develop → git pull origin develop
-  git checkout -b junior/feature/gunun-gorevi
+  git checkout -b berat/feature/gunun-gorevi
 
 💻 GÜN İÇİ:
   (kodla...)
-  git add frontend/
+  git add backend/ frontend/ ai-service/
   git commit -m "feat: açıklama"
   (gerekirse birden fazla commit at)
 
 🌙 AKŞAM (veya görev bittiğinde):
-  git push origin junior/feature/gunun-gorevi
+  git push origin berat/feature/gunun-gorevi
   GitHub'da PR aç → Mehmet'i reviewer ata
   Mehmet onaylayana kadar bekle veya yeni branch'te başla
 ```
@@ -456,31 +453,32 @@ NOT: Ben SADECE frontend/ klasöründe çalışıyorum. backend/ ve ai-service/'
 Her yeni AI chat oturumunda aşağıdaki formatı kullan. AI her oturum sonunda sana güncellenmiş bir prompt verecek — onu kopyala ve bir sonraki chat'te yapıştır:
 
 ```
-WatchSync AI projesinde Junior Frontend Developer olarak devam ediyorum.
+WatchSync AI projesinde Full-Stack Developer olarak devam ediyorum.
 
 ÖNCELİKLE:
 1. git checkout develop && git pull origin develop (güncel kodu çek)
-2. activecontext.md dosyasını oku — proje durumu ve mimari bilgisi orada
-3. progress.md dosyasını oku — Junior görevlerimin durumunu gör
+2. cd backend && docker compose exec laravel.test php artisan migrate && cd .. (DB güncelle)
+3. activecontext.md dosyasını oku — proje durumu ve mimari bilgisi orada
+4. progress.md dosyasını oku — görev durumunu gör
 
 YAPILACAK GÖREVLER:
-[Buraya mevcut haftanın Junior görevlerini yaz — Mehmet sana söyleyecek]
+[Buraya mevcut haftanın görevlerini yaz — progress.md'den bak]
 
 KURALLAR:
-- SADECE frontend/ klasöründe çalış. backend/ ve ai-service/ DOKUNULMAZ.
-- Her değişiklikte build kontrolü yap: npm run build
+- backend/, frontend/, ai-service/ klasörlerinde çalışıyorum (full-stack)
+- Her değişiklikte build kontrolü yap: cd frontend && npm run build
 - Commit prefix: feat: / fix: / style: / refactor:
-- Branch adı: junior/feature/[görev-adı]
+- Branch adı: berat/feature/[görev-adı]
 
 GÖREV BİTTİĞİNDE (HER OTURUM SONUNDA MUTLAKA YAP):
-1. Tüm değişiklikleri commit et: git add frontend/ && git commit -m "feat: açıklama"
-2. Push et: git push origin junior/feature/[branch-adı]
+1. Tüm değişiklikleri commit et: git add backend/ frontend/ ai-service/ && git commit -m "feat: açıklama"
+2. Push et: git push origin berat/feature/[branch-adı]
 3. activecontext.md dosyasını güncelle — ne yaptığını, hangi dosyaları oluşturduğunu yaz
-4. progress.md dosyasını güncelle — tamamlanan Junior görevlerinin checkbox'larını [x] yap
+4. progress.md dosyasını güncelle — tamamlanan görevlerin checkbox'larını [x] yap
 5. Bana kopyalanabilir bir DEVAM PROMPTU üret — aşağıdaki şablonda:
 
 --- KOPYALA BAŞLA ---
-WatchSync AI projesinde Junior Frontend Developer olarak devam ediyorum.
+WatchSync AI projesinde Full-Stack Developer olarak devam ediyorum.
 
 ÖNCELİKLE:
 1. git checkout develop && git pull origin develop
@@ -488,15 +486,15 @@ WatchSync AI projesinde Junior Frontend Developer olarak devam ediyorum.
 3. progress.md dosyasını oku
 
 YAPILACAK GÖREVLER:
-[Tamamlanmamış kalan Junior görevleri + sıradaki hafta]
+[Tamamlanmamış kalan görevler + sıradaki hafta]
 
 SON OTURUMDA YAPILAN:
 [Bu oturumda tamamlanan görevlerin kısa özeti]
 
 KURALLAR:
-- SADECE frontend/ klasöründe çalış
-- Her değişiklikte build kontrolü: npm run build
-- Branch: junior/feature/[görev-adı]
+- backend/, frontend/, ai-service/ klasörlerinde çalışıyorum
+- Her değişiklikte build kontrolü: cd frontend && npm run build
+- Branch: berat/feature/[görev-adı]
 
 GÖREV BİTTİĞİNDE:
 1. Commit + push
@@ -529,8 +527,8 @@ GÖREV BİTTİĞİNDE:
 
 ### ⚠️ ÖNEMLİ UYARILAR
 
-- **Backend Docker çalışıyor olmalı** — Frontend API'ye bağlanır. Eğer backend çalışmıyorsa Mehmet'e sor.
+- **Backend Docker çalışıyor olmalı** — `docker compose ps` ile kontrol et. Çalışmıyorsa `cd backend && docker compose up -d`.
 - **`npm run build` her zaman başarılı olmalı** — Build hata veriyorsa push YAPMA, önce düzelt.
 - **PR açmayı unutma** — Push yaptıktan sonra GitHub'da Pull Request aç ve Mehmet'i reviewer ata.
 - **Commit mesajları anlamlı olsun** — "düzeltme" veya "test" gibi mesajlar YASAK.
-- **Branch isimlendirmesi** — Her zaman `junior/feature/görev-adı` formatında.
+- **Branch isimlendirmesi** — Her zaman `berat/feature/görev-adı` formatında.

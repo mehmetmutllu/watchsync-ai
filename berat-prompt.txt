@@ -1,4 +1,4 @@
-WatchSync AI projesinde Junior Frontend Developer olarak çalışıyorum. Mac kullanıyorum.
+WatchSync AI projesinde Full-Stack Developer olarak çalışıyorum. Mac kullanıyorum.
 
 İLK KURULUM ADIMLARI — Aşağıdakileri sırasıyla yap:
 
@@ -43,27 +43,28 @@ ADIM 4 — Frontend'i kur:
 
 ÖNCELİKLE:
 1. activecontext.md dosyasını oku — tamamlanan haftalar, mimari ve proje yapısını öğren
-2. progress.md dosyasını oku — benim (Junior) yapacağım görevleri bul
+2. progress.md dosyasını oku — Hafta 7'den itibaren tüm [ ] görevler benim
 3. GIT_REHBERI.md dosyasını oku — Git kurallarını ve AI çalışma rehberini öğren
 
 MEVCUT DURUM:
-- Hafta 1-6 tamamlandı (her iki taraf: backend + frontend)
-- Sıradaki: Hafta 7 — AI Görsel İşleme Mikroservisi (Junior kısmı: AI Studio UI)
+- Hafta 1-6 tamamı Mehmet tarafından tamamlandı (backend + frontend)
+- Sıradaki: Hafta 7 — AI Görsel İşleme Mikroservisi (backend + frontend tamamı benim)
 
 YAPILACAK GÖREVLER:
-- progress.md dosyasında "Junior (J)" başlıklarının altındaki [ ] (boş checkbox) olan görevler benim
+- progress.md dosyasında Hafta 7'den itibaren tüm [ ] (boş checkbox) olan görevler benim
+- Hem backend hem frontend hem ai-service görevleri benim
 
 KURALLAR:
-- SADECE frontend/ klasöründe çalış. backend/ ve ai-service/ klasörlerine DOKUNMA.
-- Her değişiklikte build kontrolü yap: npm run build
+- backend/, frontend/ ve ai-service/ klasörlerinde çalışıyorum (full-stack)
+- Her değişiklikte build kontrolu yap: cd frontend && npm run build
 - Commit prefix: feat: / fix: / style: / refactor:
-- Branch: junior/feature/[görev-adı]
-- git add frontend/ kullan. ASLA git add . veya git add -A kullanma!
+- Branch: berat/feature/[görev-adı]
+- git add backend/ frontend/ ai-service/ kullan. ASLA git add . veya git add -A kullanma!
 - Push sonrası GitHub'da PR aç → base: develop, reviewer: mehmetmutllu
 
 GÖREV BİTTİĞİNDE (HER OTURUM SONUNDA MUTLAKA YAP):
-1. Tüm değişiklikleri commit et: git add frontend/ && git commit -m "feat: açıklama"
-2. Push et: git push origin junior/feature/[branch-adı]
+1. Tüm değişiklikleri commit et: git add backend/ frontend/ ai-service/ && git commit -m "feat: açıklama"
+2. Push et: git push origin berat/feature/[branch-adı]
 3. activecontext.md dosyasını güncelle — ne yaptığını, hangi dosyaları oluşturduğunu yaz
 4. progress.md dosyasını güncelle — tamamlanan görevlerin checkbox'larını [x] yap
 5. Bana kopyalanabilir bir DEVAM PROMPTU üret (txt formatında) — bir sonraki chat'te kullanacağım

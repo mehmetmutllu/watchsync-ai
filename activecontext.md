@@ -1,8 +1,9 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-04-07 (Hafta 6 tamamlandı)  
-> **Mevcut Faz:** FAZ 2 devam ediyor — Hafta 6 tamamlandı  
-> **Sıradaki:** Hafta 7 — AI Görsel İşleme Mikroservisi
+> **Son Güncelleme:** 2026-04-09  
+> **Mevcut Faz:** FAZ 2 devam ediyor — Hafta 6 tamamlandı, Hafta 6 iyileştirmeleri bekliyor  
+> **Sıradaki:** Hafta 6 kalan görevleri tamamla → Hafta 7'ye geç  
+> **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
 
