@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-04-09  
-> **Mevcut Faz:** FAZ 2 devam ediyor — Hafta 6 tamamlandı, Hafta 6 iyileştirmeleri bekliyor  
-> **Sıradaki:** Hafta 6 kalan görevleri tamamla → Hafta 7'ye geç  
+> **Mevcut Faz:** FAZ 2 devam ediyor — Hafta 6 tamamlandı (iyileştirmeler dahil), Hafta 7'ye hazır  
+> **Sıradaki:** Hafta 7 — AI Görsel İşleme Mikroservisi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -200,6 +200,40 @@ POST   /api/notifications/read-all (auth) → tümünü okundu işaretle
 - TypeScript: `SyncStatus`, `PlatformSyncStatus`, `Notification`, `NotificationResponse`, `BulkPublishResponse`
 - `platforms-api.ts` genişletildi: `getSyncStatus`, `bulkPublish`, `getNotifications`, `markAllNotificationsRead`
 - CSS: `slideInRight` animasyonu (NotificationDrawer giriş efekti)
+
+---
+
+## Hafta 6 İyileştirmeleri ✅
+
+### Backend
+- Migration: `ebay_listing_id`, `ebay_offer_id`, `shopify_product_id`, `shopify_variant_id` → watches tablosu (indexli)
+- `EbayListingService`: `updateOffer()`, `updateWatch()`, `withdrawOffer()` metodları eklendi
+- `EbayListingService`: `ebayHttp()` helper — retry(3, exponential backoff, 429/5xx handling)
+- `ShopifyService`: `productDelete()` metodu (GraphQL mutation), `graphql()` retry(3, Retry-After)
+- `publishWatch()` → ebay_listing_id/ebay_offer_id, `productCreate()` → shopify_product_id/shopify_variant_id kaydediyor
+- `SyncInventoryJob`: mevcut listing varsa update, yoksa publish (akıllı sync)
+- `RemovePlatformListingJob` — toggle off yapıldığında listing kaldırma (eBay withdrawOffer / Shopify productDelete)
+- `PlatformController.toggleSync()` — enabled=false → RemovePlatformListingJob dispatch
+- `WebhookSubscriptionService` — platform bağlantısı kurulunca otomatik webhook kayıt (eBay Notification API + Shopify GraphQL)
+- `PlatformController.updateCredentials()` ve `EbayController.callback()` → webhook registration trigger
+- `PlatformController.bulkPublish()` → batch_id + cache tracking, `bulkPublishStatus()` endpoint
+- `DashboardController.markNotificationRead()` — cache-based tek bildirim okundu; `notifications()` → watch_id eklendi
+- `ProcessWebhookJob` — platform/dealer ownership doğrulaması (PlatformConnection üzerinden)
+- Routes: `GET /api/watches/bulk-publish/{batchId}/status`, `POST /api/notifications/{id}/read`
+
+### Frontend
+- `SyncStatusBadges`: N+1 çözüldü — prop-based, artık per-row fetch yok
+- `WatchController.index()`: bulk-fetch platforms/connections/sync_logs → `sync_statuses` array
+- `BulkActions`: gerçek polling progress (2s interval, batch_id), `onPublishComplete` callback
+- `NotificationDrawer`: per-notification "okundu" butonu (Check ikonu), click-to-navigate (watch_id)
+- `notificationStore`: `markRead(id)` action eklendi
+- `inventory/page.tsx`: `onPublishComplete={() => fetchWatches()}` — publish sonrası tablo yenileme
+- Watch type: `sync_statuses?: PlatformSyncStatus[]`, Notification type: `watch_id?: number`
+- Favicon: özel SVG ikon (saat + sync motifi) — `icon.svg`
+
+### Güvenlik
+- `ProcessWebhookJob`: verifyOwnership — watch'ın dealer'ının ilgili platform'a aktif bağlantısı olduğunu doğrular
+- Favicon/apple-touch-icon metadata layout.tsx'e eklendi
 
 ---
 

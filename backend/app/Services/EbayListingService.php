@@ -53,11 +53,7 @@ class EbayListingService
             ],
         ];
 
-        $response = Http::withToken($accessToken)
-            ->withHeaders([
-                'Content-Language' => 'en-US',
-                'Accept'           => 'application/json',
-            ])
+        $response = $this->ebayHttp($accessToken)
             ->put("{$baseUrl}/sell/inventory/v1/inventory_item/{$sku}", $payload);
 
         if (!$response->successful()) {
@@ -110,11 +106,7 @@ class EbayListingService
             ],
         ];
 
-        $response = Http::withToken($accessToken)
-            ->withHeaders([
-                'Content-Language' => 'en-US',
-                'Accept'           => 'application/json',
-            ])
+        $response = $this->ebayHttp($accessToken)
             ->post("{$baseUrl}/sell/inventory/v1/offer", $payload);
 
         if (!$response->successful()) {
@@ -147,6 +139,10 @@ class EbayListingService
             ->withHeaders([
                 'Accept' => 'application/json',
             ])
+            ->retry(3, function (int $attempt, \Throwable $exception) {
+                return (int) (1000 * pow(2, $attempt - 1));
+            }, fn (\Throwable $e) => $e instanceof \Illuminate\Http\Client\RequestException
+                && in_array($e->response?->status(), [429, 500, 502, 503, 504]))
             ->post("{$baseUrl}/sell/inventory/v1/offer/{$offerId}/publish");
 
         if (!$response->successful()) {
@@ -177,6 +173,12 @@ class EbayListingService
         $offerId = $this->createOffer($watch, $connection, $sku);
         $listingId = $this->publishOffer($offerId, $connection);
 
+        // Platform referans ID'lerini kaydet
+        $watch->update([
+            'ebay_listing_id' => $listingId,
+            'ebay_offer_id'   => $offerId,
+        ]);
+
         // Sync log kaydı
         SyncLog::create([
             'watch_id'      => $watch->id,
@@ -196,6 +198,122 @@ class EbayListingService
     }
 
     /**
+     * eBay Inventory API — updateOffer (fiyat/miktar güncelleme)
+     *
+     * @throws \RuntimeException
+     */
+    public function updateOffer(Watch $watch, PlatformConnection $connection, string $offerId): void
+    {
+        $accessToken = $this->getValidToken($connection);
+        $baseUrl = $this->oauthService->getApiBaseUrl();
+        $sku = $this->generateSku($watch);
+
+        $payload = [
+            'sku'                => $sku,
+            'marketplaceId'      => 'EBAY_US',
+            'format'             => 'FIXED_PRICE',
+            'listingDescription' => $watch->description ?? $this->buildDefaultDescription($watch),
+            'availableQuantity'  => $watch->status === 'active' ? 1 : 0,
+            'categoryId'         => '31387',
+            'merchantLocationKey' => $connection->settings['merchant_location_key'] ?? 'default',
+            'pricingSummary'     => [
+                'price' => [
+                    'value'    => (string) $watch->sale_price,
+                    'currency' => $watch->currency ?: 'USD',
+                ],
+            ],
+            'listingPolicies'    => [
+                'fulfillmentPolicyId' => $connection->settings['fulfillment_policy_id'] ?? '',
+                'paymentPolicyId'     => $connection->settings['payment_policy_id'] ?? '',
+                'returnPolicyId'      => $connection->settings['return_policy_id'] ?? '',
+            ],
+        ];
+
+        $response = $this->ebayHttp($accessToken)
+            ->put("{$baseUrl}/sell/inventory/v1/offer/{$offerId}", $payload);
+
+        if (!$response->successful()) {
+            $this->logAndThrow('updateOffer', $response, $watch);
+        }
+
+        Log::info('eBay: Offer updated', [
+            'watch_id' => $watch->id,
+            'offer_id' => $offerId,
+        ]);
+    }
+
+    /**
+     * Mevcut listing'i günceller (inventory item + offer).
+     * Fiyat/stok değiştiğinde çağrılır.
+     */
+    public function updateWatch(Watch $watch, PlatformConnection $connection): void
+    {
+        $this->createOrReplaceInventoryItem($watch, $connection);
+
+        if ($watch->ebay_offer_id) {
+            $this->updateOffer($watch, $connection, $watch->ebay_offer_id);
+        }
+
+        SyncLog::create([
+            'watch_id'      => $watch->id,
+            'platform_id'   => $connection->platform_id,
+            'status'        => 'success',
+            'error_message' => null,
+        ]);
+
+        $connection->update(['last_synced_at' => now()]);
+
+        Log::info('eBay: Watch listing updated', ['watch_id' => $watch->id]);
+    }
+
+    /**
+     * eBay Inventory API — withdrawOffer
+     * Teklifi geri çeker (listing'i kaldırır).
+     *
+     * @throws \RuntimeException
+     */
+    public function withdrawOffer(Watch $watch, PlatformConnection $connection): void
+    {
+        if (!$watch->ebay_offer_id) {
+            Log::info('eBay: No offer to withdraw', ['watch_id' => $watch->id]);
+            return;
+        }
+
+        $accessToken = $this->getValidToken($connection);
+        $baseUrl = $this->oauthService->getApiBaseUrl();
+
+        $response = $this->ebayHttp($accessToken)
+            ->post("{$baseUrl}/sell/inventory/v1/offer/{$watch->ebay_offer_id}/withdraw");
+
+        if (!$response->successful()) {
+            Log::error('eBay withdrawOffer failed', [
+                'watch_id' => $watch->id,
+                'offer_id' => $watch->ebay_offer_id,
+                'status'   => $response->status(),
+                'body'     => $response->body(),
+            ]);
+            throw new \RuntimeException('eBay withdrawOffer failed: ' . $response->body());
+        }
+
+        // Referans ID'lerini temizle
+        $watch->update([
+            'ebay_listing_id' => null,
+            'ebay_offer_id'   => null,
+        ]);
+
+        SyncLog::create([
+            'watch_id'      => $watch->id,
+            'platform_id'   => $connection->platform_id,
+            'status'        => 'success',
+            'error_message' => null,
+        ]);
+
+        Log::info('eBay: Offer withdrawn', [
+            'watch_id' => $watch->id,
+        ]);
+    }
+
+    /**
      * eBay stok miktarını günceller (satış/iptal durumlarında).
      */
     public function updateInventoryQuantity(Watch $watch, PlatformConnection $connection, int $quantity): void
@@ -212,11 +330,7 @@ class EbayListingService
             ],
         ];
 
-        $response = Http::withToken($accessToken)
-            ->withHeaders([
-                'Content-Language' => 'en-US',
-                'Accept'           => 'application/json',
-            ])
+        $response = $this->ebayHttp($accessToken)
             ->put("{$baseUrl}/sell/inventory/v1/inventory_item/{$sku}", $payload);
 
         if (!$response->successful()) {
@@ -374,5 +488,27 @@ class EbayListingService
         ]);
 
         throw new \RuntimeException("eBay {$method} failed: " . $response->body());
+    }
+
+    /**
+     * eBay API çağrısı için retry + rate limit middleware ile HTTP client döndürür.
+     */
+    private function ebayHttp(string $accessToken): \Illuminate\Http\Client\PendingRequest
+    {
+        return Http::withToken($accessToken)
+            ->withHeaders([
+                'Content-Language' => 'en-US',
+                'Accept'           => 'application/json',
+            ])
+            ->retry(3, function (int $attempt, \Throwable $exception) {
+                $delay = (int) (1000 * pow(2, $attempt - 1));
+                if ($exception instanceof \Illuminate\Http\Client\RequestException
+                    && $exception->response?->status() === 429) {
+                    $retryAfter = (int) ($exception->response->header('Retry-After') ?? 2);
+                    return $retryAfter * 1000;
+                }
+                return $delay;
+            }, fn (\Throwable $e) => $e instanceof \Illuminate\Http\Client\RequestException
+                && in_array($e->response?->status(), [429, 500, 502, 503, 504]));
     }
 }

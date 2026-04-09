@@ -78,8 +78,25 @@ class WatchController extends Controller
 
         $watches = $query->paginate($perPage);
 
-        // Thumbnail URL'lerini ekle
-        $watches->getCollection()->transform(function ($watch) {
+        // Platform ve bağlantı verilerini toplu çek (N+1 önleme)
+        $platforms = \App\Models\Platform::all();
+        $connections = \App\Models\PlatformConnection::where('dealer_id', $dealerId)->get();
+        $watchIds = $watches->getCollection()->pluck('id')->toArray();
+
+        // Tüm watch'lara ait son sync log'larını toplu çek
+        $latestSyncLogs = \App\Models\SyncLog::whereIn('watch_id', $watchIds)
+            ->select('watch_id', 'platform_id', 'status', 'error_message', 'created_at')
+            ->whereIn('id', function ($subQuery) use ($watchIds) {
+                $subQuery->selectRaw('MAX(id)')
+                    ->from('sync_logs')
+                    ->whereIn('watch_id', $watchIds)
+                    ->groupBy('watch_id', 'platform_id');
+            })
+            ->get()
+            ->groupBy('watch_id');
+
+        // Thumbnail URL'lerini ve sync status ekle
+        $watches->getCollection()->transform(function ($watch) use ($platforms, $connections, $latestSyncLogs) {
             $primaryImage = $watch->images->first();
             $watch->thumbnail_url = $primaryImage
                 ? $this->imageService->url(
@@ -94,6 +111,23 @@ class WatchController extends Controller
                 ? $this->imageService->url($primaryImage->image_url)
                 : null;
             unset($watch->images);
+
+            // Sync status verisini ekle
+            $watchSyncLogs = $latestSyncLogs->get($watch->id, collect());
+            $watch->sync_statuses = $platforms->map(function ($platform) use ($connections, $watchSyncLogs) {
+                $connection = $connections->first(fn ($c) => $c->platform_id === $platform->id);
+                $lastLog = $watchSyncLogs->first(fn ($l) => $l->platform_id === $platform->id);
+
+                return [
+                    'platform_id'   => $platform->id,
+                    'platform_name' => $platform->name,
+                    'connected'     => $connection && $connection->status === 'connected',
+                    'sync_status'   => $lastLog?->status ?? 'never',
+                    'last_synced_at' => $lastLog?->created_at?->toIso8601String(),
+                    'error_message'  => $lastLog?->status === 'failed' ? $lastLog->error_message : null,
+                ];
+            });
+
             return $watch;
         });
 

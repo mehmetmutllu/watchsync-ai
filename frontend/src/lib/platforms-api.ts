@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import type { PlatformInfo, PlatformCredentials, PlatformSyncStatus, BulkPublishResponse, NotificationResponse } from '@/types';
+import type { PlatformInfo, PlatformCredentials, PlatformSyncStatus, BulkPublishResponse, BulkPublishStatusResponse, NotificationResponse } from '@/types';
 
 export const platformsApi = {
   /**
@@ -80,6 +80,16 @@ export const platformsApi = {
   },
 
   /**
+   * Toplu yayınlama ilerleme durumu (polling).
+   */
+  getBulkPublishStatus: async (
+    batchId: string
+  ): Promise<BulkPublishStatusResponse> => {
+    const { data } = await api.get(`/watches/bulk-publish/${batchId}/status`);
+    return data;
+  },
+
+  /**
    * Bildirimleri getirir.
    */
   getNotifications: async (limit = 20): Promise<NotificationResponse> => {
@@ -92,5 +102,12 @@ export const platformsApi = {
    */
   markAllNotificationsRead: async (): Promise<void> => {
     await api.post('/notifications/read-all');
+  },
+
+  /**
+   * Tek bir bildirimi okundu olarak işaretler.
+   */
+  markNotificationRead: async (id: number): Promise<void> => {
+    await api.post(`/notifications/${id}/read`);
   },
 };

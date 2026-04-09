@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\PlatformConnection;
 use App\Models\SyncLog;
 use App\Models\Watch;
 use App\Services\InventoryLockService;
@@ -82,6 +83,10 @@ class ProcessWebhookJob implements ShouldQueue
             return;
         }
 
+        if (! $this->verifyOwnership($watch)) {
+            return;
+        }
+
         try {
             $lockService->safeStatusTransition(
                 $watch,
@@ -136,6 +141,10 @@ class ProcessWebhookJob implements ShouldQueue
             return;
         }
 
+        if (! $this->verifyOwnership($watch)) {
+            return;
+        }
+
         try {
             $lockService->safeStatusTransition(
                 $watch,
@@ -171,6 +180,29 @@ class ProcessWebhookJob implements ShouldQueue
             'platform' => $this->platform,
             'payload'  => $this->payload,
         ]);
+    }
+
+    /**
+     * Saatin, webhook gönderen platforma ait aktif bağlantısı olan bir dealer'a ait olduğunu doğrula.
+     */
+    private function verifyOwnership(Watch $watch): bool
+    {
+        $hasConnection = PlatformConnection::where('dealer_id', $watch->dealer_id)
+            ->where('status', 'active')
+            ->whereHas('platform', fn ($q) => $q->whereRaw('LOWER(name) = ?', [strtolower($this->platform)]))
+            ->exists();
+
+        if (! $hasConnection) {
+            Log::warning("ProcessWebhookJob: Ownership verification failed — watch does not belong to dealer with active platform connection", [
+                'watch_id'  => $watch->id,
+                'dealer_id' => $watch->dealer_id,
+                'platform'  => $this->platform,
+            ]);
+
+            return false;
+        }
+
+        return true;
     }
 
     public function failed(?\Throwable $exception): void

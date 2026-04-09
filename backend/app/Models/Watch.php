@@ -22,6 +22,10 @@ class Watch extends Model
         'currency',
         'features',
         'description',
+        'ebay_listing_id',
+        'ebay_offer_id',
+        'shopify_product_id',
+        'shopify_variant_id',
     ];
 
     /**

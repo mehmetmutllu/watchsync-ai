@@ -133,6 +133,12 @@ class ShopifyService
         $productId = $product['id'];
         $variantId = $variantEdge['node']['id'] ?? '';
 
+        // Platform referans ID'lerini kaydet
+        $watch->update([
+            'shopify_product_id' => $productId,
+            'shopify_variant_id' => $variantId,
+        ]);
+
         // Sync log
         SyncLog::create([
             'watch_id'      => $watch->id,
@@ -295,6 +301,67 @@ class ShopifyService
         return $this->productCreate($watch, $connection);
     }
 
+    /**
+     * Shopify Admin API (GraphQL) — productDelete mutation
+     * Ürünü Shopify'dan kaldırır.
+     *
+     * @throws \RuntimeException
+     */
+    public function productDelete(Watch $watch, PlatformConnection $connection): void
+    {
+        if (!$watch->shopify_product_id) {
+            Log::info('Shopify: No product to delete', ['watch_id' => $watch->id]);
+            return;
+        }
+
+        $accessToken = $connection->api_key;
+        $shopDomain = $connection->settings['shop_domain'] ?? '';
+
+        $mutation = <<<'GRAPHQL'
+        mutation productDelete($input: ProductDeleteInput!) {
+          productDelete(input: $input) {
+            deletedProductId
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+        GRAPHQL;
+
+        $variables = [
+            'input' => [
+                'id' => $watch->shopify_product_id,
+            ],
+        ];
+
+        $result = $this->graphql($shopDomain, $accessToken, $mutation, $variables);
+
+        if (!empty($result['data']['productDelete']['userErrors'])) {
+            $errors = collect($result['data']['productDelete']['userErrors'])
+                ->pluck('message')
+                ->implode('; ');
+            throw new \RuntimeException("Shopify productDelete failed: {$errors}");
+        }
+
+        // Referans ID'lerini temizle
+        $watch->update([
+            'shopify_product_id' => null,
+            'shopify_variant_id' => null,
+        ]);
+
+        SyncLog::create([
+            'watch_id'      => $watch->id,
+            'platform_id'   => $connection->platform_id,
+            'status'        => 'success',
+            'error_message' => null,
+        ]);
+
+        Log::info('Shopify: Product deleted', [
+            'watch_id' => $watch->id,
+        ]);
+    }
+
     // ─── Private Helpers ───────────────────────────────────────
 
     /**
@@ -307,7 +374,20 @@ class ShopifyService
         $response = Http::withHeaders([
             'X-Shopify-Access-Token' => $accessToken,
             'Content-Type'           => 'application/json',
-        ])->post($url, [
+        ])
+        ->retry(3, function (int $attempt, \Throwable $exception) {
+            // Exponential backoff: 1s, 2s, 4s
+            $delay = (int) (1000 * pow(2, $attempt - 1));
+            // Shopify 429 → Retry-After header
+            if ($exception instanceof \Illuminate\Http\Client\RequestException
+                && $exception->response?->status() === 429) {
+                $retryAfter = (int) ($exception->response->header('Retry-After') ?? 2);
+                return $retryAfter * 1000;
+            }
+            return $delay;
+        }, fn (\Throwable $e) => $e instanceof \Illuminate\Http\Client\RequestException
+            && in_array($e->response?->status(), [429, 500, 502, 503, 504]))
+        ->post($url, [
             'query'     => $query,
             'variables' => $variables,
         ]);

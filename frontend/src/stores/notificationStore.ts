@@ -10,6 +10,7 @@ interface NotificationState {
 
   fetchNotifications: () => Promise<void>;
   markAllRead: () => Promise<void>;
+  markRead: (id: number) => Promise<void>;
   toggleDrawer: () => void;
   closeDrawer: () => void;
 }
@@ -40,6 +41,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       set((state) => ({
         notifications: state.notifications.map((n) => ({ ...n, read: true })),
         unreadCount: 0,
+      }));
+    } catch {
+      // Silent fail
+    }
+  },
+
+  markRead: async (id: number) => {
+    try {
+      await platformsApi.markNotificationRead(id);
+      set((state) => ({
+        notifications: state.notifications.map((n) =>
+          n.id === id ? { ...n, read: true } : n
+        ),
+        unreadCount: Math.max(0, state.unreadCount - 1),
       }));
     } catch {
       // Silent fail

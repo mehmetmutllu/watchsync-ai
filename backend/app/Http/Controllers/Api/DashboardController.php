@@ -137,21 +137,19 @@ class DashboardController extends Controller
             ->get();
 
         $lastReadAt = $request->user()->notifications_read_at;
+        $individuallyRead = cache()->get("read_notifications_{$request->user()->id}", []);
 
         $notifications = $logs->map(fn ($log) => [
             'id'        => $log->id,
             'title'     => $this->buildNotificationTitle($log),
             'message'   => $this->buildNotificationMessage($log),
             'type'      => $log->status === 'failed' ? 'error' : ($log->status === 'pending' ? 'info' : 'success'),
-            'read'      => $lastReadAt && $log->created_at->lte($lastReadAt),
+            'read'      => ($lastReadAt && $log->created_at->lte($lastReadAt)) || in_array($log->id, $individuallyRead),
             'timestamp' => $log->created_at->toIso8601String(),
+            'watch_id'  => $log->watch_id,
         ]);
 
-        $unreadCount = $lastReadAt
-            ? SyncLog::whereIn('watch_id', $watchIds)
-                ->where('created_at', '>', $lastReadAt)
-                ->count()
-            : $logs->count();
+        $unreadCount = $notifications->filter(fn ($n) => !$n['read'])->count();
 
         return response()->json([
             'notifications' => $notifications,
@@ -169,6 +167,33 @@ class DashboardController extends Controller
         $request->user()->update(['notifications_read_at' => now()]);
 
         return response()->json(['message' => 'All notifications marked as read.']);
+    }
+
+    /**
+     * Tek bir bildirimi okundu olarak işaretle.
+     * Bildirim ID'si (sync_log ID) ile çalışır.
+     *
+     * POST /api/notifications/{id}/read
+     */
+    public function markNotificationRead(Request $request, int $id): JsonResponse
+    {
+        $dealer = $request->user()->dealer;
+        $watchIds = Watch::where('dealer_id', $dealer->id)->pluck('id');
+
+        $log = SyncLog::whereIn('watch_id', $watchIds)->findOrFail($id);
+
+        // Seçili bildirimin timestamp'ini kontrol et — eğer mevcut read_at'den daha eskiyse zaten okunmuş
+        $currentReadAt = $request->user()->notifications_read_at;
+
+        // Tek bildirim okuma: bildirim ID'lerini bir JSON sütunda veya ayrı tabloda
+        // tutmak yerine, read_individual_notifications cache'inde tutuyoruz
+        $cacheKey = "read_notifications_{$request->user()->id}";
+        $readIds = cache()->get($cacheKey, []);
+        $readIds[] = $id;
+        $readIds = array_unique($readIds);
+        cache()->put($cacheKey, $readIds, now()->addDays(7));
+
+        return response()->json(['message' => 'Notification marked as read.']);
     }
 
     // ─── Helpers ─────────────────────────────────────────────

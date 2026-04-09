@@ -176,9 +176,9 @@
 ### Bekleyen Güvenlik / Production Hazırlık Görevleri
 - [ ] Auth token: `localStorage` → `httpOnly cookie` geçişi (production güvenliği)
 - [ ] `Content-Security-Policy` header (production domain belirlendikten sonra)
-- [ ] `favicon.ico` ve `apple-touch-icon` tasarımı ve eklenmesi
+- [x] `favicon.ico` ve `apple-touch-icon` tasarımı ve eklenmesi
 - [ ] FormRequest `authorize()` → role-based yetkilendirme (owner/manager/staff)
-- [ ] ProcessWebhookJob: platform/dealer ownership doğrulaması
+- [x] ProcessWebhookJob: platform/dealer ownership doğrulaması
 
 ---
 
@@ -286,18 +286,20 @@
   - [x] Webhook imza doğrulaması
 
 #### Hafta 6 Tamamlama Görevleri (İyileştirme)
-- [ ] Platform referans ID'leri migration (`platform_connections.settings` veya `watches` tablosuna `ebay_listing_id`, `ebay_offer_id`, `shopify_product_id`, `shopify_variant_id`)
-- [ ] eBay listing güncelleme (fiyat/stok değiştiğinde mevcut listing update)
-- [ ] eBay listing kaldırma (`withdrawOffer`) metodu — toggle off yapıldığında
-- [ ] Shopify product silme (`productDelete`) metodu — toggle off yapıldığında
-- [ ] Shopify/eBay rate limiting yönetimi (API throttle handling + retry)
-- [ ] `toggleSync` endpoint'inde `enabled: false` → platformdan listing kaldırma
-- [ ] SyncStatusBadges N+1 sorunu: sync status verisini `GET /api/watches` tablo API'sine dahil et
-- [ ] BulkActions: gerçek ilerleme yüzdesi (polling ile job durumu takibi)
-- [ ] BulkActions: publish sonrası envanter tablosu otomatik yenileme
-- [ ] NotificationDrawer: tek bildirim okundu işaretleme
-- [ ] NotificationDrawer: bildirime tıklayınca ilgili saate yönlendirme
-- [ ] Webhook subscription otomasyonu (platform bağlantısı kurulunca otomatik kayıt)
+- [x] Platform referans ID'leri migration (`platform_connections.settings` veya `watches` tablosuna `ebay_listing_id`, `ebay_offer_id`, `shopify_product_id`, `shopify_variant_id`)
+- [x] eBay listing güncelleme (fiyat/stok değiştiğinde mevcut listing update)
+- [x] eBay listing kaldırma (`withdrawOffer`) metodu — toggle off yapıldığında
+- [x] Shopify product silme (`productDelete`) metodu — toggle off yapıldığında
+- [x] Shopify/eBay rate limiting yönetimi (API throttle handling + retry)
+- [x] `toggleSync` endpoint'inde `enabled: false` → platformdan listing kaldırma
+- [x] SyncStatusBadges N+1 sorunu: sync status verisini `GET /api/watches` tablo API'sine dahil et
+- [x] BulkActions: gerçek ilerleme yüzdesi (polling ile job durumu takibi)
+- [x] BulkActions: publish sonrası envanter tablosu otomatik yenileme
+- [x] NotificationDrawer: tek bildirim okundu işaretleme
+- [x] NotificationDrawer: bildirime tıklayınca ilgili saate yönlendirme
+- [x] Webhook subscription otomasyonu (platform bağlantısı kurulunca otomatik kayıt)
+- [x] `favicon.ico` → özel SVG ikon (saat + sync motifi)
+- [x] ProcessWebhookJob: platform/dealer ownership doğrulaması
 
 #### Senkronizasyon UI (Frontend)
 - [x] Senkronizasyon durum göstergeleri

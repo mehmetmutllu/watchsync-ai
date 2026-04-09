@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { X, Bell, CheckCheck, AlertCircle, CheckCircle, Clock, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Bell, CheckCheck, AlertCircle, CheckCircle, Clock, Info, Check } from 'lucide-react';
 import { useNotificationStore } from '@/stores/notificationStore';
 import type { NotificationType } from '@/types';
 
@@ -13,9 +14,10 @@ const TYPE_CONFIG: Record<NotificationType, { icon: typeof CheckCircle; color: s
 };
 
 export default function NotificationDrawer() {
-  const { notifications, unreadCount, isDrawerOpen, isLoading, closeDrawer, markAllRead } =
+  const { notifications, unreadCount, isDrawerOpen, isLoading, closeDrawer, markAllRead, markRead } =
     useNotificationStore();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Dışarı tıklayınca kapat
   useEffect(() => {
@@ -132,9 +134,15 @@ export default function NotificationDrawer() {
                 return (
                   <div
                     key={notification.id}
-                    className={`px-5 py-4 hover:bg-surface-elevated/50 transition-colors ${
+                    className={`px-5 py-4 hover:bg-surface-elevated/50 transition-colors cursor-pointer ${
                       !notification.read ? 'bg-accent-blue/5' : ''
                     }`}
+                    onClick={() => {
+                      if (notification.watch_id) {
+                        router.push(`/dashboard/inventory?watch=${notification.watch_id}`);
+                        closeDrawer();
+                      }
+                    }}
                   >
                     <div className="flex gap-3">
                       <div className={`mt-0.5 flex-shrink-0 w-8 h-8 rounded-full ${config.bg} flex items-center justify-center`}>
@@ -145,9 +153,23 @@ export default function NotificationDrawer() {
                           <p className={`text-sm font-medium ${notification.read ? 'text-secondary-text' : 'text-primary-text'}`}>
                             {notification.title}
                           </p>
-                          {!notification.read && (
-                            <span className="flex-shrink-0 w-2 h-2 rounded-full bg-accent-blue mt-1.5" />
-                          )}
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {!notification.read && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markRead(notification.id);
+                                }}
+                                className="p-0.5 rounded text-disabled-text hover:text-accent-blue transition-colors"
+                                title="Okundu işaretle"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {!notification.read && (
+                              <span className="w-2 h-2 rounded-full bg-accent-blue mt-0.5" />
+                            )}
+                          </div>
                         </div>
                         <p className="text-xs text-secondary-text mt-0.5 line-clamp-2">
                           {notification.message}

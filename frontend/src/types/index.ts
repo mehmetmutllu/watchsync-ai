@@ -100,6 +100,7 @@ export interface Watch {
   thumbnail_url?: string | null;
   primary_image_url?: string | null;
   allowed_transitions?: WatchStatus[];
+  sync_statuses?: PlatformSyncStatus[];
 }
 
 export interface WatchFormData {
@@ -185,6 +186,7 @@ export interface Notification {
   type: NotificationType;
   read: boolean;
   timestamp: string;
+  watch_id?: number;
 }
 
 export interface NotificationResponse {
@@ -198,5 +200,15 @@ export interface BulkPublishResponse {
   message: string;
   queued: number;
   skipped: number;
+  total: number;
+  batch_id: string;
+}
+
+export interface BulkPublishStatusResponse {
+  completed: boolean;
+  progress: number;
+  success: number;
+  failed: number;
+  pending: number;
   total: number;
 }

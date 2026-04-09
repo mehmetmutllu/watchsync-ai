@@ -5,45 +5,40 @@
 
 ---
 
-## Kopyalanacak Prompt (Mehmet — Hafta 6 Kalan Görevler)
+## Kopyalanacak Prompt (Berat — Hafta 7: AI Görsel İşleme Mikroservisi)
 
 ```
-WatchSync AI projesinde Hafta 6 kalan iyileştirme görevlerini tamamlıyorum. Hafta 7'ye geçmeden önce bu görevler bitirilmeli.
+WatchSync AI projesinde Hafta 7'ye başlıyorum. AI Görsel İşleme Mikroservisi kurulacak.
 
-activecontext.md dosyasını oku — tamamlanan haftalar, mimari, API endpoint'leri ve teknoloji stack'i orada.
-progress.md dosyasını oku — "Hafta 6 Tamamlama Görevleri (İyileştirme)" bölümündeki [ ] olan görevler yapılacak.
+activecontext.md dosyasını oku — tamamlanan haftalar (1-6 + iyileştirmeler), mimari, API endpoint'leri ve teknoloji stack'i orada.
+progress.md dosyasını oku — Hafta 1-6 tamamlandı, Hafta 7 görevleri yapılacak.
+plan.md dosyasını oku — Hafta 7 detaylı planı orada.
 
-Tamamlanan: Hafta 1-6 ana görevleri (Altyapı, Auth, CRUD, Redis Lock & Kuyruk, Chrono24 & eBay Bağlantıları, eBay Listeleme & Shopify) + Full Audit. Build başarılı, proje çalışıyor.
+Tamamlanan: Hafta 1-6 (Altyapı, Auth, CRUD, Redis Lock & Kuyruk, Chrono24 & eBay Bağlantıları, eBay Listeleme & Shopify, tüm iyileştirmeler). Build başarılı, proje çalışıyor.
 
-Yapılacak Hafta 6 İyileştirme Görevleri (progress.md'den):
+Hafta 7 Görevleri — AI Görsel İşleme Mikroservisi:
 
-Backend:
-1. Platform referans ID'leri migration (watches tablosuna ebay_listing_id, ebay_offer_id, shopify_product_id, shopify_variant_id sütunları)
-2. eBay listing güncelleme — fiyat/stok değiştiğinde mevcut listing update
-3. eBay listing kaldırma (withdrawOffer) — toggle off yapıldığında
-4. Shopify product silme (productDelete) — toggle off yapıldığında
-5. Shopify/eBay rate limiting yönetimi (API throttle handling + retry)
-6. toggleSync endpoint'inde enabled: false → platformdan listing kaldırma
-7. SyncStatusBadges N+1 sorunu: sync status verisini GET /api/watches tablo API'sine dahil et
-8. Webhook subscription otomasyonu (platform bağlantısı kurulunca otomatik kayıt)
+Backend (Python FastAPI):
+1. ai-service/ klasöründe Python FastAPI servisi kurulumu (Dockerfile + docker-compose entegrasyonu)
+2. SAM 2 model entegrasyonu — POST /api/ai/segment endpoint'i (görsel yükle → segmentasyon maskesi)
+3. Matting pipeline: SAM 2 maske → alpha matting → color decontamination → RGBA çıktı
+4. Arka plan değiştirme: Önceden tanımlı lüks arka planlar (beyaz stüdyo, siyah kadife, mermer)
+5. Laravel proxy endpoint: POST /api/watches/{id}/ai-enhance → FastAPI forward
 
-Frontend:
-9. BulkActions: gerçek ilerleme yüzdesi (polling ile job durumu takibi)
-10. BulkActions: publish sonrası envanter tablosu otomatik yenileme
-11. NotificationDrawer: tek bildirim okundu işaretleme
-12. NotificationDrawer: bildirime tıklayınca ilgili saate yönlendirme
-
-Bekleyen Güvenlik Görevleri (bunları da tamamla):
-13. favicon.ico ve apple-touch-icon tasarımı ve eklenmesi
-14. ProcessWebhookJob: platform/dealer ownership doğrulaması
+Frontend (Next.js):
+6. AI Studio sayfası: Split layout — sol yüksek çözünürlüklü görsel önizleme, sağ taraf kontroller
+7. "AI Enhance" butonu: görsel yükleme → FastAPI'ye gönder → işlenmiş görseli önizle → kaydet
+8. Arka plan seçici UI: küçük resim galerisi + özel arka plan yükleme seçeneği
+9. Before/After karşılaştırma bileşeni (slider)
 
 NOT: Docker (Laravel + MySQL + Redis) zaten çalışıyor. Port config: APP_PORT=8000, FORWARD_DB_PORT=3307, FORWARD_REDIS_PORT=6380.
 Demo giriş: demo@watchsync.ai / password
+ai-service/ klasörü zaten var, orayı kullan.
 
 Her görevi sırayla implemente et, ardından build kontrol et (cd frontend && npm run build). Hepsini bitirince:
 1. activecontext.md güncelle
 2. progress.md checkbox'ları [x] yap
 3. Git commit + push yap
-4. prompt.md'yi Hafta 7 için güncelle
+4. prompt.md'yi Hafta 8 için güncelle
 ```
 

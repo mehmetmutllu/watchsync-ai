@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Platform;
 use App\Models\PlatformConnection;
 use App\Services\EbayOAuthService;
+use App\Services\WebhookSubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -78,7 +79,7 @@ class EbayController extends Controller
             );
 
             // Bağlantıyı güncelle veya oluştur
-            PlatformConnection::updateOrCreate(
+            $connection = PlatformConnection::updateOrCreate(
                 [
                     'dealer_id'   => $dealerId,
                     'platform_id' => $platform->id,
@@ -90,6 +91,10 @@ class EbayController extends Controller
                     'status'           => 'connected',
                 ]
             );
+
+            // Webhook subscription otomasyonu
+            $connection->load('platform');
+            app(WebhookSubscriptionService::class)->registerEbayWebhooks($connection);
 
             Log::info('eBay OAuth connected', ['dealer_id' => $dealerId]);
 

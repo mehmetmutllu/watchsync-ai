@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Upload, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { platformsApi } from '@/lib/platforms-api';
 import { toast } from '@/stores/toastStore';
@@ -10,6 +10,7 @@ interface BulkActionsProps {
   selectedIds: Set<number>;
   platforms: PlatformInfo[];
   onClearSelection: () => void;
+  onPublishComplete?: () => void;
 }
 
 type PublishState = 'idle' | 'publishing' | 'done' | 'error';
@@ -18,9 +19,22 @@ export default function BulkActions({
   selectedIds,
   platforms,
   onClearSelection,
+  onPublishComplete,
 }: BulkActionsProps) {
   const [publishState, setPublishState] = useState<PublishState>('idle');
-  const [progress, setProgress] = useState({ queued: 0, skipped: 0, total: 0 });
+  const [progress, setProgress] = useState({ queued: 0, skipped: 0, total: 0, percent: 0, success: 0, failed: 0 });
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, [stopPolling]);
 
   if (selectedIds.size === 0) return null;
 
@@ -30,35 +44,64 @@ export default function BulkActions({
     const watchIds = Array.from(selectedIds);
 
     setPublishState('publishing');
-    setProgress({ queued: 0, skipped: 0, total: watchIds.length });
+    setProgress({ queued: 0, skipped: 0, total: watchIds.length, percent: 0, success: 0, failed: 0 });
 
     try {
       const result = await platformsApi.bulkPublish(watchIds, platformId);
 
-      setProgress({
+      setProgress((prev) => ({
+        ...prev,
         queued: result.queued,
         skipped: result.skipped,
         total: result.total,
-      });
-      setPublishState('done');
+      }));
 
-      if (result.queued > 0) {
-        toast.success(
-          `${platformName} Toplu Yayınlama`,
-          `${result.queued} saat kuyruğa eklendi.${result.skipped > 0 ? ` ${result.skipped} atlandı.` : ''}`
-        );
+      if (result.queued > 0 && result.batch_id) {
+        // Polling başlat
+        pollingRef.current = setInterval(async () => {
+          try {
+            const status = await platformsApi.getBulkPublishStatus(result.batch_id);
+
+            setProgress((prev) => ({
+              ...prev,
+              percent: status.progress,
+              success: status.success,
+              failed: status.failed,
+            }));
+
+            if (status.completed) {
+              stopPolling();
+              setPublishState('done');
+
+              toast.success(
+                `${platformName} Toplu Yayınlama`,
+                `${status.success} başarılı${status.failed > 0 ? `, ${status.failed} hatalı` : ''}.`
+              );
+
+              // Envanter tablosunu yenile
+              onPublishComplete?.();
+
+              setTimeout(() => {
+                setPublishState('idle');
+                onClearSelection();
+              }, 3000);
+            }
+          } catch {
+            // Polling hatası — sessiz devam
+          }
+        }, 2000);
       } else {
+        setPublishState('done');
         toast.warning(
           `${platformName} Toplu Yayınlama`,
           'Yayınlanacak aktif saat bulunamadı.'
         );
-      }
 
-      // 3 saniye sonra sıfırla
-      setTimeout(() => {
-        setPublishState('idle');
-        onClearSelection();
-      }, 3000);
+        setTimeout(() => {
+          setPublishState('idle');
+          onClearSelection();
+        }, 3000);
+      }
     } catch {
       setPublishState('error');
       toast.error(`${platformName} Toplu Yayınlama`, 'Toplu yayınlama başarısız.');
@@ -90,12 +133,14 @@ export default function BulkActions({
       {publishState === 'publishing' && (
         <div className="flex items-center gap-2 flex-1">
           <Loader2 className="w-4 h-4 animate-spin text-accent-blue" />
-          <span className="text-sm text-secondary-text">Yayınlanıyor...</span>
+          <span className="text-sm text-secondary-text">
+            Yayınlanıyor... %{Math.round(progress.percent)}
+          </span>
           <div className="flex-1 max-w-[200px]">
             <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
               <div
-                className="h-full bg-accent-blue rounded-full transition-all duration-500 animate-pulse"
-                style={{ width: '60%' }}
+                className="h-full bg-accent-blue rounded-full transition-all duration-500"
+                style={{ width: `${Math.max(progress.percent, 5)}%` }}
               />
             </div>
           </div>
@@ -106,12 +151,14 @@ export default function BulkActions({
         <div className="flex items-center gap-2 flex-1">
           <CheckCircle className="w-4 h-4 text-semantic-success" />
           <span className="text-sm text-semantic-success">
-            {progress.queued} saat kuyruğa eklendi
+            {progress.success} başarılı
+            {progress.failed > 0 && (
+              <span className="text-semantic-error"> / {progress.failed} hatalı</span>
+            )}
             {progress.skipped > 0 && (
               <span className="text-secondary-text"> ({progress.skipped} atlandı)</span>
             )}
           </span>
-          {/* Progress bar — tamamlandı */}
           <div className="flex-1 max-w-[200px]">
             <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
               <div className="h-full bg-semantic-success rounded-full w-full transition-all duration-300" />

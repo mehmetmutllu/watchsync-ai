@@ -124,8 +124,8 @@ class SyncInventoryJob implements ShouldQueue
         $platformName = strtolower($connection->platform->name ?? '');
 
         match (true) {
-            str_contains($platformName, 'ebay') => app(EbayListingService::class)->publishWatch($watch, $connection),
-            str_contains($platformName, 'shopify') => app(ShopifyService::class)->publishWatch($watch, $connection),
+            str_contains($platformName, 'ebay') => $this->syncToEbay($watch, $connection),
+            str_contains($platformName, 'shopify') => $this->syncToShopify($watch, $connection),
             default => SyncLog::create([
                 'watch_id'      => $watch->id,
                 'platform_id'   => $connection->platform_id,
@@ -133,6 +133,32 @@ class SyncInventoryJob implements ShouldQueue
                 'error_message' => null,
             ]),
         };
+    }
+
+    private function syncToEbay(Watch $watch, PlatformConnection $connection): void
+    {
+        $service = app(EbayListingService::class);
+
+        if ($watch->ebay_listing_id) {
+            // Mevcut listing var — güncelle
+            $service->updateWatch($watch, $connection);
+        } else {
+            // Yeni listing oluştur
+            $service->publishWatch($watch, $connection);
+        }
+    }
+
+    private function syncToShopify(Watch $watch, PlatformConnection $connection): void
+    {
+        $service = app(ShopifyService::class);
+
+        if ($watch->shopify_product_id) {
+            // Mevcut ürün var — güncelle
+            $service->productUpdate($watch, $connection, $watch->shopify_product_id);
+        } else {
+            // Yeni ürün oluştur
+            $service->publishWatch($watch, $connection);
+        }
     }
 
     /**

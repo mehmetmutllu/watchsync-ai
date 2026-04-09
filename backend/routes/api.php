@@ -39,6 +39,7 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
 
     // Bulk operations (must be before {id} routes)
     Route::post('/watches/bulk-publish', [PlatformController::class, 'bulkPublish']);
+    Route::get('/watches/bulk-publish/{batchId}/status', [PlatformController::class, 'bulkPublishStatus']);
 
     // Watch CRUD
     Route::get('/watches', [WatchController::class, 'index']);
@@ -72,4 +73,5 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     // Notifications
     Route::get('/notifications', [DashboardController::class, 'notifications']);
     Route::post('/notifications/read-all', [DashboardController::class, 'markAllNotificationsRead']);
+    Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead']);
 });

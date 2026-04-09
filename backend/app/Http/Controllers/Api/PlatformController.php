@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\RemovePlatformListingJob;
 use App\Jobs\SyncInventoryJob;
 use App\Models\Platform;
 use App\Models\PlatformConnection;
 use App\Models\SyncLog;
 use App\Models\Watch;
+use App\Services\WebhookSubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -71,6 +73,10 @@ class PlatformController extends Controller
                 'status'     => 'connected',
             ], fn ($v) => $v !== null)
         );
+
+        // Webhook subscription otomasyonu
+        $connection->load('platform');
+        app(WebhookSubscriptionService::class)->registerForPlatform($connection);
 
         return response()->json([
             'message'    => 'Credentials updated successfully.',
@@ -140,6 +146,9 @@ class PlatformController extends Controller
         if ($enabled) {
             // Senkronizasyon job'unu kuyruğa ekle
             SyncInventoryJob::dispatch($watchId, $dealerId, $platform->id);
+        } else {
+            // Platformdan listing kaldırma job'unu kuyruğa ekle
+            RemovePlatformListingJob::dispatch($watchId, $platform->id, $dealerId);
         }
 
         return response()->json([
@@ -189,6 +198,9 @@ class PlatformController extends Controller
         $queued = 0;
         $skipped = count($watchIds) - $watches->count();
 
+        // Batch ID oluştur (polling için)
+        $batchId = 'bulk_' . uniqid();
+
         foreach ($watches as $watchId) {
             // Pending sync log oluştur
             SyncLog::create([
@@ -202,11 +214,93 @@ class PlatformController extends Controller
             $queued++;
         }
 
+        // Batch bilgisini cache'e kaydet (5 dk TTL)
+        if ($queued > 0) {
+            cache()->put("bulk_publish_{$batchId}", [
+                'watch_ids'   => $watches->toArray(),
+                'platform_id' => $platformId,
+                'total'       => $queued,
+                'started_at'  => now()->toIso8601String(),
+            ], 300);
+        }
+
         return response()->json([
-            'message' => "{$queued} watches queued for publishing to {$platform->name}.",
-            'queued'  => $queued,
-            'skipped' => $skipped,
-            'total'   => count($watchIds),
+            'message'  => "{$queued} watches queued for publishing to {$platform->name}.",
+            'queued'   => $queued,
+            'skipped'  => $skipped,
+            'total'    => count($watchIds),
+            'batch_id' => $batchId,
+        ]);
+    }
+
+    /**
+     * Toplu yayınlama ilerleme durumu (polling).
+     *
+     * GET /api/watches/bulk-publish/{batchId}/status
+     */
+    public function bulkPublishStatus(Request $request, string $batchId): JsonResponse
+    {
+        $batch = cache()->get("bulk_publish_{$batchId}");
+
+        if (!$batch) {
+            return response()->json([
+                'completed' => true,
+                'progress'  => 100,
+                'success'   => 0,
+                'failed'    => 0,
+                'pending'   => 0,
+                'total'     => 0,
+            ]);
+        }
+
+        $watchIds = $batch['watch_ids'];
+        $platformId = $batch['platform_id'];
+        $total = $batch['total'];
+
+        // Her watch için en son sync log durumunu kontrol et
+        $latestLogs = SyncLog::whereIn('watch_id', $watchIds)
+            ->where('platform_id', $platformId)
+            ->where('created_at', '>=', $batch['started_at'])
+            ->selectRaw('watch_id, status, MAX(id) as max_id')
+            ->groupBy('watch_id', 'status')
+            ->get();
+
+        // Watch başına en son durumu belirle
+        $watchStatuses = [];
+        foreach ($latestLogs as $log) {
+            $wid = $log->watch_id;
+            if (!isset($watchStatuses[$wid]) || $log->max_id > ($watchStatuses[$wid]['max_id'] ?? 0)) {
+                $watchStatuses[$wid] = ['status' => $log->status, 'max_id' => $log->max_id];
+            }
+        }
+
+        $success = 0;
+        $failed = 0;
+        $pending = 0;
+
+        foreach ($watchIds as $wid) {
+            $status = $watchStatuses[$wid]['status'] ?? 'pending';
+            match ($status) {
+                'success' => $success++,
+                'failed'  => $failed++,
+                default   => $pending++,
+            };
+        }
+
+        $completed = ($success + $failed) >= $total;
+        $progress = $total > 0 ? round((($success + $failed) / $total) * 100, 1) : 100;
+
+        if ($completed) {
+            cache()->forget("bulk_publish_{$batchId}");
+        }
+
+        return response()->json([
+            'completed' => $completed,
+            'progress'  => $progress,
+            'success'   => $success,
+            'failed'    => $failed,
+            'pending'   => $pending,
+            'total'     => $total,
         ]);
     }
 

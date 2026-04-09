@@ -1,12 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { CheckCircle, Clock, XCircle, Loader2 } from 'lucide-react';
-import { platformsApi } from '@/lib/platforms-api';
+import { CheckCircle, Clock, XCircle } from 'lucide-react';
 import type { PlatformSyncStatus, SyncStatus } from '@/types';
 
 interface SyncStatusBadgesProps {
-  watchId: number;
+  syncStatuses?: PlatformSyncStatus[];
 }
 
 const STATUS_CONFIG: Record<SyncStatus, {
@@ -41,37 +39,12 @@ const STATUS_CONFIG: Record<SyncStatus, {
   },
 };
 
-export default function SyncStatusBadges({ watchId }: SyncStatusBadgesProps) {
-  const [statuses, setStatuses] = useState<PlatformSyncStatus[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchStatus = async () => {
-      try {
-        const data = await platformsApi.getSyncStatus(watchId);
-        if (mounted) {
-          setStatuses(data);
-          setIsLoading(false);
-        }
-      } catch {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    fetchStatus();
-
-    return () => {
-      mounted = false;
-    };
-  }, [watchId]);
-
-  if (isLoading) {
-    return <Loader2 className="w-4 h-4 animate-spin text-secondary-text" />;
+export default function SyncStatusBadges({ syncStatuses }: SyncStatusBadgesProps) {
+  if (!syncStatuses) {
+    return <span className="text-xs text-disabled-text">—</span>;
   }
 
-  const connectedStatuses = statuses.filter((s) => s.connected);
+  const connectedStatuses = syncStatuses.filter((s) => s.connected);
 
   if (connectedStatuses.length === 0) {
     return <span className="text-xs text-disabled-text">—</span>;

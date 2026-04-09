@@ -65,6 +65,7 @@ export default function InventoryPage() {
             selectedIds={selectedIds}
             platforms={platforms}
             onClearSelection={() => setSelectedIds(new Set())}
+            onPublishComplete={() => fetchWatches()}
           />
 
           <WatchTable
