@@ -415,37 +415,37 @@
 > **Sorumlu:** Berat (backend + frontend, AI ile çalışarak)
 
 #### Backend — CRM & Fatura API
-- [ ] CRM API
-  - [ ] `customers` tablosu migration
-  - [ ] `GET/POST/PUT/DELETE /api/customers` CRUD
-  - [ ] Satın alma geçmişi ilişkilendirmesi
-  - [ ] Notlar ve etiketleme sistemi
-  - [ ] Müşteri arama ve filtreleme
-- [ ] Fatura motoru
-  - [ ] `invoices` + `invoice_items` tablosu migration
-  - [ ] PDF fatura oluşturma (DomPDF/Snappy)
-  - [ ] Yasal uyumluluk: KDV hesaplama, fatura numarası sıralaması
-  - [ ] `GET /api/invoices/{id}/pdf` — PDF indirme
-  - [ ] Otomatik fatura e-posta gönderimi
-- [ ] E-posta bildirimleri
+- [x] CRM API
+  - [x] `customers` + `customer_notes` tablosu migration
+  - [x] `GET/POST/PUT/DELETE /api/customers` CRUD
+  - [x] Satın alma geçmişi ilişkilendirmesi (invoices relation)
+  - [x] Notlar ve etiketleme sistemi (JSON tags, customer_notes)
+  - [x] Müşteri arama ve filtreleme (isim, email, şirket, etiket)
+- [x] Fatura motoru
+  - [x] `invoices` + `invoice_items` tablosu migration
+  - [x] PDF fatura oluşturma (DomPDF v3.1, profesyonel A4 şablon)
+  - [x] Yasal uyumluluk: KDV hesaplama, fatura numarası sıralaması (INV-YYYY-XXXXX)
+  - [x] `GET /api/invoices/{id}/pdf` — PDF indirme (stream)
+  - [x] Otomatik fatura e-posta gönderimi (`POST /api/invoices/{id}/send`)
+- [x] E-posta bildirimleri
   - [ ] Sipariş onayı e-postası
-  - [ ] Fatura gönderim e-postası
+  - [x] Fatura gönderim e-postası (InvoiceSentNotification, queued)
   - [ ] Stok uyarı e-postası
-  - [ ] Laravel Notification + Mail yapılandırması
-  - [ ] E-posta template'leri (Blade veya Markdown)
+  - [x] Laravel Notification + Mail yapılandırması
+  - [x] E-posta template'leri (Blade PDF + Notification Mail)
 
 #### Frontend — CRM & Fatura UI
-- [ ] CRM sayfası
-  - [ ] Müşteri listesi tablosu (arama, filtreleme)
-  - [ ] Müşteri detay sayfası
-  - [ ] İletişim geçmişi zaman çizelgesi
-  - [ ] Not ekleme formu
-  - [ ] Etiket yönetimi
-- [ ] Fatura sayfası
-  - [ ] Fatura listesi tablosu
-  - [ ] Fatura önizleme modal'ı
-  - [ ] PDF indirme butonu
-  - [ ] "Yeni Fatura Oluştur" formu
+- [x] CRM sayfası
+  - [x] Müşteri listesi tablosu (arama, filtreleme)
+  - [x] Müşteri detay sayfası (iletişim bilgileri, notlar, fatura geçmişi)
+  - [x] İletişim geçmişi zaman çizelgesi (notlar listesi)
+  - [x] Not ekleme formu
+  - [x] Etiket yönetimi (tag ekleme/silme)
+- [x] Fatura sayfası
+  - [x] Fatura listesi tablosu (durum filtreleri)
+  - [x] Fatura detay görünümü (kalemler, toplamlar, PDF, e-posta)
+  - [x] PDF indirme butonu
+  - [x] "Yeni Fatura Oluştur" formu (müşteri seçici, kalem satırları, KDV hesaplama)
 - [ ] Ayarlar sayfası
   - [ ] Profil düzenleme formu
   - [ ] Bildirim tercihleri toggle'ları
