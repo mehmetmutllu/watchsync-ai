@@ -105,7 +105,7 @@ Bu belge, WatchSync AI projesinin sıfırdan üretime alınmasına kadar geçece
 
 | Gün | Senior (S) | Junior (J) |
 |-----|-----------|------------|
-| 1-2 | LLM entegrasyonu (Llama-3 / OpenAI fallback): saat referans numarasından SEO uyumlu açıklama üretme | AI açıklama UI: "Generate" butonu → streaming metin gösterimi → düzenleme alanı |
+| 1-2 | LLM entegrasyonu (Gemini 2.0 Flash): saat referans numarasından SEO uyumlu açıklama üretme | AI açıklama UI: "Generate" butonu → streaming metin gösterimi → düzenleme alanı |
 | 3-4 | Web scraping servisi: Chrono24/Watchfinder fiyat çekme (Playwright), veri normalleştirme pipeline | Market Scanner veri bağlama: fiyat trendi grafiği (gerçek veri), rakip fiyat karşılaştırma tablosu |
 | 5 | Fine-tuning veri seti hazırlığı: saat katalog verilerinden eğitim seti oluşturma scripti | Fiyat uyarı sistemi UI: "Bu referans X€'nun altına düştüğünde bildir" kuralları formu |
 

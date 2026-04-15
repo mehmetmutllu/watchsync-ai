@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\Dealer;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,12 +44,16 @@ class AuthController extends Controller
                 ]);
             });
 
-            $token = $user->createToken('auth-token')->plainTextToken;
+            // Session-based login (httpOnly cookie)
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            // Doğrulama e-postası gönder
+            event(new Registered($user));
 
             return response()->json([
                 'message' => 'Kayıt başarılı.',
                 'user'    => $user->load('dealer'),
-                'token'   => $token,
             ], 201);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Registration Error: ' . $e->getMessage());
@@ -77,25 +82,28 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $request->session()->regenerate();
+
         /** @var User $user */
-        $user  = Auth::user();
-        $token = $user->createToken('auth-token')->plainTextToken;
+        $user = Auth::user();
 
         return response()->json([
             'message' => 'Giriş başarılı.',
             'user'    => $user->load('dealer'),
-            'token'   => $token,
         ]);
     }
 
     /**
-     * Oturum kapat (mevcut token'ı iptal et).
+     * Oturum kapat (session invalidate).
      *
      * POST /api/auth/logout
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Çıkış başarılı.',

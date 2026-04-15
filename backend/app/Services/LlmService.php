@@ -13,9 +13,9 @@ class LlmService
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.api_key', '');
-        $this->baseUrl = config('services.openai.base_url', 'https://api.openai.com/v1');
-        $this->model = config('services.openai.model', 'gpt-4o-mini');
+        $this->apiKey = config('services.gemini.api_key', '');
+        $this->baseUrl = config('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta/openai');
+        $this->model = config('services.gemini.model', 'gemini-2.0-flash');
     }
 
     public function generateDescription(

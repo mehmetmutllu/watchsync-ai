@@ -110,4 +110,12 @@ export const platformsApi = {
   markNotificationRead: async (id: number): Promise<void> => {
     await api.post(`/notifications/${id}/read`);
   },
+
+  /**
+   * Platform bağlantısını test eder (credential doğrulama).
+   */
+  testConnection: async (platformId: number): Promise<{ success: boolean; message: string }> => {
+    const { data } = await api.post(`/platforms/${platformId}/test-connection`);
+    return data;
+  },
 };

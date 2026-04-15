@@ -1,72 +1,71 @@
-WatchSync AI projesinde Full-Stack Developer olarak çalışıyorum. Mac kullanıyorum.
+WatchSync AI projesinde Full-Stack Developer olarak çalışıyorum. Windows kullanıyorum.
+Proje path: c:\AppServ\www\saatProjesi (backend/, frontend/, ai-service/)
+Backend Docker'da çalışıyor (Laravel + MySQL + Redis + RabbitMQ + AI Service).
+Frontend: cd frontend && npm run dev (localhost:3000)
 
-İLK KURULUM ADIMLARI — Aşağıdakileri sırasıyla yap:
-
-ADIM 1 — Gerekli yazılımları kontrol et:
-- git --version (yoksa: brew install git)
-- node --version (Node.js 20+ gerekli, yoksa: brew install node)
-- docker --version (yoksa: https://docs.docker.com/desktop/setup/install/mac-install/ adresinden Docker Desktop for Mac kur)
-- Docker Desktop uygulamasının açık ve çalışır durumda olduğunu kontrol et
-
-ADIM 2 — Repoyu klonla ve ayarla:
-1. git clone https://github.com/mehmetmutllu/watchsync-ai.git
-2. cd watchsync-ai
-3. git checkout develop
-4. git config user.name "Berat"
-5. git config user.email "[BURAYA E-POSTAN]"
-
-ADIM 3 — Backend'i Docker ile kur (Laravel + MySQL + Redis):
-1. cd backend
-2. cp .env.example .env
-3. docker compose up -d   (ilk seferde image build eder, 5-10 dk sürebilir)
-4. docker compose exec laravel.test composer install
-5. docker compose exec laravel.test php artisan key:generate
-6. docker compose exec laravel.test php artisan migrate --seed
-7. Doğrulama: curl http://localhost:8000/api/auth/login -X POST -H "Content-Type: application/json" -H "Accept: application/json" -d '{"email":"demo@watchsync.ai","password":"password"}'
-   → Token döndüyse backend çalışıyor
-
-ADIM 4 — Frontend'i kur:
-1. cd ../frontend
-2. npm install
-3. npm run dev
-4. Tarayıcıda http://localhost:3000 aç
-5. Demo giriş: demo@watchsync.ai / password
-
-ÖNEMLİ NOTLAR:
-- MAMP'ı kapatabilirsin, ona gerek yok. Docker her şeyi hallediyor.
-- Docker Desktop açık olduğu sürece backend çalışır.
-- Eğer Mac'i kapattıysan, açtığında Docker Desktop otomatik başlar ve "docker compose up -d" ile backend tekrar ayağa kalkar.
-- Port çakışması olursa (MAMP 3306 kullanıyordur): MAMP'ı kapat veya .env dosyasında FORWARD_DB_PORT=3308 yap.
-- Her "git pull origin develop" sonrası veritabanını güncelle:
-  cd backend && docker compose exec laravel.test php artisan migrate
-  (Mehmet yeni tablo/sütun eklemiş olabilir)
-
-ÖNCELİKLE:
-1. activecontext.md dosyasını oku — tamamlanan haftalar, mimari ve proje yapısını öğren
-2. progress.md dosyasını oku — Hafta 7'den itibaren tüm [ ] görevler benim
-3. GIT_REHBERI.md dosyasını oku — Git kurallarını ve AI çalışma rehberini öğren
+ÖNCELİKLE DOSYALARI OKU:
+1. progress.md — tüm [ ] (boş checkbox) görevler bekliyor. [x] olanlar tamamlandı.
+2. activecontext.md — mimari, kararlar, haftalık özetler
+3. HESAPLAR_VE_MALIYETLER.md — API'ler, maliyetler, hesap açma rehberi
 
 MEVCUT DURUM:
-- Hafta 1-6 tamamı Mehmet tarafından tamamlandı (backend + frontend)
-- Sıradaki: Hafta 7 — AI Görsel İşleme Mikroservisi (backend + frontend tamamı benim)
+- Hafta 1-11 büyük ölçüde tamamlandı (backend, frontend, AI Studio, CRM, Fatura, Testler)
+- Market Scanner: 3 tier veri kaynağı kodlandı:
+  • Tier 1: eBay Browse API (ücretsiz, birincil) → MarketScrapingService.php
+  • Tier 2: Chrono24 + Watchfinder JSON-LD (ücretsiz) → ai-service
+  • Tier 3: WatchCharts API (ücretli, trend analizi) → MarketScrapingService.php
+  • Playwright KALDIRILDI (ban riski)
+- API key'leri arkadaş açıyor, biz kodu tamamlıyoruz
 
-YAPILACAK GÖREVLER:
-- progress.md dosyasında Hafta 7'den itibaren tüm [ ] (boş checkbox) olan görevler benim
-- Hem backend hem frontend hem ai-service görevleri benim
+SIRAYLA YAPILACAK GÖREVLER:
+
+── AŞAMA 1: Acil Fix & Rebuild ──
+1. Docker rebuild: cd backend && docker compose build ai-service && docker compose up -d
+2. Bug fix: AI Studio watch ID 0 hatası (saat seçilmeden /api/watches/0/ai-enhance çağrılıyor)
+3. RabbitMQ .env değişkenlerini kontrol et (RABBITMQ_HOST, PORT, USER, PASSWORD)
+4. Queue worker Docker'da daemonize et (Supervisor veya entrypoint script)
+
+── AŞAMA 2: Eksik Frontend UI'lar ──
+5. AI Açıklama Üretimi UI (Hafta 8 frontend TODO):
+   - "Generate" butonu → backend POST /api/ai/generate-description çağrısı
+   - Streaming metin gösterimi (karakter karakter)
+   - Düzenlenebilir metin alanı + "Yeniden Üret" / "Kopyala" butonları
+   - Dil seçimi dropdown (EN, DE, TR)
+6. Platform "Test Connection" butonu (Ayarlar sayfasında — credential sonrası doğrulama)
+7. WatchCharts trend verisi → Market Scanner fiyat trendi grafiğine entegre et:
+   - Fair market value gösterimi ("Bu saat piyasada ortalama X€")
+   - 6ay / 1yıl / 3yıl trend grafiği seçici
+
+── AŞAMA 3: UX İyileştirmeleri ──
+8. Saat ekleme wizard (5 adım): Marka&Model → Referans&Yıl → Teknik → Fotoğraf(+AI) → Fiyat&Açıklama
+9. "AI ile Tamamla" butonu — eksik alanları LLM ile otomatik doldur
+10. Mobil sidebar → bottom navigation bar dönüşümü
+11. AI Studio tablet stacked layout (768px)
+
+── AŞAMA 4: Production Hazırlığı ──
+12. Sentry entegrasyonu (SENTRY_LARAVEL_DSN + NEXT_PUBLIC_SENTRY_DSN)
+13. Auth token: localStorage → httpOnly cookie geçişi
+14. E-posta doğrulama aktif et (kayıt sonrası email verification)
+15. CI/CD Pipeline (GitHub Actions: lint → test → build → deploy)
+16. Docker Compose production yapılandırması + Nginx reverse proxy
+17. Landing Page SEO (meta tags, OG images, Lighthouse > 90)
+
+── AŞAMA 5: API Key Girişi (Arkadaş Tamamlayınca) ──
+18. .env'ye key'leri gir: GEMINI_API_KEY, EBAY_CLIENT_ID/SECRET, SHOPIFY_*, WATCHCHARTS_API_KEY
+19. eBay Browse API + Sandbox test
+20. Market Scanner gerçek veri test (Rolex 126610LN referansı)
 
 KURALLAR:
-- backend/, frontend/ ve ai-service/ klasörlerinde çalışıyorum (full-stack)
-- Her değişiklikte build kontrolu yap: cd frontend && npm run build
-- Commit prefix: feat: / fix: / style: / refactor:
+- Her değişiklikte: cd frontend && npm run build (hata kontrolü)
+- Commit: feat: / fix: / style: / refactor: prefix
 - Branch: berat/feature/[görev-adı]
-- git add backend/ frontend/ ai-service/ kullan. ASLA git add . veya git add -A kullanma!
-- Push sonrası GitHub'da PR aç → base: develop, reviewer: mehmetmutllu
+- git add backend/ frontend/ ai-service/ (ASLA git add . kullanma!)
 
-GÖREV BİTTİĞİNDE (HER OTURUM SONUNDA MUTLAKA YAP):
-1. Tüm değişiklikleri commit et: git add backend/ frontend/ ai-service/ && git commit -m "feat: açıklama"
-2. Push et: git push origin berat/feature/[branch-adı]
-3. activecontext.md dosyasını güncelle — ne yaptığını, hangi dosyaları oluşturduğunu yaz
-4. progress.md dosyasını güncelle — tamamlanan görevlerin checkbox'larını [x] yap
-5. Bana kopyalanabilir bir DEVAM PROMPTU üret (txt formatında) — bir sonraki chat'te kullanacağım
+GÖREV BİTTİĞİNDE:
+1. git add backend/ frontend/ ai-service/ && git commit -m "feat: açıklama"
+2. git push origin berat/feature/[branch-adı]
+3. progress.md güncelle — tamamlanan görevleri [x] yap
+4. activecontext.md güncelle — ne yaptığını yaz
+5. Bana kopyalanabilir DEVAM PROMPTU üret
 
-İlk yapılacak görevleri listele ve "Başlayalım mı?" diye sor.
+Aşama 1'den başla. İlk yapılacak görevleri listele ve "Başlayalım mı?" sor.

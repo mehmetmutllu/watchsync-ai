@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
-import { Upload, Sparkles, Download, Loader2, AlertCircle, ImageIcon } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Upload, Sparkles, Download, Loader2, AlertCircle, ImageIcon, ChevronDown } from 'lucide-react';
 import BeforeAfterSlider from '@/components/ai-studio/BeforeAfterSlider';
 import BackgroundSelector from '@/components/ai-studio/BackgroundSelector';
 import { enhanceWatchImage, type AiEnhanceResult, type AiBackgroundVariant } from '@/lib/ai-api';
+import { watchesApi } from '@/lib/watches-api';
+import AiDescriptionGenerator from '@/components/inventory/AiDescriptionGenerator';
+import type { Watch } from '@/types';
 
 type StudioStep = 'upload' | 'processing' | 'result';
 
@@ -18,6 +21,25 @@ export default function AiStudioPage() {
   const [result, setResult] = useState<AiEnhanceResult | null>(null);
   const [activeVariant, setActiveVariant] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Watch selector state
+  const [watches, setWatches] = useState<Watch[]>([]);
+  const [selectedWatchId, setSelectedWatchId] = useState<number | null>(null);
+  const [isLoadingWatches, setIsLoadingWatches] = useState(true);
+
+  useEffect(() => {
+    const loadWatches = async () => {
+      try {
+        const response = await watchesApi.list({ per_page: 100, status: 'active' });
+        setWatches(response.data);
+      } catch {
+        // Watches couldn't be loaded — selector will show empty state
+      } finally {
+        setIsLoadingWatches(false);
+      }
+    };
+    loadWatches();
+  }, []);
 
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -45,13 +67,13 @@ export default function AiStudioPage() {
   }, [handleFileSelect]);
 
   const handleProcess = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !selectedWatchId) return;
     setIsProcessing(true);
     setError(null);
     setStep('processing');
 
     try {
-      const data = await enhanceWatchImage(0, selectedFile);
+      const data = await enhanceWatchImage(selectedWatchId, selectedFile);
       setResult(data);
       setActiveVariant(0);
       setStep('result');
@@ -82,15 +104,43 @@ export default function AiStudioPage() {
   };
 
   const currentVariant: AiBackgroundVariant | null = result?.results?.[activeVariant] ?? null;
+  const selectedWatch = watches.find((w) => w.id === selectedWatchId) ?? null;
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-primary-text">AI Studio</h1>
-        <p className="mt-1 text-sm text-secondary-text">
-          Saat görsellerinizi AI ile profesyonelce düzenleyin
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-primary-text">AI Studio</h1>
+          <p className="mt-1 text-sm text-secondary-text">
+            Saat görsellerinizi AI ile profesyonelce düzenleyin
+          </p>
+        </div>
+        {/* Watch Selector */}
+        <div className="w-full sm:w-72">
+          <label htmlFor="watch-select" className="block text-xs font-medium text-secondary-text mb-1">
+            Saat Seçin
+          </label>
+          <div className="relative">
+            <select
+              id="watch-select"
+              value={selectedWatchId ?? ''}
+              onChange={(e) => setSelectedWatchId(e.target.value ? Number(e.target.value) : null)}
+              disabled={isLoadingWatches || isProcessing}
+              className="w-full appearance-none rounded-lg border border-border-subtle bg-surface-elevated px-3 py-2 pr-8 text-sm text-primary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 disabled:opacity-50"
+            >
+              <option value="">
+                {isLoadingWatches ? 'Yükleniyor...' : '— Saat seçin —'}
+              </option>
+              {watches.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.brand} {w.model}{w.reference_number ? ` (${w.reference_number})` : ''}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+          </div>
+        </div>
       </div>
 
       {/* Error */}
@@ -101,9 +151,9 @@ export default function AiStudioPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left: Image Area */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <div className="glass rounded-xl p-6">
             {step === 'upload' && !preview && (
               <div
@@ -154,10 +204,11 @@ export default function AiStudioPage() {
                   </button>
                   <button
                     onClick={handleProcess}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-blue text-white text-sm font-medium rounded-lg hover:bg-accent-blue-hover transition-colors"
+                    disabled={!selectedWatchId}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-accent-blue text-white text-sm font-medium rounded-lg hover:bg-accent-blue-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Sparkles className="w-4 h-4" />
-                    AI ile İşle
+                    {selectedWatchId ? 'AI ile İşle' : 'Önce saat seçin'}
                   </button>
                 </div>
               </div>
@@ -201,10 +252,10 @@ export default function AiStudioPage() {
           </div>
         </div>
 
-        {/* Right: Controls */}
-        <div className="space-y-6">
+        {/* Right: Controls — horizontal on tablet, vertical on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-1 gap-4 xl:gap-6">
           {/* Background Selector */}
-          <div className="glass rounded-xl p-5">
+          <div className="glass rounded-xl p-5 col-span-2 md:col-span-1">
             <BackgroundSelector
               selected={bgPreset}
               onSelect={setBgPreset}
@@ -251,6 +302,11 @@ export default function AiStudioPage() {
               </p>
               <p>Gölge ve yansıma efektleri otomatik eklenir.</p>
             </div>
+          </div>
+
+          {/* AI Description Generator */}
+          <div className="col-span-2 md:col-span-3 xl:col-span-1">
+            <AiDescriptionGenerator watch={selectedWatch} />
           </div>
         </div>
       </div>

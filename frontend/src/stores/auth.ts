@@ -1,10 +1,9 @@
 import { create } from 'zustand';
-import api from '@/lib/api';
+import api, { getCsrfCookie } from '@/lib/api';
 import type { User } from '@/types';
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
 
@@ -17,38 +16,30 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: null,
   isLoading: true,
   isAuthenticated: false,
 
   hydrate: () => {
     if (typeof window === 'undefined') return;
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      set({ token, isAuthenticated: true });
-      get().fetchUser();
-    } else {
-      set({ isLoading: false });
-    }
+    // Cookie-based auth: sadece /auth/me çağır — cookie otomatik gönderilir
+    get().fetchUser();
   },
 
   login: async (email, password) => {
+    await getCsrfCookie();
     const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('auth_token', data.token);
     set({
       user: data.user,
-      token: data.token,
       isAuthenticated: true,
       isLoading: false,
     });
   },
 
   register: async (formData) => {
+    await getCsrfCookie();
     const { data } = await api.post('/auth/register', formData);
-    localStorage.setItem('auth_token', data.token);
     set({
       user: data.user,
-      token: data.token,
       isAuthenticated: true,
       isLoading: false,
     });
@@ -58,12 +49,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await api.post('/auth/logout');
     } catch {
-      // Token might already be invalid
+      // Session might already be invalid
     }
-    localStorage.removeItem('auth_token');
     set({
       user: null,
-      token: null,
       isAuthenticated: false,
       isLoading: false,
     });
@@ -78,10 +67,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
     } catch {
-      localStorage.removeItem('auth_token');
       set({
         user: null,
-        token: null,
         isAuthenticated: false,
         isLoading: false,
       });

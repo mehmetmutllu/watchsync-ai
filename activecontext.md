@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-04-11  
-> **Mevcut Faz:** FAZ 3 — Hafta 11 TAMAMLANDI ✅  
-> **Sıradaki:** Hafta 12 — Staging & Lansman  
+> **Son Güncelleme:** 2026-04-10  
+> **Mevcut Faz:** Aşama 5 — API Key Girişi & Gerçek Veri Testi DEVAM EDİYOR 🔄  
+> **Sıradaki:** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -254,6 +254,118 @@ POST   /api/notifications/read-all (auth) → tümünü okundu işaretle
 
 ---
 
+## Aşama 1: Acil Fix & Rebuild ✅ (2026-04-10)
+
+### Tamamlanan İşler
+- **AI Studio watch ID 0 bug fix:** Saat seçici dropdown eklendi (`page.tsx`). `watchesApi.list()` ile aktif saatler yükleniyor. Saat seçilmeden "AI ile İşle" butonu disabled. Seçilen watch ID `enhanceWatchImage()` fonksiyonuna geçiriliyor.
+- **RabbitMQ `.env` düzeltmesi:** `compose.yaml`'daki RabbitMQ env vars düzeltildi — `RABBITMQ_DEFAULT_USER` / `RABBITMQ_DEFAULT_PASS` (resmi image env adları).
+- **Queue worker daemonize:** `docker/supervisord-queue.conf` oluşturuldu — PHP + queue-worker Supervisor programları. `compose.yaml`'da volume mount ile container'a enjekte edildi. `php artisan queue:work redis` otomatik başlıyor.
+- **Docker rebuild:** `ai-service` yeniden build edildi (Playwright kaldırılmış, ban-free strateji).
+- **Frontend build:** `npm run build` hatasız geçti.
+
+### Yeni / Değişen Dosyalar
+```
+frontend/src/app/(dashboard)/dashboard/ai-studio/page.tsx (watch selector eklendi)
+backend/docker/supervisord-queue.conf (yeni — Supervisor PHP + queue-worker config)
+backend/compose.yaml (RabbitMQ env fix, supervisor volume mount, ai-service rebuild)
+```
+
+---
+
+## Aşama 2: Eksik Frontend UI'lar ✅ (2026-04-10)
+
+### Tamamlanan İşler
+
+**Görev 5 — AI Açıklama Üretimi UI:**
+- `AiDescriptionGenerator.tsx` bileşeni oluşturuldu — dil seçici (EN/DE/TR), streaming text simülasyonu (15ms interval, 1-3 karakter chunk), düzenlenebilir textarea, "Açıklama Üret" / "Yeniden Üret" / "Kopyala" / "Uygula" butonları
+- AI Studio sayfasına entegre edildi — sağ panel kontrolleri
+- `market-api.ts` güncellendi — watch_id varsa `/watches/{id}/generate-description`, yoksa generic endpoint
+
+**Görev 6 — Platform Test Connection:**
+- `PlatformController.php`'ye `testConnection()` metodu eklendi + 3 private helper:
+  - eBay: OAuth access_token ile `/sell/account/v1/privilege` kontrolü
+  - Shopify: GraphQL `{ shop { name } }` sorgusu
+  - Chrono24: API key veya bağlantı durumu kontrolü
+- `api.php`'ye `POST /api/platforms/{id}/test-connection` route'u eklendi
+- `platforms-api.ts`'ye `testConnection()` metodu eklendi
+- `PlatformCard.tsx`'ye "Bağlantıyı Test Et" butonu + başarı/hata feedback UI eklendi
+
+**Görev 7 — WatchCharts Trend Grafiği:**
+- `MarketScrapingService.php`'ye `getWatchChartsTrend()` + `normalizeTrend()` metodları eklendi — WatchCharts API'den fair market value, trend yönü, tarihsel veri noktaları çekiyor, 1 saatlik cache
+- `periodToDate()` güncellendi — `3y` (3 yıl) period desteği eklendi
+- `MarketController.php`'ye `GET /api/market/watchcharts-trend/{ref}` endpoint'i eklendi — 6m/1y/3y period seçenekleri
+- `market-api.ts`'ye `WatchChartsTrend` tipi ve `getWatchChartsTrend()` fonksiyonu eklendi
+- Market Scanner sayfasına entegre edildi:
+  - Period selector: `3y` seçeneği eklendi (7d/30d/90d/6m/1y/3y)
+  - **WatchCharts Piyasa Değeri kartı:** gold vurgulu, fair market value gösterimi, "Bu saat piyasada ortalama X€ değerinde", trend badge + yüzde değişim
+  - **WatchCharts Trend grafiği:** ayrı panel, 6m/1y/3y period seçici (gold tema), horizontal bar chart, kaynak + güncelleme tarihi, API anahtarı yoksa bilgilendirme mesajı
+- Frontend build hatasız geçti ✅
+
+### Yeni / Değişen Dosyalar
+```
+frontend/src/components/inventory/AiDescriptionGenerator.tsx (yeni)
+frontend/src/app/(dashboard)/dashboard/ai-studio/page.tsx (AiDescriptionGenerator entegrasyonu)
+frontend/src/lib/market-api.ts (generateDescription güncellendi, WatchChartsTrend eklendi)
+frontend/src/lib/platforms-api.ts (testConnection eklendi)
+frontend/src/components/settings/PlatformCard.tsx (test connection UI eklendi)
+frontend/src/app/(dashboard)/dashboard/market-scanner/page.tsx (WatchCharts trend entegrasyonu)
+backend/app/Http/Controllers/Api/PlatformController.php (testConnection endpoint)
+backend/app/Http/Controllers/Api/MarketController.php (watchChartsTrend endpoint, 3y period)
+backend/app/Services/MarketScrapingService.php (getWatchChartsTrend, normalizeTrend, 3y period)
+backend/routes/api.php (test-connection, watchcharts-trend route'ları)
+```
+
+### API Endpoint'leri (Yeni)
+```
+POST   /api/platforms/{id}/test-connection  (auth) → platform bağlantı testi
+GET    /api/market/watchcharts-trend/{ref}   (auth) → ?period=6m|1y|3y → WatchCharts trend verisi
+```
+
+---
+
+## Aşama 3: UX İyileştirmeleri ✅ (2026-04-10)
+
+### Tamamlanan İşler
+
+**Görev 8 — 5 Adımlı Saat Ekleme Wizard:**
+- `WatchFormModal.tsx` yeniden yapılandırıldı — 4 adımdan 5 adıma:
+  1. **Marka & Model** — brand, model, condition seçimi
+  2. **Referans & Yıl** — reference_number, year (ayrı adım — pazar tarayıcı önemini vurgulayan bilgi notu)
+  3. **Teknik Detaylar** — movement, case_material, bracelet, dial_color, diameter, water_resistance, power_reserve, scope_of_delivery (compact 2-column grid)
+  4. **Fotoğraflar** — drag&drop image upload + existing image management
+  5. **Fiyat & Açıklama** — currency, cost/sale price, profit preview, status, description + AI butonu
+- Step indicator, navigation, validation logic güncellendi (5 step desteği)
+
+**Görev 9 — "AI ile Tamamla" Butonu:**
+- Fiyat & Açıklama adımında (Step 5) Sparkles ikonu ile "AI ile Tamamla" butonu
+- `generateDescription()` API çağrısı — marka, model, referans, yıl, kondisyon bilgilerini gönderir
+- Gemini 2.0 Flash ile Türkçe profesyonel açıklama üretir
+- Sadece boş açıklama alanını doldurur (mevcut açıklamayı ezmez)
+- Loading state + hata mesajı feedback UI
+
+**Görev 10 — Mobil Bottom Navigation:**
+- `BottomNav.tsx` yeni bileşen oluşturuldu — 5 nav item (Dashboard, Envanter, AI Studio, Pazar, Ayarlar)
+- `md:hidden` ile sadece mobilde görünür
+- Active state indicator (mavi renk + nokta)
+- iOS safe area desteği (`env(safe-area-inset-bottom)`)
+- Dashboard layout'a entegre edildi — `pb-20 md:pb-8` ile bottom nav altında kalan içerik koruması
+
+**Görev 11 — AI Studio Tablet Layout:**
+- Grid breakpoint `lg:grid-cols-3` → `xl:grid-cols-3` (tablet'te tam width stacking)
+- Kontroller paneli: `grid grid-cols-2 md:grid-cols-3 xl:grid-cols-1` — tablet'te yatay, masaüstünde dikey
+- AiDescriptionGenerator tam genişlik span (`col-span-2 md:col-span-3 xl:col-span-1`)
+- 768px-1280px arası optimize edildi
+
+### Yeni / Değişen Dosyalar
+```
+frontend/src/components/inventory/WatchFormModal.tsx (5-step wizard + AI ile Tamamla)
+frontend/src/components/layout/BottomNav.tsx (yeni — mobil bottom navigation)
+frontend/src/app/(dashboard)/layout.tsx (BottomNav entegrasyonu + pb-20 mobile padding)
+frontend/src/app/(dashboard)/dashboard/ai-studio/page.tsx (xl breakpoint + tablet grid)
+```
+
+---
+
 ## Bilinen Kısıtlar / Notlar
 - Broadcasting (Pusher/Reverb) henüz kurulmadı, ActivityFeed polling ile çalışıyor
 - Docker Desktop Windows: `vendor/` klasörü named volume (`sail-vendor`) olarak ayrıldı — bind mount I/O yavaşlığını önlemek için
@@ -261,6 +373,15 @@ POST   /api/notifications/read-all (auth) → tümünü okundu işaretle
 - `statefulApi()` kaldırıldı (bootstrap/app.php) — sadece token-based auth kullanılıyor
 - `.env` ayarları: `CACHE_STORE=redis`, `SESSION_DRIVER=redis`, `BCRYPT_ROUNDS=10` (dev)
 - Auth token `localStorage`'da — production'da httpOnly cookie'ye geçilecek
+- **LLM:** OpenAI kaldırıldı → Gemini 2.0 Flash (`LlmService.php`, `config/services.php`, `.env.example` güncellendi)
+- **Gemini API:** Google AI Studio üzerinden ücretsiz — `https://generativelanguage.googleapis.com/v1beta/openai` (OpenAI-uyumlu endpoint, kod değişikliği minimum)
+- **AI Görsel İşleme (SAM 2):** Sadece arka plan kaldırma/değiştirme yapar. Saatin çiziklerini düzeltmez, model koluna giydirmez, yeni görsel üretmez. Tamamen ücretsiz (açık kaynak, lokal çalışır).
+- **Market Scanner — Ban-Free Strateji (Yeniden Yazıldı):**
+  - **Tier 1 — eBay Browse API (BİRİNCİL):** Ücretsiz, resmi, sıfır ban riski. Laravel MarketScrapingService'den doğrudan çağrılır. client_credentials OAuth, category 281 = Wristwatches, 5000 çağrı/gün.
+  - **Tier 2 — Chrono24 + Watchfinder JSON-LD:** Ücretsiz, minimal risk. AI servisinden çağrılır (schema.org structured data okuma).
+  - **Tier 3 — WatchCharts API (TREND ANALİZİ):** Ücretli ($49-199/ay), tarihsel fiyat trendi + fair market value için önerilen. `WATCHCHARTS_API_KEY` varsa Laravel'den çağrılır. Frontend Market Scanner sayfasında trend grafiğine veri sağlar.
+  - **~~Playwright~~ KALDIRILDI:** IP ban riski nedeniyle tüm headless browser kodu temizlendi.
+  - Tüm kaynaklar sırayla çalışır, sonuçlar birleşir, dedup + price>0 filtre, price_histories'e kaydedilir.
 
 ---
 
@@ -376,3 +497,46 @@ frontend/src/components/inventory/EmptyState.tsx (SVG illüstrasyon)
 - Platform toggle switch'leri Hafta 5'te eklenecek
 - Market Scanner gerçek veri Hafta 8'de gelecek
 - `toastStore` helper'lar: `toast.success()`, `toast.error()`, `toast.warning()`, `toast.info()`
+
+---
+
+## Aşama 5: API Key Girişi & Gerçek Veri Testi 🔄 (2026-04-10)
+
+### Tamamlanan İşler
+
+**Görev 18 — .env API Key Yapılandırması:**
+- `backend/.env` dosyasına tüm API key placeholder'ları eklendi:
+  - `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_REDIRECT_URI`, `EBAY_ENVIRONMENT=sandbox`
+  - `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`, `SHOPIFY_SHOP_DOMAIN`, `SHOPIFY_API_VERSION`
+  - `GEMINI_API_KEY`, `GEMINI_BASE_URL`, `GEMINI_MODEL`
+  - `WATCHCHARTS_API_KEY`, `SENTRY_LARAVEL_DSN`, `SANCTUM_STATEFUL_DOMAINS`
+- **Bug Fix:** `EBAY_ENVIRONMENT` config mismatch — `env('EBAY_SANDBOX', true)` → `env('EBAY_ENVIRONMENT', 'sandbox') === 'sandbox'`
+
+**Görev 19 — eBay Browse API + Sandbox Test:**
+- `GET /api/market/ebay-test` endpoint'i: OAuth token + Browse API arama testi, detaylı JSON yanıt
+- `php artisan market:test-scan` komutu: config doğrulama, token testi, Browse API arama, tam tarama (tüm kaynaklar)
+  - `--ebay-only`, `--skip-store` flagları
+  - Fiyat istatistikleri + rakip ilanları tablosu
+
+**Görev 20 — Market Scanner Gerçek Veri UI:**
+- `testEbayConnection()` + `EbayTestResult` tipi eklendi
+- Market Scanner'a **Veri Kaynakları** durum banner'ı: otomatik eBay testi, durum ikonları, örnek sonuçlar
+
+### Yeni / Değişen Dosyalar
+```
+backend/.env (API key placeholder'ları eklendi)
+backend/config/services.php (EBAY_ENVIRONMENT fix)
+backend/app/Console/Commands/TestMarketScan.php (yeni)
+backend/app/Http/Controllers/Api/MarketController.php (ebayTest endpoint)
+backend/routes/api.php (GET /api/market/ebay-test)
+frontend/src/lib/market-api.ts (testEbayConnection, EbayTestResult)
+frontend/src/app/(dashboard)/dashboard/market-scanner/page.tsx (eBay status banner)
+```
+
+### ⏳ Kalan İşler (Kullanıcı Aksiyonu Gerekli)
+1. **eBay Developer Account:** https://developer.ebay.com → Client ID + Secret → `.env`'ye gir
+2. **GEMINI_API_KEY:** https://aistudio.google.com → API key oluştur → `.env`'ye gir
+3. **Shopify Partner Account** (opsiyonel): https://partners.shopify.com
+4. **WatchCharts API** (opsiyonel, ücretli): https://watchcharts.com/api
+5. Key'ler girildikten sonra: `php artisan market:test-scan 126610LN` ile doğrula
+6. Production geçişinde: `EBAY_ENVIRONMENT=production` yap

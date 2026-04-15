@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { X, ChevronRight, ChevronLeft, Upload, Trash2, Loader2, Check, Image as ImageIcon } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Upload, Trash2, Loader2, Check, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { watchesApi } from '@/lib/watches-api';
+import { generateDescription } from '@/lib/market-api';
 import type { WatchFormData, Watch } from '@/types';
 
 // ─── Zod Validation Schema ────────────────────────────────────
@@ -39,9 +40,10 @@ type WatchSchemaType = z.infer<typeof watchSchema>;
 
 const STEPS = [
   { id: 1, label: 'Marka & Model' },
-  { id: 2, label: 'Detaylar' },
-  { id: 3, label: 'Fiyatlandırma' },
-  { id: 4, label: 'Görseller' },
+  { id: 2, label: 'Referans & Yıl' },
+  { id: 3, label: 'Teknik Detaylar' },
+  { id: 4, label: 'Fotoğraflar' },
+  { id: 5, label: 'Fiyat & Açıklama' },
 ];
 
 const CONDITION_OPTIONS = [
@@ -78,6 +80,10 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
   const [existingImages, setExistingImages] = useState<Array<{ id: number; url: string; thumb_url: string; is_primary: boolean }>>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  // AI auto-fill state
+  const [isAiFilling, setIsAiFilling] = useState(false);
+  const [aiFillError, setAiFillError] = useState<string | null>(null);
 
   // Create object URLs for pending files and revoke on cleanup
   const pendingPreviews = useMemo(() => pendingFiles.map((f) => URL.createObjectURL(f)), [pendingFiles]);
@@ -145,11 +151,42 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
     if (step === 1) {
       valid = await trigger(['brand', 'model', 'condition']);
     }
-    if (valid && step < 4) setStep(step + 1);
+    if (valid && step < 5) setStep(step + 1);
   };
 
   const goPrev = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleAiFill = async () => {
+    const brand = watch('brand');
+    const model = watch('model');
+    if (!brand || !model) {
+      setAiFillError('AI ile doldurmak için en azından Marka ve Model gerekli.');
+      return;
+    }
+    setIsAiFilling(true);
+    setAiFillError(null);
+    try {
+      const result = await generateDescription({
+        brand,
+        model,
+        reference_number: watch('reference_number') || undefined,
+        year: watch('year') ? Number(watch('year')) : undefined,
+        condition: watch('condition'),
+        language: 'tr',
+        tone: 'professional',
+      });
+      // AI description'ı sadece boşsa doldur
+      const currentDesc = watch('description');
+      if (!currentDesc?.trim()) {
+        setValue('description', result.description);
+      }
+    } catch {
+      setAiFillError('AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.');
+    } finally {
+      setIsAiFilling(false);
+    }
   };
 
   const onSubmit = async (data: WatchSchemaType) => {
@@ -342,17 +379,6 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
 
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Referans Numarası
-                  </label>
-                  <input
-                    {...register('reference_number')}
-                    placeholder="ör. 126610LN"
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
                     Kondisyon <span className="text-semantic-error">*</span>
                   </label>
                   <select
@@ -372,21 +398,41 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
               </div>
             )}
 
-            {/* Step 2: Details */}
+            {/* Step 2: Reference & Year */}
             {step === 2 && (
               <div className="space-y-4 animate-fade-in">
+                <div>
+                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
+                    Referans Numarası
+                  </label>
+                  <input
+                    {...register('reference_number')}
+                    placeholder="ör. 126610LN"
+                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                  />
+                  <p className="mt-1 text-xs text-secondary-text">
+                    Pazar tarayıcısı ve fiyat karşılaştırma için referans numarası önemlidir.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
+                    Üretim Yılı
+                  </label>
+                  <input
+                    type="number"
+                    {...register('year')}
+                    placeholder="ör. 2023"
+                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Technical Details */}
+            {step === 3 && (
+              <div className="space-y-4 animate-fade-in">
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Üretim Yılı
-                    </label>
-                    <input
-                      type="number"
-                      {...register('year')}
-                      placeholder="ör. 2023"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
-                    />
-                  </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Mekanizma
@@ -397,9 +443,6 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Kasa Malzemesi
@@ -410,6 +453,9 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Kordon/Bilezik
@@ -420,9 +466,6 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Kadran Rengi
@@ -433,6 +476,9 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Kasa Çapı
@@ -443,9 +489,6 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Su Geçirmezlik
@@ -456,6 +499,9 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
                       Güç Rezervi
@@ -466,112 +512,15 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Teslimat Kapsamı
-                  </label>
-                  <input
-                    {...register('features.scope_of_delivery')}
-                    placeholder="ör. Kutu, Belgeler, Garanti Kartı"
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Açıklama
-                  </label>
-                  <textarea
-                    {...register('description')}
-                    rows={3}
-                    placeholder="Saat hakkında detaylı açıklama..."
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors resize-none"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Pricing */}
-            {step === 3 && (
-              <div className="space-y-4 animate-fade-in">
-                <div>
-                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Para Birimi
-                  </label>
-                  <select
-                    {...register('currency')}
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
-                  >
-                    {CURRENCY_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Maliyet Fiyatı
+                      Teslimat Kapsamı
                     </label>
                     <input
-                      type="number"
-                      step="0.01"
-                      {...register('cost_price')}
-                      placeholder="0.00"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      {...register('features.scope_of_delivery')}
+                      placeholder="ör. Kutu, Belgeler"
+                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Satış Fiyatı
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      {...register('sale_price')}
-                      placeholder="0.00"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Profit preview */}
-                <div className="p-4 bg-surface-elevated rounded-lg border border-border-subtle">
-                  <p className="text-xs text-secondary-text mb-1">Tahmini Kar Marjı</p>
-                  <ProfitPreview
-                    costPrice={watch('cost_price')}
-                    salePrice={watch('sale_price')}
-                    currency={watch('currency') || 'EUR'}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Başlangıç Durumu
-                  </label>
-                  <div className="flex gap-3">
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
-                      <input
-                        type="radio"
-                        value="draft"
-                        {...register('status')}
-                        className="text-accent-blue"
-                      />
-                      <span className="text-sm text-primary-text">Taslak</span>
-                    </label>
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
-                      <input
-                        type="radio"
-                        value="active"
-                        {...register('status')}
-                        className="text-accent-blue"
-                      />
-                      <span className="text-sm text-primary-text">Aktif</span>
-                    </label>
                   </div>
                 </div>
               </div>
@@ -672,6 +621,111 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 )}
               </div>
             )}
+
+            {/* Step 5: Price & Description */}
+            {step === 5 && (
+              <div className="space-y-4 animate-fade-in">
+                <div>
+                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
+                    Para Birimi
+                  </label>
+                  <select
+                    {...register('currency')}
+                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
+                  >
+                    {CURRENCY_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-text mb-1.5">
+                      Maliyet Fiyatı
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...register('cost_price')}
+                      placeholder="0.00"
+                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-secondary-text mb-1.5">
+                      Satış Fiyatı
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...register('sale_price')}
+                      placeholder="0.00"
+                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Profit preview */}
+                <div className="p-4 bg-surface-elevated rounded-lg border border-border-subtle">
+                  <p className="text-xs text-secondary-text mb-1">Tahmini Kar Marjı</p>
+                  <ProfitPreview
+                    costPrice={watch('cost_price')}
+                    salePrice={watch('sale_price')}
+                    currency={watch('currency') || 'EUR'}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-secondary-text mb-1.5">
+                    Başlangıç Durumu
+                  </label>
+                  <div className="flex gap-3">
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
+                      <input type="radio" value="draft" {...register('status')} className="text-accent-blue" />
+                      <span className="text-sm text-primary-text">Taslak</span>
+                    </label>
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
+                      <input type="radio" value="active" {...register('status')} className="text-accent-blue" />
+                      <span className="text-sm text-primary-text">Aktif</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Description + AI */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-medium text-secondary-text">
+                      Açıklama
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAiFill}
+                      disabled={isAiFilling || !watch('brand') || !watch('model')}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isAiFilling ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3.5 h-3.5" />
+                      )}
+                      {isAiFilling ? 'Üretiliyor...' : 'AI ile Tamamla'}
+                    </button>
+                  </div>
+                  <textarea
+                    {...register('description')}
+                    rows={4}
+                    placeholder="Saat hakkında detaylı açıklama... AI ile otomatik üretebilirsiniz."
+                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors resize-none"
+                  />
+                  {aiFillError && (
+                    <p className="mt-1 text-xs text-semantic-error">{aiFillError}</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Error */}
@@ -692,7 +746,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
               {step === 1 ? 'İptal' : 'Geri'}
             </button>
 
-            {step < 4 ? (
+            {step < 5 ? (
               <button
                 type="button"
                 onClick={goNext}

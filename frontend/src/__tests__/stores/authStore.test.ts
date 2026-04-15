@@ -8,6 +8,7 @@ vi.mock('@/lib/api', () => ({
     post: vi.fn(),
     get: vi.fn(),
   },
+  getCsrfCookie: vi.fn().mockResolvedValue(undefined),
 }))
 
 import api from '@/lib/api'
@@ -15,52 +16,51 @@ import api from '@/lib/api'
 describe('authStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorage.clear()
 
     // Reset store state
     act(() => {
       useAuthStore.setState({
         user: null,
-        token: null,
         isLoading: true,
         isAuthenticated: false,
       })
     })
   })
 
-  it('hydrate sets isLoading false when no token', () => {
+  it('hydrate calls fetchUser to check cookie session', () => {
+    vi.mocked(api.get).mockRejectedValue(new Error('Unauthorized'))
+
     act(() => {
       useAuthStore.getState().hydrate()
     })
 
-    const state = useAuthStore.getState()
-    expect(state.isLoading).toBe(false)
-    expect(state.isAuthenticated).toBe(false)
+    // fetchUser should be called — cookies are sent automatically
+    expect(api.get).toHaveBeenCalledWith('/auth/me')
   })
 
-  it('hydrate sets authenticated when token exists', () => {
-    localStorage.setItem('auth_token', 'test-token')
+  it('hydrate sets authenticated when session exists', async () => {
+    const mockUser = { id: 1, name: 'Test', email: 'test@test.com' }
 
     vi.mocked(api.get).mockResolvedValue({
-      data: {
-        user: { id: 1, name: 'Test', email: 'test@test.com' },
-      },
+      data: { user: mockUser },
     })
 
-    act(() => {
+    await act(async () => {
       useAuthStore.getState().hydrate()
+      // Wait for async fetchUser
+      await new Promise((r) => setTimeout(r, 10))
     })
 
     const state = useAuthStore.getState()
     expect(state.isAuthenticated).toBe(true)
-    expect(state.token).toBe('test-token')
+    expect(state.user).toEqual(mockUser)
   })
 
-  it('login stores token and user', async () => {
+  it('login sets user (cookie-based)', async () => {
     const mockUser = { id: 1, name: 'Test', email: 'test@test.com' }
 
     vi.mocked(api.post).mockResolvedValue({
-      data: { user: mockUser, token: 'new-token', message: 'OK' },
+      data: { user: mockUser, message: 'OK' },
     })
 
     await act(async () => {
@@ -69,18 +69,14 @@ describe('authStore', () => {
 
     const state = useAuthStore.getState()
     expect(state.isAuthenticated).toBe(true)
-    expect(state.token).toBe('new-token')
     expect(state.user).toEqual(mockUser)
-    expect(localStorage.getItem('auth_token')).toBe('new-token')
   })
 
-  it('logout clears store and localStorage', async () => {
+  it('logout clears store', async () => {
     // Pre-set an authenticated state
-    localStorage.setItem('auth_token', 'test-token')
     act(() => {
       useAuthStore.setState({
         user: { id: 1 } as any,
-        token: 'test-token',
         isAuthenticated: true,
         isLoading: false,
       })
@@ -95,8 +91,6 @@ describe('authStore', () => {
     const state = useAuthStore.getState()
     expect(state.isAuthenticated).toBe(false)
     expect(state.user).toBeNull()
-    expect(state.token).toBeNull()
-    expect(localStorage.getItem('auth_token')).toBeNull()
   })
 
   it('fetchUser sets user on success', async () => {
@@ -117,8 +111,6 @@ describe('authStore', () => {
   })
 
   it('fetchUser clears state on error', async () => {
-    localStorage.setItem('auth_token', 'expired-token')
-
     vi.mocked(api.get).mockRejectedValue(new Error('Unauthorized'))
 
     await act(async () => {
@@ -128,6 +120,5 @@ describe('authStore', () => {
     const state = useAuthStore.getState()
     expect(state.user).toBeNull()
     expect(state.isAuthenticated).toBe(false)
-    expect(localStorage.getItem('auth_token')).toBeNull()
   })
 })

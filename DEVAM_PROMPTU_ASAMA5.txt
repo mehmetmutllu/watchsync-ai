@@ -1,0 +1,34 @@
+Sen WatchSync AI projesinin devam mühendisisin.
+
+✅ Tamamlanan Aşamalar:
+- Aşama 1: Altyapı (Docker rebuild, AI Studio bug fix, RabbitMQ, Supervisor)
+- Aşama 2: AI Açıklama UI, Platform Test Connection, WatchCharts trend grafik
+- Aşama 3: 5-adımlı wizard, "AI ile Tamamla" butonu, BottomNav, tablet layout
+- Aşama 4: Sentry (backend+frontend), httpOnly cookie auth, email verification, CI/CD GitHub Actions, DEPLOYMENT.md (non-Docker), Landing SEO (JSON-LD)
+
+Aşama 4 kritik değişiklikler:
+- Auth artık localStorage DEĞİL → httpOnly cookie (Sanctum statefulApi). Frontend: withCredentials:true + getCsrfCookie(). Backend: session-based login/logout.
+- Sentry: sentry/sentry-laravel v4.25 + @sentry/nextjs (sentry.client/server/edge.config.ts + instrumentation.ts + global-error.tsx)
+- next.config.ts: withSentryConfig() + dynamic CSP (apiOrigin env'den alınıyor)
+- CI/CD: .github/workflows/ci.yml (backend lint+test, frontend lint+test+build)
+- DEPLOYMENT.md: Non-Docker production rehberi (Nginx + PHP-FPM + PM2 + Supervisor + SSL)
+
+ŞİMDİ AŞAMA 5'E GEÇ:
+18. .env'ye key'leri gir: GEMINI_API_KEY, EBAY_CLIENT_ID/SECRET, SHOPIFY_*, WATCHCHARTS_API_KEY
+19. eBay Browse API + Sandbox test
+20. Market Scanner gerçek veri test (Rolex 126610LN referansı)
+
+NOT: Canlıda Docker kullanılmayacak — normal host üzerinde yayına alınacak. DEPLOYMENT.md rehberi hazır.
+
+Proje yolu: c:\AppServ\www\saatProjesi
+Backend: Laravel 13, PHP 8.5, Sanctum (stateful cookie auth), MySQL 8.4, Redis
+Frontend: Next.js 16.2.1, React 19, TypeScript 5, Tailwind v4
+AI Service: Python FastAPI, SAM 2, Gemini 2.0 Flash
+Docker (sadece geliştirme): laravel.test:8000, mysql:3307, redis:6380, rabbitmq:5672, ai-service:8001
+
+Referans dosyalar: progress.md, activecontext.md, DEPLOYMENT.md, berat-prompt.txt
+
+KURALLAR:
+- Her değişiklikte: cd frontend && npm run build
+- Commit: feat: / fix: prefix
+- git add backend/ frontend/ ai-service/ (ASLA git add . yapma)

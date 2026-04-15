@@ -1,5 +1,26 @@
 import api from './api';
 
+// --- eBay Browse API Test ---
+
+export interface EbayTestResult {
+  status: 'ok' | 'not_configured' | 'auth_failed' | 'connection_error' | 'browse_api_error';
+  message: string;
+  environment: string;
+  total_results?: number;
+  test_reference?: string;
+  sample_items?: Array<{
+    title: string;
+    price: string;
+    condition: string;
+    url: string;
+  }>;
+}
+
+export async function testEbayConnection(ref = '126610LN'): Promise<EbayTestResult> {
+  const { data } = await api.get('/market/ebay-test', { params: { ref } });
+  return data;
+}
+
 // --- AI Text Generation ---
 
 export interface GenerateDescriptionParams {
@@ -29,7 +50,31 @@ export interface GenerateDescriptionResult {
 }
 
 export async function generateDescription(params: GenerateDescriptionParams): Promise<GenerateDescriptionResult> {
-  const { data } = await api.post('/ai/generate-description', params, { timeout: 60_000 });
+  // Use watch-specific endpoint if watch_id is available (auto-fills specs from DB)
+  if (params.watch_id) {
+    const { data } = await api.post(
+      `/watches/${params.watch_id}/generate-description`,
+      { language: params.language || 'en' },
+      { timeout: 60_000 }
+    );
+    return data.data;
+  }
+
+  // Fallback: generic endpoint with manual params
+  const { data } = await api.post('/ai/generate-description', {
+    reference_number: params.reference_number,
+    brand: params.brand,
+    model_name: params.model,
+    language: params.language || 'en',
+    specs: {
+      year: params.year?.toString(),
+      condition: params.condition,
+      case_material: params.case_material,
+      movement: params.movement,
+      dial_color: params.dial_color,
+      case_size: params.case_diameter?.toString(),
+    },
+  }, { timeout: 60_000 });
   return data.data;
 }
 
@@ -110,6 +155,35 @@ export async function getCompetitorListings(
 
 export async function scanMarket(reference: string): Promise<void> {
   await api.post('/market/scan', { reference_number: reference });
+}
+
+// --- WatchCharts Trend ---
+
+export interface WatchChartsTrendPoint {
+  date: string;
+  price: number;
+}
+
+export interface WatchChartsTrend {
+  fair_market_value: number;
+  currency: string;
+  price_change_pct: number;
+  trend: 'up' | 'down' | 'stable';
+  period: string;
+  data_points: WatchChartsTrendPoint[];
+  source: string;
+  updated_at: string;
+}
+
+export async function getWatchChartsTrend(
+  reference: string,
+  period = '1y',
+): Promise<WatchChartsTrend | null> {
+  const { data } = await api.get(
+    `/market/watchcharts-trend/${encodeURIComponent(reference)}`,
+    { params: { period } },
+  );
+  return data.data ?? null;
 }
 
 // --- Price Alerts ---

@@ -11,9 +11,11 @@ import {
   Loader2,
   ExternalLink,
   HelpCircle,
+  Wifi,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import type { PlatformInfo } from '@/types';
+import { platformsApi } from '@/lib/platforms-api';
 
 // Lazy load — modal sadece kullanıcı ? butonuna tıklayınca yüklenir
 const PlatformHelpModal = dynamic(() => import('./PlatformHelpModal'), {
@@ -57,6 +59,8 @@ export default function PlatformCard({
   const [isSaving, setIsSaving] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const config = PLATFORM_CONFIG[platform.name] || {
     color: 'text-accent-blue',
@@ -106,6 +110,22 @@ export default function PlatformCard({
       await onDisconnect(platform);
     } finally {
       setIsDisconnecting(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    setTestResult(null);
+    try {
+      const result = await platformsApi.testConnection(platform.id);
+      setTestResult(result);
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Bağlantı testi başarısız oldu.';
+      setTestResult({ success: false, message });
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -189,18 +209,32 @@ export default function PlatformCard({
             )}
           </>
         ) : (
-          <button
-            onClick={handleDisconnect}
-            disabled={isDisconnecting}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-semantic-error/30 text-semantic-error text-sm font-medium hover:bg-semantic-error/10 transition-colors disabled:opacity-50"
-          >
-            {isDisconnecting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Unlink className="w-4 h-4" />
-            )}
-            Bağlantıyı Kes
-          </button>
+          <>
+            <button
+              onClick={handleTestConnection}
+              disabled={isTesting}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-accent-blue/30 text-accent-blue text-sm font-medium hover:bg-accent-blue/10 transition-colors disabled:opacity-50"
+            >
+              {isTesting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Wifi className="w-4 h-4" />
+              )}
+              Bağlantıyı Test Et
+            </button>
+            <button
+              onClick={handleDisconnect}
+              disabled={isDisconnecting}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-semantic-error/30 text-semantic-error text-sm font-medium hover:bg-semantic-error/10 transition-colors disabled:opacity-50"
+            >
+              {isDisconnecting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Unlink className="w-4 h-4" />
+              )}
+              Bağlantıyı Kes
+            </button>
+          </>
         )}
 
         {platform.name === 'Chrono24' && platform.status === 'connected' && (
@@ -215,6 +249,24 @@ export default function PlatformCard({
           </a>
         )}
       </div>
+
+      {/* Test Connection Result */}
+      {testResult && (
+        <div
+          className={`mt-3 flex items-center gap-2 p-3 rounded-lg text-sm ${
+            testResult.success
+              ? 'bg-semantic-success/10 text-semantic-success border border-semantic-success/20'
+              : 'bg-semantic-error/10 text-semantic-error border border-semantic-error/20'
+          }`}
+        >
+          {testResult.success ? (
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          ) : (
+            <XCircle className="w-4 h-4 flex-shrink-0" />
+          )}
+          {testResult.message}
+        </div>
+      )}
 
       {showForm && !isOAuthPlatform && (
         <div className="mt-4 p-4 bg-surface-elevated rounded-lg border border-border-subtle space-y-3 animate-fade-in">

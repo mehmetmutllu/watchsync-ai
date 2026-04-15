@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
+import BottomNav from "@/components/layout/BottomNav";
 import AuthGuard from "@/components/auth/AuthGuard";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import PageTransition from "@/components/ui/PageTransition";
@@ -35,7 +36,7 @@ export default function DashboardLayout({
             sidebarCollapsed={sidebarCollapsed}
           />
 
-          <main id="main-content" role="main" aria-label="Sayfa içeriği" className="flex-1 p-4 sm:p-6 lg:p-8">
+          <main id="main-content" role="main" aria-label="Sayfa içeriği" className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
             <div className="max-w-content mx-auto">
               <ErrorBoundary>
                 <PageTransition>{children}</PageTransition>
@@ -43,6 +44,9 @@ export default function DashboardLayout({
             </div>
           </main>
         </div>
+
+        {/* Mobile bottom navigation */}
+        <BottomNav />
       </div>
       <OnboardingTour />
     </AuthGuard>

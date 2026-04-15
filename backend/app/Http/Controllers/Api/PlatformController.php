@@ -12,6 +12,8 @@ use App\Models\Watch;
 use App\Services\WebhookSubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PlatformController extends Controller
 {
@@ -340,5 +342,114 @@ class PlatformController extends Controller
         }
 
         return response()->json(['sync_statuses' => $syncStatuses]);
+    }
+
+    /**
+     * Test platform connection — verify credentials are working.
+     *
+     * POST /api/platforms/{id}/test-connection
+     */
+    public function testConnection(Request $request, int $id): JsonResponse
+    {
+        $dealerId = $request->user()->dealer_id;
+        $platform = Platform::findOrFail($id);
+
+        $connection = PlatformConnection::where('dealer_id', $dealerId)
+            ->where('platform_id', $platform->id)
+            ->first();
+
+        if (!$connection) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu platform henüz bağlanmamış.',
+            ], 422);
+        }
+
+        try {
+            $result = match (strtolower($platform->name)) {
+                'ebay'     => $this->testEbayConnection($connection),
+                'shopify'  => $this->testShopifyConnection($connection),
+                'chrono24' => $this->testChrono24Connection($connection),
+                default    => ['success' => false, 'message' => 'Bu platform için test desteği yok.'],
+            };
+
+            return response()->json($result, $result['success'] ? 200 : 422);
+        } catch (\Throwable $e) {
+            Log::warning('Platform test connection failed', [
+                'platform' => $platform->name,
+                'error'    => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Bağlantı testi sırasında hata oluştu: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function testEbayConnection(PlatformConnection $connection): array
+    {
+        // If we have an access token, try to validate it
+        if ($connection->access_token) {
+            $sandbox = config('services.ebay.sandbox');
+            $baseUrl = $sandbox ? 'https://api.sandbox.ebay.com' : 'https://api.ebay.com';
+
+            $response = Http::withToken($connection->access_token)
+                ->withHeaders(['X-EBAY-C-MARKETPLACE-ID' => 'EBAY_US'])
+                ->timeout(10)
+                ->get("{$baseUrl}/sell/account/v1/privilege");
+
+            if ($response->successful()) {
+                return ['success' => true, 'message' => 'eBay bağlantısı başarılı! OAuth token geçerli.'];
+            }
+
+            if ($response->status() === 401) {
+                return ['success' => false, 'message' => 'eBay OAuth token süresi dolmuş. Yeniden bağlanın.'];
+            }
+        }
+
+        // Fallback: try app-level token
+        $clientId = config('services.ebay.client_id');
+        $clientSecret = config('services.ebay.client_secret');
+
+        if ($clientId && $clientSecret) {
+            return ['success' => true, 'message' => 'eBay API anahtarları yapılandırılmış. OAuth ile bağlanabilirsiniz.'];
+        }
+
+        return ['success' => false, 'message' => 'eBay API anahtarları eksik. .env dosyasını kontrol edin.'];
+    }
+
+    private function testShopifyConnection(PlatformConnection $connection): array
+    {
+        $accessToken = $connection->api_key;
+        $shopDomain = $connection->settings['shop_domain'] ?? '';
+
+        if (!$accessToken || !$shopDomain) {
+            return ['success' => false, 'message' => 'Shopify API anahtarı veya shop domain eksik.'];
+        }
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $accessToken,
+            'Content-Type'           => 'application/json',
+        ])->timeout(10)->post("https://{$shopDomain}/admin/api/2024-10/graphql.json", [
+            'query' => '{ shop { name myshopifyDomain } }',
+        ]);
+
+        if ($response->successful()) {
+            $shopName = $response->json('data.shop.name');
+            return ['success' => true, 'message' => "Shopify bağlantısı başarılı! Mağaza: {$shopName}"];
+        }
+
+        return ['success' => false, 'message' => 'Shopify API yanıt vermedi. Credentials kontrol edin.'];
+    }
+
+    private function testChrono24Connection(PlatformConnection $connection): array
+    {
+        // Chrono24 uses XML Feed — we just verify credentials exist
+        if ($connection->api_key || $connection->status === 'connected') {
+            return ['success' => true, 'message' => 'Chrono24 bağlantısı aktif. XML Feed hazır.'];
+        }
+
+        return ['success' => false, 'message' => 'Chrono24 credentials eksik.'];
     }
 }

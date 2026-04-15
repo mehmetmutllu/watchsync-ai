@@ -21,6 +21,7 @@ services:
         volumes:
             - '.:/var/www/html'
             - 'sail-vendor:/var/www/html/vendor'
+            - './docker/supervisord-queue.conf:/etc/supervisor/conf.d/supervisord.conf'
         networks:
             - sail
         depends_on:
@@ -101,11 +102,9 @@ services:
             - '${FORWARD_RABBITMQ_PORT:-5672}:5672'
             - '${FORWARD_RABBITMQ_DASHBOARD_PORT:-15672}:15672'
         environment:
-            RABBITMQ_HOST: '%'
-            RABBITMQ_USER: '${RABBITMQ_USER}'
-            RABBITMQ_PASSWORD: '${RABBITMQ_PASSWORD}'
-            RABBITMQ_VHOST: '${RABBITMQ_VHOST}'
-            RABBITMQ_QUEUE: '${RABBITMQ_QUEUE}'
+            RABBITMQ_DEFAULT_USER: '${RABBITMQ_USER:-guest}'
+            RABBITMQ_DEFAULT_PASS: '${RABBITMQ_PASSWORD:-guest}'
+            RABBITMQ_DEFAULT_VHOST: '${RABBITMQ_VHOST:-/}'
         volumes:
             - 'sail-rabbitmq:/var/lib/rabbitmq'
         networks:

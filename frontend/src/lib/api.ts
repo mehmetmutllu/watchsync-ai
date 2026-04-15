@@ -6,25 +6,27 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  withCredentials: true, // httpOnly cookie auth
+  withXSRFToken: true,   // Axios auto-sends XSRF-TOKEN cookie as header
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
 });
 
-// Request interceptor: attach token
-api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
+/**
+ * Sanctum CSRF cookie al — login/register'dan önce çağrılmalı.
+ */
+export async function getCsrfCookie(): Promise<void> {
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // Strip /api suffix for the csrf-cookie endpoint
+  const origin = baseURL.replace(/\/api\/?$/, '');
+  await axios.get(`${origin}/sanctum/csrf-cookie`, { withCredentials: true });
+}
 
 // Response interceptor: handle 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
       // Redirect to login if not already there
       if (!window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';

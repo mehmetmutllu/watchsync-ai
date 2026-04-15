@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const apiOrigin = apiUrl.replace(/\/api\/?$/, "");
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -9,6 +13,11 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
         port: "8000",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "https",
+        hostname: "api.watchsync.ai",
         pathname: "/storage/**",
       },
     ],
@@ -36,8 +45,8 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: http://localhost:8000",
-              "connect-src 'self' http://localhost:8000",
+              `img-src 'self' data: blob: ${apiOrigin}`,
+              `connect-src 'self' ${apiOrigin}`,
               "frame-ancestors 'none'",
             ].join("; "),
           },
@@ -67,4 +76,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  disableLogger: true,
+});

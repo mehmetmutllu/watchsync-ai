@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
 import {
@@ -62,7 +63,28 @@ export default function WatchTable({
       return;
     }
     const rect = btnEl.getBoundingClientRect();
-    setMenuPos({ top: rect.bottom + 4, left: rect.right - 160 }); // w-40 = 160px
+    const menuWidth = 160;
+    const menuHeight = 88;
+    const gap = 4;
+
+    // Butonun sol kenarına hizala, sağa taşmasını engelle
+    let left = rect.left - menuWidth + rect.width;
+    let top = rect.bottom + gap;
+
+    // Sağ kenardan taşıyorsa viewport içine çek
+    if (left + menuWidth > window.innerWidth - gap) {
+      left = window.innerWidth - menuWidth - gap;
+    }
+    // Sol kenardan taşıyorsa
+    if (left < gap) {
+      left = gap;
+    }
+    // Alt kenardan taşıyorsa yukarı aç
+    if (top + menuHeight > window.innerHeight - gap) {
+      top = rect.top - menuHeight - gap;
+    }
+
+    setMenuPos({ top, left });
     setMenuOpenId(id);
   }, [menuOpenId]);
 
@@ -354,15 +376,15 @@ export default function WatchTable({
         </table>
       </div>
 
-      {/* Dropdown menu — rendered outside table overflow */}
-      {menuOpenId !== null && (
+      {/* Dropdown menu — portaled to body to escape overflow:hidden */}
+      {menuOpenId !== null && typeof document !== 'undefined' && createPortal(
         <>
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setMenuOpenId(null)}
           />
           <div
-            className="fixed z-50 w-40 bg-surface-elevated border border-border-subtle rounded-lg shadow-lg py-1 animate-fade-in"
+            className="fixed z-[9999] w-40 bg-surface-elevated border border-border-subtle rounded-lg shadow-lg py-1 animate-fade-in"
             style={{ top: menuPos.top, left: menuPos.left }}
           >
             <button
@@ -383,7 +405,8 @@ export default function WatchTable({
               Sil
             </button>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* Pagination */}

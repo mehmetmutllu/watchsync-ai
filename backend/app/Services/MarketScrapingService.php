@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PriceHistory;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Carbon;
@@ -17,48 +18,249 @@ class MarketScrapingService
     }
 
     /**
-     * Trigger a market scan via the AI service scraping endpoint.
+     * Scan all available sources for a watch reference number.
+     *
+     * Priority order:
+     *   1. eBay Browse API  — FREE, official, zero ban risk
+     *   2. AI service (Chrono24 + Watchfinder JSON-LD) — FREE, minimal risk
+     *   3. WatchCharts API  — PAID, optional (only if key configured)
      */
     public function scan(string $referenceNumber): array
     {
+        $results = [];
+        $sources = [];
+
+        // Tier 1: eBay Browse API (FREE, zero risk)
         try {
-            $response = Http::timeout(90)
-                ->post("{$this->aiServiceUrl}/api/scraping/scan", [
-                    'reference_number' => $referenceNumber,
+            $ebayResults = $this->scanEbayBrowseApi($referenceNumber);
+            $results = array_merge($results, $ebayResults);
+            if (!empty($ebayResults)) {
+                $sources[] = 'ebay';
+            }
+        } catch (\Throwable $e) {
+            Log::warning('eBay Browse API scan failed', ['ref' => $referenceNumber, 'error' => $e->getMessage()]);
+        }
+
+        // Tier 2: AI service — Chrono24 + Watchfinder JSON-LD (FREE, minimal risk)
+        try {
+            $aiResults = $this->scanAiService($referenceNumber);
+            $results = array_merge($results, $aiResults);
+            if (!empty($aiResults)) {
+                $sources[] = 'ai-service';
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AI service scan failed', ['ref' => $referenceNumber, 'error' => $e->getMessage()]);
+        }
+
+        // Tier 3: WatchCharts API (PAID, optional)
+        try {
+            $watchChartsResults = $this->scanWatchCharts($referenceNumber);
+            $results = array_merge($results, $watchChartsResults);
+            if (!empty($watchChartsResults)) {
+                $sources[] = 'watchcharts';
+            }
+        } catch (\Throwable $e) {
+            Log::warning('WatchCharts scan failed', ['ref' => $referenceNumber, 'error' => $e->getMessage()]);
+        }
+
+        // Store all results
+        $stored = 0;
+        foreach ($results as $item) {
+            if (($item['price'] ?? 0) <= 0) continue;
+
+            PriceHistory::create([
+                'reference_number' => $referenceNumber,
+                'source'           => $item['source'] ?? 'unknown',
+                'price'            => $item['price'],
+                'currency'         => $item['currency'] ?? 'EUR',
+                'condition'        => $item['condition'] ?? null,
+                'seller'           => $item['seller'] ?? null,
+                'url'              => $item['url'] ?? null,
+                'country'          => $item['country'] ?? null,
+                'scraped_date'     => now()->toDateString(),
+            ]);
+            $stored++;
+        }
+
+        Log::info('Market scan completed', [
+            'ref' => $referenceNumber,
+            'sources' => $sources,
+            'total' => $stored,
+        ]);
+
+        return [
+            'success' => true,
+            'count'   => $stored,
+            'sources' => $sources,
+        ];
+    }
+
+    // ================================================================
+    // Tier 1: eBay Browse API (FREE, official, zero ban risk)
+    // Uses client_credentials grant — app-level token, no user login.
+    // Category 281 = Wristwatches.
+    // ================================================================
+
+    private function scanEbayBrowseApi(string $ref): array
+    {
+        $clientId = config('services.ebay.client_id');
+        $clientSecret = config('services.ebay.client_secret');
+
+        if (!$clientId || !$clientSecret) {
+            return [];
+        }
+
+        $token = $this->getEbayAppToken();
+        if (!$token) {
+            return [];
+        }
+
+        $baseUrl = config('services.ebay.sandbox')
+            ? 'https://api.sandbox.ebay.com'
+            : 'https://api.ebay.com';
+
+        $response = Http::withToken($token)
+            ->withHeaders([
+                'X-EBAY-C-MARKETPLACE-ID' => 'EBAY_US',
+                'Content-Type'            => 'application/json',
+            ])
+            ->timeout(30)
+            ->get("{$baseUrl}/buy/browse/v1/item_summary/search", [
+                'q'              => $ref,
+                'category_ids'   => '281',
+                'limit'          => 20,
+                'filter'         => 'buyingOptions:{FIXED_PRICE}',
+                'fieldgroups'    => 'MATCHING_ITEMS',
+            ]);
+
+        if (!$response->successful()) {
+            Log::warning('eBay Browse API search failed', [
+                'ref'    => $ref,
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return [];
+        }
+
+        $data = $response->json();
+        $items = [];
+
+        foreach ($data['itemSummaries'] ?? [] as $summary) {
+            $price = (float) ($summary['price']['value'] ?? 0);
+            if ($price <= 0) continue;
+
+            $items[] = [
+                'source'    => 'ebay',
+                'price'     => $price,
+                'currency'  => $summary['price']['currency'] ?? 'USD',
+                'condition' => $summary['condition'] ?? null,
+                'seller'    => $summary['seller']['username'] ?? null,
+                'url'       => $summary['itemWebUrl'] ?? null,
+                'country'   => $summary['itemLocation']['country'] ?? null,
+            ];
+        }
+
+        Log::info('eBay Browse API returned results', ['ref' => $ref, 'count' => count($items)]);
+        return $items;
+    }
+
+    /**
+     * Get an eBay app-level access token via client_credentials grant.
+     * Cached for its lifetime (default: 7200s / 2 hours).
+     */
+    private function getEbayAppToken(): ?string
+    {
+        return Cache::remember('ebay_app_token', 7000, function () {
+            $clientId = config('services.ebay.client_id');
+            $clientSecret = config('services.ebay.client_secret');
+            $sandbox = config('services.ebay.sandbox');
+
+            $tokenUrl = $sandbox
+                ? 'https://api.sandbox.ebay.com/identity/v1/oauth2/token'
+                : 'https://api.ebay.com/identity/v1/oauth2/token';
+
+            $response = Http::asForm()
+                ->withBasicAuth($clientId, $clientSecret)
+                ->timeout(15)
+                ->post($tokenUrl, [
+                    'grant_type' => 'client_credentials',
+                    'scope'      => 'https://api.ebay.com/oauth/api_scope',
                 ]);
 
             if (!$response->successful()) {
-                Log::warning('Market scan failed', [
-                    'ref' => $referenceNumber,
+                Log::error('eBay app token request failed', [
                     'status' => $response->status(),
+                    'body'   => $response->body(),
                 ]);
-                return ['success' => false, 'message' => 'Scraping service returned an error.'];
+                return null;
             }
 
-            $data = $response->json();
+            return $response->json('access_token');
+        });
+    }
 
-            // Store results to price_histories
-            if (!empty($data['results'])) {
-                foreach ($data['results'] as $item) {
-                    PriceHistory::create([
-                        'reference_number' => $referenceNumber,
-                        'source' => $item['source'] ?? 'unknown',
-                        'price' => $item['price'],
-                        'currency' => $item['currency'] ?? 'EUR',
-                        'condition' => $item['condition'] ?? null,
-                        'seller' => $item['seller'] ?? null,
-                        'url' => $item['url'] ?? null,
-                        'country' => $item['country'] ?? null,
-                        'scraped_date' => now()->toDateString(),
-                    ]);
-                }
-            }
+    // ================================================================
+    // Tier 2: AI service — Chrono24 + Watchfinder JSON-LD
+    // ================================================================
 
-            return ['success' => true, 'count' => count($data['results'] ?? [])];
-        } catch (\Throwable $e) {
-            Log::error('Market scan exception', ['error' => $e->getMessage()]);
-            return ['success' => false, 'message' => 'Scraping service unavailable.'];
+    private function scanAiService(string $ref): array
+    {
+        $response = Http::timeout(90)
+            ->post("{$this->aiServiceUrl}/api/scraping/scan", [
+                'reference_number' => $ref,
+            ]);
+
+        if (!$response->successful()) {
+            Log::warning('AI service scan failed', ['ref' => $ref, 'status' => $response->status()]);
+            return [];
         }
+
+        return $response->json('results') ?? [];
+    }
+
+    // ================================================================
+    // Tier 3: WatchCharts API (optional paid, if key configured)
+    // ================================================================
+
+    private function scanWatchCharts(string $ref): array
+    {
+        $apiKey = config('services.watchcharts.api_key');
+        if (!$apiKey) {
+            return [];
+        }
+
+        $response = Http::withToken($apiKey)
+            ->withHeaders(['Accept' => 'application/json', 'User-Agent' => 'WatchSyncAI/1.0'])
+            ->timeout(30)
+            ->get('https://watchcharts.com/api/v2/search', [
+                'q'     => $ref,
+                'limit' => 20,
+            ]);
+
+        if (!$response->successful()) {
+            Log::warning('WatchCharts API failed', ['ref' => $ref, 'status' => $response->status()]);
+            return [];
+        }
+
+        $data = $response->json();
+        $items = [];
+
+        foreach (($data['data'] ?? $data['results'] ?? $data['listings'] ?? []) as $listing) {
+            $price = (float) ($listing['price'] ?? $listing['market_price'] ?? $listing['avg_price'] ?? 0);
+            if ($price <= 0) continue;
+
+            $items[] = [
+                'source'    => 'watchcharts',
+                'price'     => $price,
+                'currency'  => $listing['currency'] ?? 'EUR',
+                'condition' => $listing['condition'] ?? null,
+                'seller'    => $listing['dealer'] ?? $listing['seller'] ?? null,
+                'url'       => $listing['url'] ?? $listing['link'] ?? null,
+                'country'   => $listing['country'] ?? null,
+            ];
+        }
+
+        return $items;
     }
 
     /**
@@ -159,7 +361,78 @@ class MarketScrapingService
             '90d' => now()->subDays(90),
             '6m' => now()->subMonths(6),
             '1y' => now()->subYear(),
+            '3y' => now()->subYears(3),
             default => now()->subDays(30),
         };
+    }
+
+    /**
+     * Get WatchCharts fair market value and trend data.
+     * Returns null if WatchCharts API is not configured.
+     */
+    public function getWatchChartsTrend(string $referenceNumber, string $period = '1y'): ?array
+    {
+        $apiKey = config('services.watchcharts.api_key');
+        if (!$apiKey) {
+            return null;
+        }
+
+        $cacheKey = "watchcharts_trend_{$referenceNumber}_{$period}";
+
+        return Cache::remember($cacheKey, 3600, function () use ($referenceNumber, $period, $apiKey) {
+            try {
+                $response = Http::withToken($apiKey)
+                    ->withHeaders(['Accept' => 'application/json', 'User-Agent' => 'WatchSyncAI/1.0'])
+                    ->timeout(30)
+                    ->get('https://watchcharts.com/api/v2/watch/trend', [
+                        'ref' => $referenceNumber,
+                        'period' => $period,
+                    ]);
+
+                if (!$response->successful()) {
+                    Log::warning('WatchCharts trend API failed', [
+                        'ref'    => $referenceNumber,
+                        'status' => $response->status(),
+                    ]);
+                    return null;
+                }
+
+                $data = $response->json('data') ?? $response->json();
+
+                return [
+                    'fair_market_value' => (float) ($data['fair_market_value'] ?? $data['market_value'] ?? $data['avg_price'] ?? 0),
+                    'currency'          => $data['currency'] ?? 'EUR',
+                    'price_change_pct'  => (float) ($data['price_change_pct'] ?? $data['change_pct'] ?? 0),
+                    'trend'             => $this->normalizeTrend($data['trend'] ?? $data['direction'] ?? null, $data['price_change_pct'] ?? 0),
+                    'period'            => $period,
+                    'data_points'       => collect($data['history'] ?? $data['data_points'] ?? [])
+                        ->map(fn ($p) => [
+                            'date'  => $p['date'] ?? $p['period'] ?? '',
+                            'price' => (float) ($p['price'] ?? $p['value'] ?? $p['avg_price'] ?? 0),
+                        ])
+                        ->filter(fn ($p) => $p['price'] > 0)
+                        ->values()
+                        ->toArray(),
+                    'source'            => 'watchcharts',
+                    'updated_at'        => now()->toIso8601String(),
+                ];
+            } catch (\Throwable $e) {
+                Log::warning('WatchCharts trend fetch failed', [
+                    'ref'   => $referenceNumber,
+                    'error' => $e->getMessage(),
+                ]);
+                return null;
+            }
+        });
+    }
+
+    private function normalizeTrend(?string $trend, float $changePct): string
+    {
+        if ($trend && in_array($trend, ['up', 'down', 'stable'])) {
+            return $trend;
+        }
+        if ($changePct > 2) return 'up';
+        if ($changePct < -2) return 'down';
+        return 'stable';
     }
 }

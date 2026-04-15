@@ -1,7 +1,7 @@
 # WatchSync AI — İlerleme Takip Belgesi (Progress Tracker)
 
-> **Versiyon:** 2.0  
-> **Tarih:** 2026-04-09  
+> **Versiyon:** 2.1  
+> **Tarih:** 2026-04-10  
 > **Güncelleme Sıklığı:** Her sprint sonunda (haftalık)  
 > **Görev Dağılımı:**  
 > - Hafta 1-6: Mehmet (backend + frontend tamamı)  
@@ -205,9 +205,11 @@
 ### 📝 Hafta 8 — AI Metin & Pazar Tarayıcı
 | Hesap/Servis | Durum | Açıklama | Link |
 |---|---|---|---|
-| OpenAI API Key | ⬜ Açılmalı | GPT-4o / GPT-4o-mini için. ~$10-20 kredi yeterli | https://platform.openai.com |
+| Gemini API Key | ✅ Ücretsiz | Google AI Studio üzerinden Gemini 2.0 Flash (ücretsiz tier yeterli) | https://aistudio.google.com |
 | VEYA Groq API Key | ⬜ Alternatif | Llama-3 çalıştırmak için (ücretsiz tier mevcut) | https://console.groq.com |
-| Playwright | ⬜ Kur | Web scraping için headless browser | `pip install playwright && playwright install` |
+| ~~Playwright~~ | ❌ Kaldırıldı | IP ban riski nedeniyle kaldırıldı | — |
+| WatchCharts API | ⬜ Opsiyonel | Tarihsel trend verisi gerekirse. Ücretli — ~$50-200/ay | https://watchcharts.com/api |
+| eBay Browse API | ✅ Ücretsiz | eBay Developer hesabıyla birlikte geliyor (birincil Market Scanner kaynağı) | eBay Developer Account ile aynı |
 
 ### 💰 Hafta 9 — CRM & Fatura
 | Hesap/Servis | Durum | Açıklama | Link |
@@ -368,7 +370,7 @@
 
 #### Backend — NLP & Scraping
 - [x] LLM entegrasyonu
-  - [x] OpenAI API bağlantısı (`LlmService.php` — gpt-4o-mini)
+  - [x] Gemini API bağlantısı (`LlmService.php` — gemini-2.0-flash)
   - [x] Saat referans numarasından bağlam oluşturma (calibre, bezel tipi vs.)
   - [x] SEO uyumlu ilan açıklaması üretme prompt mühendisliği
   - [x] `POST /api/ai/generate-description` endpoint'i
@@ -629,7 +631,532 @@
 
 ---
 
-## 📈 Özet Metrikleri
+## AŞAMA 4 — Production Hazırlığı (Berat + AI — 2026-04-10)
+
+### Task 12: Sentry Entegrasyonu
+- [x] Backend: `sentry/sentry-laravel` v4.25 kuruldu
+- [x] `bootstrap/app.php` → `Integration::handles($exceptions)` eklendi
+- [x] `.env.example` → `SENTRY_LARAVEL_DSN` + `SENTRY_TRACES_SAMPLE_RATE` eklendi
+- [x] Frontend: `@sentry/nextjs` kuruldu
+- [x] `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts` oluşturuldu
+- [x] `src/instrumentation.ts` — runtime-based Sentry import
+- [x] `src/app/global-error.tsx` — Sentry.captureException ile hata yakalama
+- [x] `next.config.ts` → `withSentryConfig()` sarmalandı
+
+### Task 13: Auth token → httpOnly Cookie Geçişi
+- [x] `bootstrap/app.php` → `$middleware->statefulApi()` eklendi
+- [x] `AuthController.php` → Token tabanlı auth kaldırıldı, session-based auth:
+  - [x] `login()`: `Auth::attempt()` + `session()->regenerate()`
+  - [x] `register()`: `Auth::login($user)` + `session()->regenerate()`
+  - [x] `logout()`: `Auth::guard('web')->logout()` + `session()->invalidate()`
+- [x] `api.ts` → `withCredentials: true` + `getCsrfCookie()` + localStorage kaldırıldı
+- [x] `auth.ts` → `token` state kaldırıldı, cookie-based session auth
+- [x] Auth store testleri güncellendi (6/6 pass)
+
+### Task 14: E-posta Doğrulama
+- [x] `User.php` → `implements MustVerifyEmail`
+- [x] `EmailVerificationController.php` (status, resend, verify)
+- [x] `AuthController.php` → register'da `event(new Registered($user))`
+- [x] Email verification route'ları (signed URL + throttle)
+
+### Task 15: CI/CD Pipeline
+- [x] `.github/workflows/ci.yml` — Backend lint+test, Frontend lint+test+build
+
+### Task 16: Production Deploy (Non-Docker)
+- [x] `DEPLOYMENT.md` — Kapsamlı rehber: Nginx, PHP-FPM, PM2, Supervisor, SSL, UFW
+- [x] `next.config.ts` → Production domain images + dynamic CSP
+
+### Task 17: Landing Page SEO
+- [x] `page.tsx` → Page metadata + JSON-LD structured data (SoftwareApplication)
+
+---
+
+## AŞAMA 5 — API Key Yapılandırması & Gerçek Veri Testi (Berat + AI — 2026-04-10)
+
+### Task 18: .env API Key Yapılandırması
+- [x] `backend/.env`'ye tüm API key placeholder'ları eklendi:
+  - [x] `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `EBAY_REDIRECT_URI`, `EBAY_ENVIRONMENT=sandbox`
+  - [x] `EBAY_RU_NAME`, `EBAY_WEBHOOK_VERIFICATION_TOKEN`
+  - [x] `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET`, `SHOPIFY_SHOP_DOMAIN`, `SHOPIFY_API_VERSION`, `SHOPIFY_WEBHOOK_SECRET`
+  - [x] `GEMINI_API_KEY`, `GEMINI_BASE_URL`, `GEMINI_MODEL`
+  - [x] `WATCHCHARTS_API_KEY`
+  - [x] `SENTRY_LARAVEL_DSN`, `SENTRY_TRACES_SAMPLE_RATE`
+  - [x] `SANCTUM_STATEFUL_DOMAINS`
+- [x] **Bug Fix:** `config/services.php` `EBAY_ENVIRONMENT` config mismatch düzeltildi (`env('EBAY_SANDBOX', true)` → `env('EBAY_ENVIRONMENT', 'sandbox') === 'sandbox'`)
+- [ ] API key değerlerinin girilmesi (kullanıcı aksiyonu — eBay Developer, Google AI Studio, Shopify Partner)
+
+### Task 19: eBay Browse API + Sandbox Test
+- [x] `GET /api/market/ebay-test` endpoint'i (`MarketController::ebayTest()`):
+  - [x] client_credentials OAuth app token testi
+  - [x] Browse API `/buy/browse/v1/item_summary/search` ile örnek arama
+  - [x] Detaylı JSON yanıt: status, environment, total_results, sample_items
+  - [x] Hata durumları: not_configured (422), auth_failed (401), connection_error (503)
+- [x] `php artisan market:test-scan` komutu (`TestMarketScan.php`):
+  - [x] eBay config gösterimi (maskelenmiş)
+  - [x] OAuth token testi
+  - [x] Browse API arama testi
+  - [x] Tam tarama — tüm kaynaklar (eBay, AI Service, WatchCharts)
+  - [x] `--ebay-only` ve `--skip-store` flagları
+  - [x] Fiyat istatistikleri + rakip ilanları tablosu
+- [ ] eBay Developer hesabı açılıp Sandbox test yapılması (kullanıcı aksiyonu)
+
+### Task 20: Market Scanner Gerçek Veri UI
+- [x] `market-api.ts` → `testEbayConnection()` + `EbayTestResult` tipi
+- [x] Market Scanner sayfasına **Veri Kaynakları** durum banner'ı:
+  - [x] Sayfa yüklendiğinde otomatik eBay API bağlantı testi
+  - [x] Durum ikonları (✅ Bağlı, ⚠ Yapılandırılmamış, ❌ Hata)
+  - [x] Ortam bilgisi (sandbox/production)
+  - [x] Test sonucu: referans + bulunan sonuç sayısı + örnek sonuçlar
+- [ ] Rolex 126610LN gerçek veri testi (API key girildikten sonra)
+
+---
+
+## 🔲 BEKLEYEN GÖREVLER — Devam Eden Geliştirme
+
+> **Not:** Audit, test ve geliştirme sürecinde tespit edilen ek görevler. Hafta planlarındaki mevcut unchecked item'larla birlikte takip edilmelidir.
+
+### 🐛 Bug Fix'ler
+- [x] 3-dot menü pozisyon hatası (WatchTable.tsx — `createPortal` ile düzeltildi)
+- [x] ViewServiceProvider eksik hatası (bootstrap/providers.php — eklendi)
+- [x] Route cache stale (65 route → 33 görünüyordu, `route:clear` ile düzeltildi)
+- [x] AI Studio watch ID 0 hatası — frontend saat seçilmeden `/api/watches/0/ai-enhance` çağırıyor (404) → saat seçici dropdown eklendi, seçim olmadan buton disabled
+- [x] Mobil sidebar — alt kısım navigation bar olarak refactor edildi (BottomNav bileşeni)
+
+### ⚙️ Konfigürasyon & Altyapı
+- [x] OpenAI → Gemini geçişi (LlmService.php, config/services.php, .env.example)
+- [x] `.env` dosyasına tüm API key placeholder'ları eklendi (GEMINI, eBay, Shopify, WatchCharts, Sentry, Sanctum)
+- [ ] API key değerlerinin girilmesi bekleniyor (GEMINI_API_KEY, EBAY_CLIENT_ID/SECRET, SHOPIFY_*, WATCHCHARTS_API_KEY)
+- [x] RabbitMQ `.env` değişkenleri kontrol edildi — `.env.example` zaten doğru, `compose.yaml` env vars düzeltildi (`RABBITMQ_DEFAULT_USER`/`RABBITMQ_DEFAULT_PASS`)
+- [x] Queue worker başlatma komutu — Supervisor ile daemonize edildi (`docker/supervisord-queue.conf`)
+- [x] E-posta doğrulama — kayıt sonrası email verification aktif edildi (MustVerifyEmail + EmailVerificationController + Registered event)
+- [ ] Storage migration — lokal dosya sistemi → Cloudflare R2 (S3 uyumlu, ucuz)
+
+### 🎨 Frontend İyileştirmeleri
+- [x] Saat ekleme UX — 5 adımlı wizard:
+  - [x] Adım 1: Marka & Model seçimi
+  - [x] Adım 2: Referans no & Üretim yılı
+  - [x] Adım 3: Teknik detaylar (kasa, kadran, hareket)
+  - [x] Adım 4: Fotoğraflar yükleme
+  - [x] Adım 5: Fiyat, açıklama (AI ile Tamamla butonu)
+- [x] "AI ile Tamamla" butonu — saat formunda (Adım 5) açıklamayı LLM ile otomatik üretir
+- [ ] AI Açıklama Üretimi UI (streaming metin gösterimi — Hafta 8 frontend TODO)
+- [x] Mobil responsive — sidebar bottom nav dönüşümü (BottomNav.tsx, layout.tsx pb-20)
+- [x] AI Studio → tablet stacked layout (xl breakpoint, grid cols-2/3/1)
+- [ ] Swipe-to-delete (mobil saat kartları)
+- [ ] Pull-to-refresh (mobil envanter listesi)
+
+### 🔌 Platform Entegrasyonları
+- [ ] Shopify product delete webhook handler implementasyonu
+- [x] Platform "Test Connection" butonu (credential doğrulama — PlatformController + PlatformCard UI)
+- [x] `EBAY_ENVIRONMENT` config mismatch düzeltildi (`env('EBAY_SANDBOX')` → `env('EBAY_ENVIRONMENT') === 'sandbox'`)
+- [x] eBay Browse API test endpoint'i (`GET /api/market/ebay-test`) — OAuth + Browse API bağlantı testi
+- [x] `php artisan market:test-scan` komutu — config doğrulama, token testi, tam tarama
+- [ ] eBay sandbox → production geçiş rehberi
+- [ ] Chrono24 XML Feed endpoint'i production URL ile test
+
+### 📈 Market Scanner — Gerçek Veri Entegrasyonu (Ban-Free Strateji)
+- [x] `ai-service/app/services/scraping.py` tamamen yeniden yazıldı (ban-free strateji)
+- [x] **Tier 1 — eBay Browse API (BİRİNCİL):** Ücretsiz, resmi, sıfır ban riski. Laravel'den doğrudan çağrılır.
+  - [x] client_credentials OAuth token yönetimi (Cache ile 7000s)
+  - [x] `GET /buy/browse/v1/item_summary/search?q={ref}&category_ids=281` — Wristwatches kategorisi
+  - [x] Sandbox/Production URL otomatik seçim (`config('services.ebay.sandbox')`)
+  - [x] Fiyat, para birimi, kondisyon, satıcı, ilan URL, ülke dönüyor
+- [x] **Tier 2 — Chrono24 + Watchfinder JSON-LD:** Ücretsiz, minimal risk. AI servisinden çağrılır.
+  - [x] Chrono24 httpx JSON-LD structured data extraction (schema.org markup)
+  - [x] Watchfinder JSON-LD + regex fallback
+  - [x] Sıfır/negatif fiyatlar filtreleniyor, sonuçlar deduplicate ediliyor
+- [x] **Tier 3 — WatchCharts API (TREND ANALİZİ):** Ücretli ($49-199/ay), tarihsel fiyat trendi + fair market value.
+  - [x] `WATCHCHARTS_API_KEY` varsa Laravel'den çağrılır, yoksa atlanır
+  - [x] WatchCharts trend verisi → Market Scanner fiyat trendi grafiğine entegre et
+  - [x] Fair market value gösterimi ("Bu saat piyasada ortalama X€ değerinde")
+  - [x] 6 ay / 1 yıl / 3 yıl trend grafiği verisi
+- [x] **~~Playwright headless browser~~ KALDIRILDI:** IP ban riski — tüm Playwright kodu temizlendi
+- [x] `MarketScrapingService.php` yeniden yazıldı — 3 tier orchestration
+- [x] `config/services.php` güncellendi — `watchcharts` config eklendi
+- [x] `compose.yaml` güncellendi — `WATCHCHARTS_API_KEY` ai-service'den kaldırıldı (Laravel tarafına taşındı)
+- [x] `HESAPLAR_VE_MALIYETLER.md` güncellendi — yeni strateji ve maliyet senaryoları
+- [x] Docker container rebuild tamamlandı (`docker compose build ai-service` + `up -d`)
+- [x] Market Scanner sayfasına **Veri Kaynakları** durum banner'ı eklendi (eBay API otomatik bağlantı testi, durum ikonları, örnek sonuçlar)
+- [ ] Gerçek veri ile test: Rolex 126610LN referansı ile scan endpoint'ini dene (API key girildikten sonra)
+
+### 📊 İzleme & Test
+- [x] Sentry entegrasyonu (sentry/sentry-laravel v4.25 + @sentry/nextjs — bootstrap/app.php Integration::handles + sentry.client/server/edge.config.ts + global-error.tsx + instrumentation.ts)
+- [ ] k6/Artillery yük testi (100 eşzamanlı kullanıcı)
+- [ ] Playwright responsive viewport testleri (320, 768, 1024, 1440)
+- [ ] Görsel regresyon testi (screenshot karşılaştırma)
+
+---
+---
+
+## AŞAMA 6 — YÖNETİCİ PANELİ, SAAT EKLEME REFAKTÖRÜ & ÇOKLU DİL DESTEĞİ (Berat + AI — 2026-04-15)
+
+> **Hedef:** Saat ekleme akışının ayrı sayfa + entegre AI pipeline olarak yeniden yazılması, sistem genelini yönetebilecek 3 kademeli admin paneli, kullanıcı geri bildirim mekanizması, sözleşme yönetimi ve 4 dil desteği (TR, EN, DE, AR).
+
+---
+
+### ⌚ 0. Saat Ekleme Sayfası Refaktörü — Modal → Ayrı Sayfa + Entegre AI
+
+> **Mevcut Durum:** Saat ekleme modal olarak çalışıyor (`WatchFormModal.tsx`). Fiyat adımında kapanma bugu var, foto yüklemede validasyon eksik, AI Studio ayrı sayfa.  
+> **Yeni Durum:** Modal kaldırılacak. Saat ekleme ayrı bir sayfa (`/dashboard/inventory/new`) olacak. AI özellikleri (görsel doğrulama, arka plan iyileştirme, açıklama üretimi) doğrudan wizard'a gömülecek. AI Studio ayrı sayfa olarak kaldırılacak.
+
+#### Akış Diyagramı
+```
+Envanter Listesi → [+ Saat Ekle] → /dashboard/inventory/new
+  ↓
+Adım 1: Marka & Model (marka dropdown, model dropdown, kondisyon seçimi)
+  ↓
+Adım 2: Detaylar (referans no, üretim yılı, kasa malzemesi, kadran rengi, hareket tipi)
+  ↓
+Adım 3: Fiyatlandırma (maliyet fiyatı, satış fiyatı, para birimi — validasyonlu)
+  ↓
+Adım 4: Fotoğraflar (drag & drop çoklu yükleme, min 1 foto zorunlu, maks 10MB/görsel)
+  ↓
+Adım 5: AI İşleme (fotoğraf yüklendikten sonra otomatik tetiklenir):
+  ├── AI görsel doğrulama (gerçekten saat mi? — confidence score)
+  ├── AI arka plan iyileştirme (beyaz stüdyo, siyah kadife vb.)
+  └── AI ilan açıklaması üretimi (marka+model+detaylardan, 3 dilde: TR/EN/DE)
+  → Kullanıcı sonuçları inceler: önce/sonra görseller + üretilen açıklama
+  → Açıklamayı düzenleyebilir, arka plan seçimini değiştirebilir
+  ↓
+Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" / "Yayınla")
+```
+
+#### Backend — Saat Ekleme API İyileştirmeleri
+- [ ] `POST /api/watches` endpoint güncelleme — görsel yükleme ve AI pipeline'ı tetikleme desteği
+- [ ] `POST /api/watches/{id}/ai-process` — tüm AI işlemlerini tek seferde tetikleyen endpoint:
+  - [ ] Görsel doğrulama (`/api/ai/validate-image` çağrısı)
+  - [ ] Arka plan iyileştirme (`/api/ai/replace-background` çağrısı)
+  - [ ] İlan açıklaması üretimi (`/api/ai/generate-description` çağrısı — 3 dilde)
+  - [ ] Tüm işlemler paralel (`ProcessAiPipelineJob` — dispatch chain)
+- [ ] `GET /api/watches/{id}/ai-status` — AI işlem durumu endpoint'i (polling için):
+  - [ ] `validation_status`: pending/validated/flagged
+  - [ ] `background_status`: pending/processing/completed/failed
+  - [ ] `description_status`: pending/processing/completed/failed
+  - [ ] `ai_description`: üretilen açıklama metni (3 dil)
+  - [ ] `enhanced_images`: iyileştirilmiş görsel URL'leri
+- [ ] `PUT /api/watches/{id}/ai-results` — kullanıcının AI sonuçlarını onaylaması/düzenlemesi:
+  - [ ] Seçilen arka plan varyantı
+  - [ ] Düzenlenmiş açıklama metni
+- [ ] `POST /api/watches/{id}/publish` — saat yayınlama endpoint'i:
+  - [ ] Seçilen platformlara (eBay/Chrono24/Shopify) toggle bazlı yayınlama
+  - [ ] Saat durumunu `draft` → `active` yapma
+  - [ ] Platform senkronizasyonu tetikleme
+
+#### Frontend — Saat Ekleme Sayfası (Yeni)
+- [ ] `WatchFormModal.tsx` kaldırılması (mevcut modal deprecate)
+- [ ] Yeni sayfa: `/dashboard/inventory/new` — `src/app/(dashboard)/dashboard/inventory/new/page.tsx`
+- [ ] Düzenleme sayfası: `/dashboard/inventory/[id]/edit` — aynı wizard bileşenleri kullanarak
+- [ ] Wizard bileşen mimarisi:
+  - [ ] `WatchWizard.tsx` — ana wizard container (adım yönetimi, ileri/geri navigasyon, progress bar)
+  - [ ] `StepBrandModel.tsx` — Adım 1: Marka & Model seçimi + kondisyon
+  - [ ] `StepDetails.tsx` — Adım 2: Referans no, üretim yılı, kasa, kadran, hareket
+  - [ ] `StepPricing.tsx` — Adım 3: Maliyet, satış fiyatı, para birimi (Zod validasyon)
+  - [ ] `StepPhotos.tsx` — Adım 4: Drag & drop fotoğraf yükleme
+    - [ ] Min 1 fotoğraf zorunluluğu (sonraki adıma geçiş engeli)
+    - [ ] Maks 10MB dosya boyutu kontrolü (client-side)
+    - [ ] Fotoğraf sıralama (drag & drop reorder)
+    - [ ] Fotoğraf silme (X butonu)
+    - [ ] Yükleme ilerleme çubuğu (progress bar)
+  - [ ] `StepAiProcessing.tsx` — Adım 5: AI İşleme
+    - [ ] Fotoğraflar yüklendikten sonra otomatik AI pipeline tetikleme
+    - [ ] İşlem durumu göstergesi (3 ayrı progress: doğrulama, arka plan, açıklama)
+    - [ ] Doğrulama sonucu: ✅ Onaylandı / ⚠️ İnceleniyor badge'i
+    - [ ] Arka plan varyantları galerisi (4 seçenek: beyaz stüdyo, siyah kadife, mermer, gri gradyan)
+    - [ ] Önce/Sonra karşılaştırma slider'ı (mevcut `BeforeAfterSlider` bileşeni yeniden kullanım)
+    - [ ] AI üretilen açıklama gösterimi (düzenlenebilir textarea)
+    - [ ] Dil seçimi: TR / EN / DE (tab bazlı — her dilde ayrı açıklama)
+    - [ ] "Yeniden Üret" butonu (açıklama beğenilmediyse tekrar AI çağrısı)
+  - [ ] `StepReviewPublish.tsx` — Adım 6: Son Kontrol & Yayınla
+    - [ ] Tüm bilgilerin özet kartı (marka, model, detaylar, fiyat, görseller, açıklama)
+    - [ ] Platform toggle'ları: eBay ✅ / Chrono24 ✅ / Shopify ✅
+    - [ ] "Taslak Olarak Kaydet" butonu (saat `draft` durumunda kalır)
+    - [ ] "Yayınla" butonu (seçilen platformlara anında senkronizasyon)
+    - [ ] Yayınlama sonrası başarı ekranı (konfeti animasyonu + envantere dön linki)
+- [ ] Envanter listesi sayfası güncelleme:
+  - [ ] "Saat Ekle" butonu → `/dashboard/inventory/new` sayfasına yönlendirme (modal açmak yerine)
+  - [ ] Satır tıklama → `/dashboard/inventory/[id]/edit` sayfasına yönlendirme
+- [ ] AI Studio sayfası kaldırma:
+  - [ ] `src/app/(dashboard)/dashboard/ai-studio/` sayfası silinmesi
+  - [ ] Sidebar'dan "AI Studio" menü öğesi kaldırılması
+  - [ ] AI Studio'ya özel bileşenler → wizard adımlarına taşınması veya silinmesi
+
+### 🔐 A. Rol & Yetki Sistemi
+
+#### Backend — Rol & Yetki Altyapısı
+- [ ] `roles` tablosu migration'ı (`id`, `name`, `slug`, `description`, `permissions` JSONB, `created_at`)
+- [ ] `admin_users` tablosu migration'ı (`id`, `user_id` FK, `role_id` FK, `is_active`, `last_login_at`, `created_by`, `created_at`)
+- [ ] `admin_activity_logs` tablosu migration'ı (`id`, `admin_user_id` FK, `action`, `target_type`, `target_id`, `details` JSONB, `ip_address`, `created_at`)
+- [ ] 3 varsayılan rol seeder'ı:
+  - [ ] **Super Admin** — Tam yetki (yönetici ekleme/silme, sistem ayarları, sözleşme yönetimi, tüm okuma/yazma)
+  - [ ] **Admin** — Operasyonel yetki (kullanıcılar, saatler, gelir, feedbackler, raporlar — yönetici yönetimi hariç)
+  - [ ] **Moderator** — Sınırlı yetki (feedbackleri görme/yanıtlama, kullanıcı listesi görme, flagged saat inceleme — yazma yetkileri sınırlı)
+- [ ] `AdminUser` Eloquent model + ilişkiler (belongsTo User, belongsTo Role)
+- [ ] `Role` Eloquent model + `hasPermission($permission)` metodu
+- [ ] Admin Auth middleware (`admin`, `admin.role:super_admin`, `admin.role:admin,super_admin`)
+- [ ] Admin Auth API endpoint'leri:
+  - [ ] `POST /api/admin/auth/login` — admin girişi (sadece admin rolü olan kullanıcılar)
+  - [ ] `POST /api/admin/auth/logout`
+  - [ ] `GET /api/admin/auth/me` — rol & yetki bilgisi dahil
+- [ ] Yönetici CRUD API (sadece Super Admin):
+  - [ ] `GET /api/admin/managers` — yönetici listesi
+  - [ ] `POST /api/admin/managers` — yeni yönetici ekleme (mevcut kullanıcıya rol atama veya yeni kullanıcı oluşturma)
+  - [ ] `PUT /api/admin/managers/{id}` — rol değiştirme, aktif/pasif yapma
+  - [ ] `DELETE /api/admin/managers/{id}` — yönetici yetkisini kaldırma (kullanıcı silinmez)
+- [ ] Aktivite logu otomatik kayıt (middleware bazlı — her admin API çağrısında `admin_activity_logs`'a yazma)
+- [ ] `GET /api/admin/activity-logs` — aktivite logu listesi (filtreleme: admin, aksiyon tipi, tarih aralığı)
+
+#### Frontend — Admin Auth & Yönetici Yönetimi UI
+- [ ] Admin login sayfası (`/admin/login`)
+- [ ] Admin layout (ayrı sidebar — admin menü öğeleri)
+- [ ] Admin AuthGuard (rol kontrolü)
+- [ ] Yönetici listesi sayfası (`/admin/managers`) — tablo: isim, email, rol, durum, son giriş
+- [ ] Yönetici ekleme modal'ı (email ile kullanıcı arama + rol seçimi)
+- [ ] Yönetici düzenleme (rol değiştirme, aktif/pasif toggle)
+- [ ] Aktivite logu sayfası (`/admin/activity-logs`) — filtrelenebilir tablo
+
+---
+
+### 📊 B. Admin Dashboard (Özet Ekranı)
+
+#### Backend — Admin İstatistik API'leri
+- [ ] `GET /api/admin/dashboard/stats` — özet istatistikler:
+  - [ ] Toplam gelir (günlük/haftalık/aylık/yıllık)
+  - [ ] Toplam kayıtlı kullanıcı sayısı + aktif kullanıcı sayısı
+  - [ ] Yeni kayıtlar (son 7 gün, son 30 gün)
+  - [ ] Toplam kayıtlı saat sayısı (duruma göre kırılım: active/sold/draft/flagged)
+  - [ ] Flagged saat sayısı (inceleme bekleyen)
+  - [ ] Açık feedback sayısı
+- [ ] `GET /api/admin/dashboard/revenue-chart` — gelir grafiği verisi (tarih aralığı parametreli, günlük/haftalık/aylık gruplandırma)
+- [ ] `GET /api/admin/dashboard/platform-revenue` — platform bazında gelir dağılımı (eBay / Chrono24 / Shopify)
+- [ ] `GET /api/admin/dashboard/recent-activities` — son aktiviteler feed (yeni kayıt, satış, hata, feedback — son 50)
+- [ ] `GET /api/admin/dashboard/user-growth` — kullanıcı büyüme grafiği (günlük yeni kayıt trendi)
+
+#### Frontend — Admin Dashboard UI
+- [ ] Admin Dashboard sayfası (`/admin`)
+- [ ] KPI Kartları: Toplam Gelir, Aktif Kullanıcı, Kayıtlı Saat, Satış (Bu Ay), Flagged Saat, Açık Feedback
+- [ ] Gelir grafiği (çizgi + bar chart — Recharts)
+- [ ] Platform gelir dağılımı (pasta/donut grafiği)
+- [ ] Kullanıcı büyüme grafiği (çizgi grafik)
+- [ ] Son aktiviteler feed tablosu (canlı güncelleme)
+- [ ] Flagged saat uyarı kartı (sayı + "İncele" butonu ile link)
+
+---
+
+### 👥 C. Kullanıcı Yönetimi
+
+#### Backend — Kullanıcı Yönetim API'leri
+- [ ] `GET /api/admin/users` — kullanıcı listesi (sayfalama, arama: isim/email, filtreleme: durum/kayıt tarihi aralığı/saat sayısı, sıralama)
+- [ ] `GET /api/admin/users/{id}` — kullanıcı detayı (profil + saatleri + satış geçmişi + faturaları + kabul edilen sözleşmeler)
+- [ ] `PUT /api/admin/users/{id}/status` — aktif/pasif yapma
+- [ ] `POST /api/admin/users/{id}/reset-password` — şifre sıfırlama linki gönderme (e-posta ile)
+- [ ] `DELETE /api/admin/users/{id}` — kullanıcı silme (soft delete + ilişkili verilerin anonimleştirilmesi)
+
+#### Frontend — Kullanıcı Yönetimi UI
+- [ ] Kullanıcı listesi sayfası (`/admin/users`) — tablo: isim, email, kayıt tarihi, durum, saat sayısı, toplam satış
+- [ ] Arama çubuğu + filtre paneli (durum, tarih aralığı)
+- [ ] Kullanıcı detay sayfası (`/admin/users/[id]`) — sekmeli: Profil, Saatleri, Satışları, Faturaları, Sözleşme Kabulleri
+- [ ] Aksiyon butonları: Aktif/Pasif toggle, Şifre Sıfırla, Sil (onay modal'ı ile)
+
+---
+
+### ⌚ D. Saat Görüntüleme & AI Otomatik Doğrulama
+
+#### Backend — AI Doğrulama Sistemi
+- [ ] `watches` tablosuna `validation_status` enum sütun eklenmesi (`pending`, `validated`, `flagged`, `rejected`) — migration
+- [ ] `watches` tablosuna `validation_details` JSONB sütun eklenmesi (AI doğrulama sonuç detayları) — migration
+- [ ] `POST /api/ai/validate-image` endpoint'i (FastAPI):
+  - [ ] Yüklenen görselin saat olup olmadığını kontrol (image classification / object detection)
+  - [ ] Güven skoru döndürme (confidence score — 0.0-1.0)
+  - [ ] Eşik değer: > 0.7 → `validated`, < 0.7 → `flagged`
+- [ ] `ValidateWatchJob` — saat eklendikten sonra arka planda çalışan async job:
+  - [ ] AI görsel doğrulama çağrısı
+  - [ ] Marka-model-referans tutarlılık kontrolü (brands/models.json cross-check)
+  - [ ] Fiyat aralığı mantık kontrolü (marka bazında makul fiyat aralığı referans verisi)
+  - [ ] Sonuca göre `validation_status` güncelleme
+  - [ ] `flagged` ise admin bildirim oluşturma
+- [ ] `WatchController::store()` güncellemesi — saat eklendikten sonra `ValidateWatchJob::dispatch($watch)`
+- [ ] Admin saat API'leri:
+  - [ ] `GET /api/admin/watches` — tüm dealer'ların saatleri (filtreleme: validation_status, dealer, marka, durum)
+  - [ ] `GET /api/admin/watches/flagged` — sadece bayraklı saatler
+  - [ ] `GET /api/admin/watches/{id}` — saat detayı + doğrulama detayları + kullanıcı bilgisi
+  - [ ] `PUT /api/admin/watches/{id}/validate` — yönetici aksiyonu: onayla (`validated`) veya reddet (`rejected`, sebep ile)
+
+#### Frontend — Admin Saat Yönetimi UI
+- [ ] Tüm saatler listesi sayfası (`/admin/watches`) — tablo + validation_status badge'leri
+- [ ] Flagged saatler filtresi (varsayılan olarak flagged göster)
+- [ ] Saat detay modal'ı — AI doğrulama sonucu gösterimi (güven skoru, tespit edilen sorunlar)
+- [ ] Onayla / Reddet butonları (reddetme sebebi textarea ile)
+- [ ] Kullanıcıya bildirim: "Görseliniz kontrol ediliyor" toast (saat ekleme sonrası)
+- [ ] Kullanıcıya bildirim: Reddedilirse sebep ile nazik bildirim
+
+---
+
+### 💰 E. Gelir & Finansal Raporlar
+
+#### Backend — Rapor API'leri
+- [ ] `GET /api/admin/reports/revenue` — gelir tablosu (tarih aralığı, platform filtresi, sayfalama)
+- [ ] `GET /api/admin/reports/commissions` — platform başına komisyon oranları ve kazanç özeti
+- [ ] `GET /api/admin/reports/subscriptions` — kullanıcı abonelik planları ve ödeme durumları (ileride)
+- [ ] `GET /api/admin/reports/export` — CSV/Excel export endpoint'i (tarih aralığı + rapor tipi parametreli)
+
+#### Frontend — Rapor UI
+- [ ] Gelir raporu sayfası (`/admin/reports/revenue`) — tablo + tarih aralığı picker + platform filtresi
+- [ ] Komisyon raporu sayfası (`/admin/reports/commissions`) — platform bazında kırılım
+- [ ] Export butonu (CSV / Excel indirme)
+
+---
+
+### 💬 F. Feedback (Geri Bildirim) Sistemi
+
+#### Backend — Feedback Altyapısı
+- [ ] `feedbacks` tablosu migration'ı (`id`, `user_id` nullable FK, `name`, `email`, `category` enum: bug/suggestion/complaint/general, `subject`, `message` text, `status` enum: new/reviewing/resolved/rejected, `admin_response` text nullable, `responded_by` FK nullable, `responded_at`, `created_at`)
+- [ ] `Feedback` Eloquent model + ilişkiler
+- [ ] Kullanıcı tarafı API:
+  - [ ] `POST /api/feedbacks` — feedback gönderme (auth opsiyonel — misafir de gönderebilir)
+  - [ ] `GET /api/feedbacks/mine` — kendi feedbacklerimi görme (auth gerekli)
+- [ ] Admin tarafı API:
+  - [ ] `GET /api/admin/feedbacks` — feedback listesi (filtreleme: kategori, durum, tarih aralığı, sayfalama)
+  - [ ] `GET /api/admin/feedbacks/{id}` — feedback detayı
+  - [ ] `PUT /api/admin/feedbacks/{id}` — durum güncelleme + yanıt yazma
+  - [ ] `GET /api/admin/feedbacks/stats` — istatistikler (kategori dağılımı, ortalama çözüm süresi, durum dağılımı)
+- [ ] Feedback yanıtlandığında kullanıcıya e-posta bildirimi (`FeedbackRespondedNotification`)
+
+#### Frontend — Feedback Widget & Admin UI
+- [ ] **Feedback widget bileşeni** (dashboard + landing page):
+  - [ ] Sabit pozisyonlu "Geri Bildirim" butonu (sağ alt köşe)
+  - [ ] Açılır form: kategori seçimi, konu, mesaj, gönder
+  - [ ] Misafir kullanıcı için isim + email alanları (auth'lu kullanıcıda otomatik dolu)
+  - [ ] Gönderim sonrası teşekkür mesajı
+- [ ] Kullanıcı feedbacklerim sayfası (`/dashboard/feedbacks`) — kendi gönderdiğim feedbackler + admin yanıtları
+- [ ] Admin feedback listesi sayfası (`/admin/feedbacks`) — tablo: tarih, kullanıcı, kategori, konu, durum badge
+- [ ] Admin feedback detay sayfası — mesaj + yanıt textarea + durum değiştirme dropdown
+- [ ] Admin feedback istatistikleri — kategori pasta grafiği, durum dağılımı, çözüm süresi trendi
+
+---
+
+### 📜 G. Sözleşme Yönetimi
+
+#### Backend — Sözleşme Altyapısı
+- [ ] `contracts` tablosu migration'ı (`id`, `type` enum: terms_of_service/privacy_policy/kvkk_gdpr/cookie_policy, `title`, `slug`, `content` longText, `version` string, `status` enum: draft/published/archived, `published_at` nullable, `created_by` FK, `created_at`, `updated_at`)
+- [ ] `contract_acceptances` tablosu migration'ı (`id`, `user_id` FK, `contract_id` FK, `version` string, `ip_address`, `user_agent`, `accepted_at`, unique constraint: user_id + contract_id + version)
+- [ ] `Contract` Eloquent model + versiyonlama mantığı (aynı type için yeni versiyon oluşturma)
+- [ ] `ContractAcceptance` Eloquent model
+- [ ] Admin sözleşme API'leri:
+  - [ ] `GET /api/admin/contracts` — sözleşme listesi (tip, durum filtresi)
+  - [ ] `POST /api/admin/contracts` — yeni sözleşme oluşturma (taslak olarak)
+  - [ ] `PUT /api/admin/contracts/{id}` — sözleşme düzenleme (sadece taslaklar düzenlenebilir)
+  - [ ] `POST /api/admin/contracts/{id}/publish` — yayınlama (mevcut yayında olanı arşive alır, yeni versiyonu yayınlar)
+  - [ ] `GET /api/admin/contracts/{id}/acceptances` — bu sözleşmeyi kabul eden kullanıcılar listesi
+  - [ ] `POST /api/admin/contracts/{id}/notify` — sözleşme değişiklik bildirimi gönderme (tüm kullanıcılara email)
+- [ ] Kullanıcı tarafı sözleşme API'leri:
+  - [ ] `GET /api/contracts/active` — aktif (yayında) sözleşmeler listesi (kayıt formunda gösterilecek)
+  - [ ] `GET /api/contracts/{slug}` — sözleşme içeriğini görüntüleme (public endpoint)
+  - [ ] `POST /api/contracts/{id}/accept` — sözleşme kabul etme
+  - [ ] `GET /api/contracts/pending` — kullanıcının henüz kabul etmediği güncel sözleşmeler (zorunlu kabul kontrolü)
+- [ ] Kayıt akışı güncellemesi: `AuthController::register()` → aktif sözleşmelerin kabul edilip edilmediği kontrolü + `contract_acceptances` kayıtları oluşturma
+- [ ] Sözleşme değişiklik bildirimi (`ContractUpdatedNotification` — email)
+- [ ] Middleware: Giriş yapan kullanıcının güncel sözleşmeleri kabul edip etmediği kontrolü (kabul etmediyse zorunlu kabul sayfasına yönlendirme)
+
+#### Frontend — Sözleşme UI
+- [ ] Public sözleşme sayfası (`/contracts/[slug]`) — tam metin gösterimi (SEO-friendly)
+- [ ] Kayıt formuna sözleşme checkbox'ları (dinamik — API'den aktif sözleşmeler çekilir)
+- [ ] Zorunlu sözleşme kabul sayfası (`/accept-contracts`) — giriş sonrası güncel sözleşmeler kabul edilmediyse yönlendirme
+- [ ] Admin sözleşme listesi sayfası (`/admin/contracts`) — tablo: tip, başlık, versiyon, durum, yayınlanma tarihi
+- [ ] Admin sözleşme oluşturma/düzenleme sayfası (`/admin/contracts/new`, `/admin/contracts/[id]/edit`) — zengin metin editörü (WYSIWYG — TipTap veya Quill)
+- [ ] Yayınla butonu (onay modal'ı: "Bu sözleşme yayınlandığında mevcut versiyon arşivlenecek")
+- [ ] Sözleşme kabul istatistikleri — kaç kullanıcı kabul etti, kabul oranı
+
+---
+
+### ⚙️ H. Sistem Ayarları (Admin)
+
+#### Backend — Sistem Ayarları API'leri
+- [ ] `system_settings` tablosu migration'ı (`id`, `key` unique, `value` text, `type` enum: string/boolean/json/number, `updated_by` FK, `updated_at`)
+- [ ] `SystemSetting` model + cache katmanı (Redis ile — her okumada DB'ye gitmemek için)
+- [ ] `GET /api/admin/settings` — tüm ayarlar
+- [ ] `PUT /api/admin/settings` — ayarları toplu güncelleme
+- [ ] Varsayılan ayarlar seeder'ı (site_name, contact_email, maintenance_mode, default_language vb.)
+- [ ] `GET /api/admin/system/health` — tüm servislerin sağlık durumu (DB, Redis, Queue, AI Service, eBay API, Shopify API)
+
+#### Frontend — Sistem Ayarları UI
+- [ ] Sistem ayarları sayfası (`/admin/settings`):
+  - [ ] Genel sekmesi: site adı, iletişim emaili, bakım modu toggle
+  - [ ] Email şablonları sekmesi: bildirim emaillerini önizleme ve düzenleme
+  - [ ] Servis durumu sekmesi: API bağlantı sağlık kontrolü kartları (yeşil/kırmızı dot + son kontrol zamanı)
+
+---
+
+### 🌍 I. Çoklu Dil Desteği (i18n) — Altyapı
+
+#### Frontend — i18n Kurulumu
+- [ ] `next-intl` paketi kurulumu ve yapılandırması
+- [ ] URL yapısı: `/{locale}/dashboard`, `/{locale}/admin` (locale: `tr`, `en`, `de`, `ar`)
+- [ ] Middleware: URL'den locale algılama + varsayılan dile yönlendirme
+- [ ] Dil algılama önceliği: URL parametresi → kullanıcı profil tercihi → localStorage → tarayıcı dili → varsayılan (TR)
+- [ ] `messages/` klasörü yapısı:
+  - [ ] `tr/common.json` — ortak UI metinleri (butonlar, etiketler, navigasyon)
+  - [ ] `tr/auth.json` — giriş, kayıt, şifre sıfırlama metinleri
+  - [ ] `tr/dashboard.json` — dashboard sayfası metinleri
+  - [ ] `tr/inventory.json` — envanter yönetimi metinleri
+  - [ ] `tr/admin.json` — yönetici paneli metinleri
+  - [ ] `tr/feedback.json` — geri bildirim metinleri
+  - [ ] `tr/contracts.json` — sözleşme metinleri
+  - [ ] `tr/settings.json` — ayarlar metinleri
+  - [ ] `tr/market.json` — market scanner metinleri
+  - [ ] `tr/ai.json` — AI studio metinleri
+  - [ ] Aynı yapı `en/`, `de/`, `ar/` için de tekrarlanacak
+- [ ] TopBar'a dil değiştirici dropdown (bayrak ikonlu: 🇹🇷 🇬🇧 🇩🇪 🇸🇦)
+- [ ] Kullanıcı profil ayarlarına "Tercih edilen dil" seçeneği eklenmesi
+- [ ] Tüm mevcut hardcoded metinlerin `useTranslations()` hook ile değiştirilmesi
+
+#### Backend — i18n
+- [ ] Laravel `lang/` klasörüne dil dosyaları:
+  - [ ] `lang/tr/` — validation, auth, pagination, passwords, email mesajları
+  - [ ] `lang/en/` — aynı yapı
+  - [ ] `lang/de/` — aynı yapı
+  - [ ] `lang/ar/` — aynı yapı
+- [ ] API yanıtlarında `Accept-Language` header'ına göre hata mesajı dili belirleme
+- [ ] E-posta şablonlarının çok dilli versiyonları (kullanıcının dil tercihine göre gönderim)
+- [ ] `users` tablosuna `preferred_language` sütunu eklenmesi (migration — varsayılan: `tr`)
+
+### 🌍 J. Çeviri İçerikleri
+
+- [ ] **Türkçe (TR):** Ana dil — tüm arayüz, email şablonları, sözleşmeler (zaten mevcut, formalize edilecek)
+- [ ] **İngilizce (EN):** Tam çeviri — tüm namespace JSON dosyaları + Laravel lang + email şablonları
+- [ ] **Almanca (DE):** Tam çeviri — tüm namespace JSON dosyaları + Laravel lang + email şablonları
+- [ ] **Arapça (AR) [opsiyonel]:** Tam çeviri + RTL desteği
+
+### 🔄 K. RTL Desteği (Arapça)
+
+- [ ] `dir="rtl"` özniteliği locale'e göre dinamik ekleme (`layout.tsx`)
+- [ ] Tailwind CSS logical properties kullanımı (`ms-` / `me-` / `ps-` / `pe-` — margin/padding sağ-sol yerine start-end)
+- [ ] Sidebar → RTL'de sağ tarafa geçme
+- [ ] İkon yönleri aynalama (ok ikonları vb.)
+- [ ] RTL uyumlu form layout'ları (label'lar sağda, input'lar solda)
+- [ ] Tüm bileşenlerde RTL test kontrolü
+
+---
+
+### 📋 Aşama 6 — Özet Tablo
+
+| Kategori | Görev Sayısı | Durum |
+|----------|-------------|-------|
+| 0. Saat Ekleme Refaktörü | 28 | ⬜ Başlanmadı |
+| A. Rol & Yetki Sistemi | 17 | ⬜ Başlanmadı |
+| B. Admin Dashboard | 12 | ⬜ Başlanmadı |
+| C. Kullanıcı Yönetimi | 9 | ⬜ Başlanmadı |
+| D. Saat & AI Doğrulama | 14 | ⬜ Başlanmadı |
+| E. Gelir & Raporlar | 7 | ⬜ Başlanmadı |
+| F. Feedback Sistemi | 15 | ⬜ Başlanmadı |
+| G. Sözleşme Yönetimi | 20 | ⬜ Başlanmadı |
+| H. Sistem Ayarları | 8 | ⬜ Başlanmadı |
+| I. i18n Altyapı | 17 | ⬜ Başlanmadı |
+| J. Çeviri İçerikleri | 4 | ⬜ Başlanmadı |
+| K. RTL Desteği | 6 | ⬜ Başlanmadı |
+| **TOPLAM** | **157** | — |
+
+---
+## �📈 Özet Metrikleri
 
 | Metrik | Hedef |
 |--------|-------|

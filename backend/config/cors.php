@@ -33,6 +33,7 @@ return [
         'Authorization',
         'Accept',
         'Origin',
+        'X-XSRF-TOKEN',
     ],
 
     'exposed_headers' => [

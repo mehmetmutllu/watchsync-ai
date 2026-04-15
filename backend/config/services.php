@@ -44,7 +44,7 @@ return [
         'client_id'     => env('EBAY_CLIENT_ID'),
         'client_secret' => env('EBAY_CLIENT_SECRET'),
         'redirect_uri'  => env('EBAY_REDIRECT_URI'),
-        'sandbox'       => env('EBAY_SANDBOX', true),
+        'sandbox'       => env('EBAY_ENVIRONMENT', 'sandbox') === 'sandbox',
         'ru_name'       => env('EBAY_RU_NAME'),
         'webhook_verification_token' => env('EBAY_WEBHOOK_VERIFICATION_TOKEN', ''),
         'scopes'        => [
@@ -86,13 +86,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | OpenAI / LLM Configuration
+    | Gemini / LLM Configuration
     |--------------------------------------------------------------------------
     */
-    'openai' => [
-        'api_key'  => env('OPENAI_API_KEY', ''),
-        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
-        'model'    => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    'gemini' => [
+        'api_key'  => env('GEMINI_API_KEY', ''),
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta/openai'),
+        'model'    => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | WatchCharts API (Optional — paid tier)
+    |--------------------------------------------------------------------------
+    */
+    'watchcharts' => [
+        'api_key' => env('WATCHCHARTS_API_KEY', ''),
     ],
 
 ];

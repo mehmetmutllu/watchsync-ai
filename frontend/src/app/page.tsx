@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   Watch,
   Cpu,
@@ -9,6 +10,15 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "WatchSync AI — AI-Powered Luxury Watch Inventory Management",
+  description:
+    "Lüks saat bayileri için yapay zeka destekli envanter yönetimi. eBay, Chrono24 ve Shopify ile çoklu kanal senkronizasyonu, AI görsel işleme, pazar istihbaratı.",
+  alternates: {
+    canonical: "https://watchsync.ai",
+  },
+};
 
 const features = [
   {
@@ -57,8 +67,29 @@ const stats = [
 ];
 
 export default function LandingPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "WatchSync AI",
+    applicationCategory: "BusinessApplication",
+    description:
+      "AI-powered B2B SaaS platform for luxury watch dealers. Multi-channel inventory sync, AI image processing, market intelligence.",
+    url: "https://watchsync.ai",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      description: "14-day free trial",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-midnight text-primary-text overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between px-6 lg:px-12 py-5 max-w-7xl mx-auto">
         <div className="flex items-center gap-3">

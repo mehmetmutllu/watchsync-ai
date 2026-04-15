@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DescriptionController;
 use App\Http\Controllers\Api\EbayController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\MarketController;
@@ -32,6 +33,14 @@ Route::prefix('auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+
+        // Email verification
+        Route::get('/email/verification-status', [EmailVerificationController::class, 'status']);
+        Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+            ->middleware('throttle:3,1');
+        Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+            ->middleware('signed')
+            ->name('verification.verify');
     });
 });
 
@@ -75,6 +84,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::middleware('throttle:platform-sync')->group(function () {
         Route::put('/platforms/{id}/credentials', [PlatformController::class, 'updateCredentials']);
         Route::post('/platforms/{id}/disconnect', [PlatformController::class, 'disconnect']);
+        Route::post('/platforms/{id}/test-connection', [PlatformController::class, 'testConnection']);
         Route::post('/watches/{watchId}/platforms/{platformId}/toggle', [PlatformController::class, 'toggleSync']);
     });
 
@@ -130,8 +140,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/watches/{id}/generate-description', [DescriptionController::class, 'generateForWatch']);
 
     // Market Scanner
+    Route::get('/market/ebay-test', [MarketController::class, 'ebayTest']);
     Route::get('/market/prices/{ref}', [MarketController::class, 'prices']);
     Route::get('/market/competitors/{ref}', [MarketController::class, 'competitors']);
+    Route::get('/market/watchcharts-trend/{ref}', [MarketController::class, 'watchChartsTrend']);
     Route::post('/market/scan', [MarketController::class, 'scan']);
 
     // Price Alerts
