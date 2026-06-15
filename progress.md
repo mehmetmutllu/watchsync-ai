@@ -822,63 +822,63 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 ```
 
 #### Backend — Saat Ekleme API İyileştirmeleri
-- [ ] `POST /api/watches` endpoint güncelleme — görsel yükleme ve AI pipeline'ı tetikleme desteği
-- [ ] `POST /api/watches/{id}/ai-process` — tüm AI işlemlerini tek seferde tetikleyen endpoint:
-  - [ ] Görsel doğrulama (`/api/ai/validate-image` çağrısı)
-  - [ ] Arka plan iyileştirme (`/api/ai/replace-background` çağrısı)
-  - [ ] İlan açıklaması üretimi (`/api/ai/generate-description` çağrısı — 3 dilde)
-  - [ ] Tüm işlemler paralel (`ProcessAiPipelineJob` — dispatch chain)
-- [ ] `GET /api/watches/{id}/ai-status` — AI işlem durumu endpoint'i (polling için):
-  - [ ] `validation_status`: pending/validated/flagged
-  - [ ] `background_status`: pending/processing/completed/failed
-  - [ ] `description_status`: pending/processing/completed/failed
-  - [ ] `ai_description`: üretilen açıklama metni (3 dil)
-  - [ ] `enhanced_images`: iyileştirilmiş görsel URL'leri
-- [ ] `PUT /api/watches/{id}/ai-results` — kullanıcının AI sonuçlarını onaylaması/düzenlemesi:
-  - [ ] Seçilen arka plan varyantı
-  - [ ] Düzenlenmiş açıklama metni
-- [ ] `POST /api/watches/{id}/publish` — saat yayınlama endpoint'i:
-  - [ ] Seçilen platformlara (eBay/Chrono24/Shopify) toggle bazlı yayınlama
-  - [ ] Saat durumunu `draft` → `active` yapma
-  - [ ] Platform senkronizasyonu tetikleme
+- [x] `POST /api/watches` endpoint güncelleme — görsel yükleme ve AI pipeline'ı tetikleme desteği
+- [x] `POST /api/watches/{id}/ai-process` — tüm AI işlemlerini tek seferde tetikleyen endpoint:
+  - [x] Görsel doğrulama (`/api/ai/validate-image` çağrısı)
+  - [x] Arka plan iyileştirme (`/api/ai/replace-background` çağrısı)
+  - [x] İlan açıklaması üretimi (`/api/ai/generate-description` çağrısı — 3 dilde)
+  - [x] Tüm işlemler paralel (`ProcessAiPipelineJob` — dispatch chain)
+- [x] `GET /api/watches/{id}/ai-status` — AI işlem durumu endpoint'i (polling için):
+  - [x] `validation_status`: pending/validated/flagged
+  - [x] `background_status`: pending/processing/completed/failed
+  - [x] `description_status`: pending/processing/completed/failed
+  - [x] `ai_description`: üretilen açıklama metni (3 dil)
+  - [x] `enhanced_images`: iyileştirilmiş görsel URL'leri
+- [x] `PUT /api/watches/{id}/ai-results` — kullanıcının AI sonuçlarını onaylaması/düzenlemesi:
+  - [x] Seçilen arka plan varyantı
+  - [x] Düzenlenmiş açıklama metni
+- [x] `POST /api/watches/{id}/publish` — saat yayınlama endpoint'i:
+  - [x] Seçilen platformlara (eBay/Chrono24/Shopify) toggle bazlı yayınlama
+  - [x] Saat durumunu `draft` → `active` yapma
+  - [x] Platform senkronizasyonu tetikleme
 
 #### Frontend — Saat Ekleme Sayfası (Yeni)
-- [ ] `WatchFormModal.tsx` kaldırılması (mevcut modal deprecate)
-- [ ] Yeni sayfa: `/dashboard/inventory/new` — `src/app/(dashboard)/dashboard/inventory/new/page.tsx`
-- [ ] Düzenleme sayfası: `/dashboard/inventory/[id]/edit` — aynı wizard bileşenleri kullanarak
-- [ ] Wizard bileşen mimarisi:
-  - [ ] `WatchWizard.tsx` — ana wizard container (adım yönetimi, ileri/geri navigasyon, progress bar)
-  - [ ] `StepBrandModel.tsx` — Adım 1: Marka & Model seçimi + kondisyon
-  - [ ] `StepDetails.tsx` — Adım 2: Referans no, üretim yılı, kasa, kadran, hareket
-  - [ ] `StepPricing.tsx` — Adım 3: Maliyet, satış fiyatı, para birimi (Zod validasyon)
-  - [ ] `StepPhotos.tsx` — Adım 4: Drag & drop fotoğraf yükleme
-    - [ ] Min 1 fotoğraf zorunluluğu (sonraki adıma geçiş engeli)
-    - [ ] Maks 10MB dosya boyutu kontrolü (client-side)
-    - [ ] Fotoğraf sıralama (drag & drop reorder)
-    - [ ] Fotoğraf silme (X butonu)
-    - [ ] Yükleme ilerleme çubuğu (progress bar)
-  - [ ] `StepAiProcessing.tsx` — Adım 5: AI İşleme
-    - [ ] Fotoğraflar yüklendikten sonra otomatik AI pipeline tetikleme
-    - [ ] İşlem durumu göstergesi (3 ayrı progress: doğrulama, arka plan, açıklama)
-    - [ ] Doğrulama sonucu: ✅ Onaylandı / ⚠️ İnceleniyor badge'i
-    - [ ] Arka plan varyantları galerisi (4 seçenek: beyaz stüdyo, siyah kadife, mermer, gri gradyan)
-    - [ ] Önce/Sonra karşılaştırma slider'ı (mevcut `BeforeAfterSlider` bileşeni yeniden kullanım)
-    - [ ] AI üretilen açıklama gösterimi (düzenlenebilir textarea)
-    - [ ] Dil seçimi: TR / EN / DE (tab bazlı — her dilde ayrı açıklama)
-    - [ ] "Yeniden Üret" butonu (açıklama beğenilmediyse tekrar AI çağrısı)
-  - [ ] `StepReviewPublish.tsx` — Adım 6: Son Kontrol & Yayınla
-    - [ ] Tüm bilgilerin özet kartı (marka, model, detaylar, fiyat, görseller, açıklama)
-    - [ ] Platform toggle'ları: eBay ✅ / Chrono24 ✅ / Shopify ✅
-    - [ ] "Taslak Olarak Kaydet" butonu (saat `draft` durumunda kalır)
-    - [ ] "Yayınla" butonu (seçilen platformlara anında senkronizasyon)
-    - [ ] Yayınlama sonrası başarı ekranı (konfeti animasyonu + envantere dön linki)
-- [ ] Envanter listesi sayfası güncelleme:
-  - [ ] "Saat Ekle" butonu → `/dashboard/inventory/new` sayfasına yönlendirme (modal açmak yerine)
-  - [ ] Satır tıklama → `/dashboard/inventory/[id]/edit` sayfasına yönlendirme
-- [ ] AI Studio sayfası kaldırma:
-  - [ ] `src/app/(dashboard)/dashboard/ai-studio/` sayfası silinmesi
-  - [ ] Sidebar'dan "AI Studio" menü öğesi kaldırılması
-  - [ ] AI Studio'ya özel bileşenler → wizard adımlarına taşınması veya silinmesi
+- [x] `WatchFormModal.tsx` kaldırılması (mevcut modal deprecate)
+- [x] Yeni sayfa: `/dashboard/inventory/new` — `src/app/(dashboard)/dashboard/inventory/new/page.tsx`
+- [x] Düzenleme sayfası: `/dashboard/inventory/[id]/edit` — aynı wizard bileşenleri kullanarak
+- [x] Wizard bileşen mimarisi:
+  - [x] `WatchWizard.tsx` — ana wizard container (adım yönetimi, ileri/geri navigasyon, progress bar)
+  - [x] `StepBrandModel.tsx` — Adım 1: Marka & Model seçimi + kondisyon
+  - [x] `StepDetails.tsx` — Adım 2: Referans no, üretim yılı, kasa, kadran, hareket
+  - [x] `StepPricing.tsx` — Adım 3: Maliyet, satış fiyatı, para birimi (Zod validasyon)
+  - [x] `StepPhotos.tsx` — Adım 4: Drag & drop fotoğraf yükleme
+    - [x] Min 1 fotoğraf zorunluluğu (sonraki adıma geçiş engeli)
+    - [x] Maks 10MB dosya boyutu kontrolü (client-side)
+    - [x] Fotoğraf sıralama (drag & drop reorder)
+    - [x] Fotoğraf silme (X butonu)
+    - [x] Yükleme ilerleme çubuğu (progress bar)
+  - [x] `StepAiProcessing.tsx` — Adım 5: AI İşleme
+    - [x] Fotoğraflar yüklendikten sonra otomatik AI pipeline tetikleme
+    - [x] İşlem durumu göstergesi (3 ayrı progress: doğrulama, arka plan, açıklama)
+    - [x] Doğrulama sonucu: ✅ Onaylandı / ⚠️ İnceleniyor badge'i
+    - [x] Arka plan varyantları galerisi (4 seçenek: beyaz stüdyo, siyah kadife, mermer, gri gradyan)
+    - [x] Önce/Sonra karşılaştırma slider'ı (mevcut `BeforeAfterSlider` bileşeni yeniden kullanım)
+    - [x] AI üretilen açıklama gösterimi (düzenlenebilir textarea)
+    - [x] Dil seçimi: TR / EN / DE (tab bazlı — her dilde ayrı açıklama)
+    - [x] "Yeniden Üret" butonu (açıklama beğenilmediyse tekrar AI çağrısı)
+  - [x] `StepReviewPublish.tsx` — Adım 6: Son Kontrol & Yayınla
+    - [x] Tüm bilgilerin özet kartı (marka, model, detaylar, fiyat, görseller, açıklama)
+    - [x] Platform toggle'ları: eBay ✅ / Chrono24 ✅ / Shopify ✅
+    - [x] "Taslak Olarak Kaydet" butonu (saat `draft` durumunda kalır)
+    - [x] "Yayınla" butonu (seçilen platformlara anında senkronizasyon)
+    - [x] Yayınlama sonrası başarı ekranı (konfeti animasyonu + envantere dön linki)
+- [x] Envanter listesi sayfası güncelleme:
+  - [x] "Saat Ekle" butonu → `/dashboard/inventory/new` sayfasına yönlendirme (modal açmak yerine)
+  - [x] Satır tıklama → `/dashboard/inventory/[id]/edit` sayfasına yönlendirme
+- [x] AI Studio sayfası kaldırma:
+  - [x] `src/app/(dashboard)/dashboard/ai-studio/` sayfası silinmesi
+  - [x] Sidebar'dan "AI Studio" menü öğesi kaldırılması
+  - [x] AI Studio'ya özel bileşenler → wizard adımlarına taşınması veya silinmesi
 
 ### 🔐 A. Rol & Yetki Sistemi
 

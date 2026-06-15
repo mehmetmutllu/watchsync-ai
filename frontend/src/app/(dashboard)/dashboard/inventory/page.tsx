@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
 import WatchTable from '@/components/inventory/WatchTable';
@@ -11,18 +11,11 @@ import TableSkeleton from '@/components/inventory/TableSkeleton';
 import BulkActions from '@/components/inventory/BulkActions';
 import { Plus } from 'lucide-react';
 
-// Ağır modal bileşenleri — lazy load (766 satır, form + validation + image upload)
-const WatchFormModal = dynamic(
-  () => import('@/components/inventory/WatchFormModal'),
-  { ssr: false }
-);
-
 export default function InventoryPage() {
+  const router = useRouter();
   const { watches, pagination, isLoading, error, fetchWatches, deleteWatch, updateWatchStatus } =
     useInventoryStore();
   const { platforms, fetchPlatforms } = usePlatformStore();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editWatchId, setEditWatchId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -41,7 +34,7 @@ export default function InventoryPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => router.push('/dashboard/inventory/new')}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent-blue text-white text-sm font-medium rounded-lg hover:bg-accent-blue-hover transition-colors duration-150"
         >
           <Plus className="w-4 h-4" />
@@ -63,7 +56,7 @@ export default function InventoryPage() {
       {isLoading && watches.length === 0 ? (
         <TableSkeleton />
       ) : watches.length === 0 ? (
-        <EmptyState onAddClick={() => setShowAddModal(true)} />
+        <EmptyState onAddClick={() => router.push('/dashboard/inventory/new')} />
       ) : (
         <>
           {/* Bulk Actions */}
@@ -77,24 +70,13 @@ export default function InventoryPage() {
           <WatchTable
             watches={watches}
             pagination={pagination}
-            onEdit={(id) => setEditWatchId(id)}
+            onEdit={(id) => router.push(`/dashboard/inventory/${id}/edit`)}
             onDelete={deleteWatch}
             onStatusChange={updateWatchStatus}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
           />
         </>
-      )}
-
-      {/* Add/Edit Modal */}
-      {(showAddModal || editWatchId !== null) && (
-        <WatchFormModal
-          watchId={editWatchId}
-          onClose={() => {
-            setShowAddModal(false);
-            setEditWatchId(null);
-          }}
-        />
       )}
     </div>
   );

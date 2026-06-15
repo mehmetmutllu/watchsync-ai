@@ -7,6 +7,8 @@ use App\Http\Requests\Watch\StoreWatchRequest;
 use App\Http\Requests\Watch\UpdateWatchRequest;
 use App\Http\Requests\Watch\UpdateWatchStatusRequest;
 use App\Http\Requests\Watch\UploadWatchImageRequest;
+use App\Jobs\ProcessAiPipelineJob;
+use App\Jobs\SyncInventoryJob;
 use App\Models\Watch;
 use App\Models\WatchImage;
 use App\Services\InventoryLockService;
@@ -15,6 +17,7 @@ use App\Services\WatchImageService;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class WatchController extends Controller
 {
@@ -323,6 +326,158 @@ class WatchController extends Controller
 
         return response()->json([
             'message' => 'Görsel başarıyla silindi.',
+        ]);
+    }
+
+    /**
+     * Tüm AI işlemlerini tek seferde tetikler.
+     *
+     * POST /api/watches/{id}/ai-process
+     */
+    public function aiProcess(Request $request, int $id): JsonResponse
+    {
+        $watch = Watch::where('dealer_id', $request->user()->dealer_id)
+            ->with('images')
+            ->findOrFail($id);
+
+        if ($watch->images->isEmpty()) {
+            return response()->json([
+                'message' => 'AI işlemi başlatmak için en az 1 fotoğraf gereklidir.',
+            ], 422);
+        }
+
+        $steps = $request->input('steps', ['validation', 'background', 'description']);
+        $allowedSteps = ['validation', 'background', 'description'];
+        $steps = array_intersect($steps, $allowedSteps);
+
+        // Initialize pipeline status in cache
+        $cacheKey = 'ai_pipeline_' . $watch->id;
+        Cache::put($cacheKey, [
+            'validation_status' => in_array('validation', $steps) ? 'pending' : 'skipped',
+            'validation_result' => null,
+            'background_status' => in_array('background', $steps) ? 'pending' : 'skipped',
+            'enhanced_images' => [],
+            'original_url' => null,
+            'description_status' => in_array('description', $steps) ? 'pending' : 'skipped',
+            'ai_descriptions' => [],
+            'selected_variant' => null,
+            'started_at' => now()->toIso8601String(),
+        ], 3600);
+
+        ProcessAiPipelineJob::dispatch($watch, $steps);
+
+        return response()->json([
+            'message' => 'AI pipeline başlatıldı.',
+            'watch_id' => $watch->id,
+        ]);
+    }
+
+    /**
+     * AI işlem durumunu döndürür (polling).
+     *
+     * GET /api/watches/{id}/ai-status
+     */
+    public function aiStatus(Request $request, int $id): JsonResponse
+    {
+        $watch = Watch::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($id);
+
+        $cacheKey = 'ai_pipeline_' . $watch->id;
+        $status = Cache::get($cacheKey);
+
+        if (!$status) {
+            return response()->json([
+                'message' => 'No AI pipeline found for this watch.',
+                'status' => null,
+            ]);
+        }
+
+        return response()->json([
+            'status' => $status,
+        ]);
+    }
+
+    /**
+     * AI sonuçlarını onayla/düzenle.
+     *
+     * PUT /api/watches/{id}/ai-results
+     */
+    public function aiResults(Request $request, int $id): JsonResponse
+    {
+        $watch = Watch::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'selected_variant' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:10000',
+        ]);
+
+        if (isset($validated['description'])) {
+            $watch->update(['description' => $validated['description']]);
+        }
+
+        // Store selected variant in cache for reference
+        $cacheKey = 'ai_pipeline_' . $watch->id;
+        $status = Cache::get($cacheKey);
+        if ($status && isset($validated['selected_variant'])) {
+            $status['selected_variant'] = $validated['selected_variant'];
+            Cache::put($cacheKey, $status, 3600);
+        }
+
+        return response()->json([
+            'message' => 'AI sonuçları güncellendi.',
+            'watch' => $watch->fresh(),
+        ]);
+    }
+
+    /**
+     * Saati seçilen platformlara yayınlar.
+     *
+     * POST /api/watches/{id}/publish
+     */
+    public function publish(Request $request, int $id): JsonResponse
+    {
+        $watch = Watch::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'platform_ids' => 'required|array|min:1',
+            'platform_ids.*' => 'integer|exists:platforms,id',
+        ]);
+
+        // Transition to active if draft
+        if ($watch->status === 'draft') {
+            try {
+                $watch = $this->lockService->safeStatusTransition(
+                    $watch,
+                    'active',
+                    $this->stateMachine,
+                    $request->user()->id,
+                    'Published via wizard',
+                );
+            } catch (LockTimeoutException) {
+                return response()->json([
+                    'message' => 'Saat şu anda başka bir işlem tarafından güncelleniyor.',
+                ], 409);
+            }
+        }
+
+        // Dispatch sync jobs for selected platforms
+        $connections = \App\Models\PlatformConnection::where('dealer_id', $watch->dealer_id)
+            ->whereIn('platform_id', $validated['platform_ids'])
+            ->where('status', 'connected')
+            ->get();
+
+        $dispatched = [];
+        foreach ($connections as $connection) {
+            SyncInventoryJob::dispatch($watch, $connection);
+            $dispatched[] = $connection->platform_id;
+        }
+
+        return response()->json([
+            'message' => count($dispatched) . ' platforma yayınlama başlatıldı.',
+            'watch' => $watch->fresh(),
+            'dispatched_platforms' => $dispatched,
         ]);
     }
 }

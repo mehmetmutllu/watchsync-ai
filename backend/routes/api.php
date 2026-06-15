@@ -76,8 +76,12 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::patch('/watches/{id}/status', [WatchController::class, 'updateStatus']);
         Route::post('/watches/{id}/images', [WatchController::class, 'uploadImages']);
         Route::delete('/watches/{watchId}/images/{imageId}', [WatchController::class, 'deleteImage']);
+        Route::post('/watches/{id}/ai-process', [WatchController::class, 'aiProcess']);
+        Route::put('/watches/{id}/ai-results', [WatchController::class, 'aiResults']);
+        Route::post('/watches/{id}/publish', [WatchController::class, 'publish']);
     });
     Route::get('/watches/{id}', [WatchController::class, 'show']);
+    Route::get('/watches/{id}/ai-status', [WatchController::class, 'aiStatus']);
 
     // Platform management — senkronizasyon limiti
     Route::get('/platforms', [PlatformController::class, 'index']);

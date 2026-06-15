@@ -220,3 +220,27 @@ export interface BulkPublishStatusResponse {
   pending: number;
   total: number;
 }
+
+// ─── AI Pipeline Types ─────────────────────────────────────
+
+export type AiStepStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'skipped';
+
+export interface AiPipelineStatus {
+  validation_status: AiStepStatus;
+  validation_result: {
+    is_watch?: boolean;
+    confidence?: number;
+    message?: string;
+    error?: string;
+  } | null;
+  background_status: AiStepStatus;
+  enhanced_images: Array<{
+    preset: string;
+    url: string | null;
+  }>;
+  original_url: string | null;
+  description_status: AiStepStatus;
+  ai_descriptions: Record<string, string>;
+  selected_variant: string | null;
+  started_at: string;
+}
