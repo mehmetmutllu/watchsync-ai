@@ -66,13 +66,13 @@ class DescriptionController extends Controller
         }
 
         $specs = array_filter([
-            'year' => $watch->year,
+            'year' => $watch->year ? (string) $watch->year : null,
             'condition' => $watch->condition,
-            'case_material' => $watch->case_material,
-            'movement' => $watch->movement,
-            'dial_color' => $watch->dial_color,
-            'case_size' => $watch->case_size,
-            'box_papers' => $watch->scope_of_delivery,
+            'case_material' => $watch->features['case_material'] ?? null,
+            'movement' => $watch->features['movement'] ?? null,
+            'dial_color' => $watch->features['dial_color'] ?? null,
+            'case_size' => $watch->features['case_diameter'] ?? null,
+            'box_papers' => $watch->features['scope_of_delivery'] ?? null,
         ]);
 
         $description = $this->llmService->generateDescription(

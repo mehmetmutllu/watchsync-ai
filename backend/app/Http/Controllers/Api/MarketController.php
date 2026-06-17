@@ -160,9 +160,6 @@ class MarketController extends Controller
         }
     }
 
-        return response()->json($result, $status);
-    }
-
     /**
      * GET /api/market/watchcharts-trend/{ref}
      */

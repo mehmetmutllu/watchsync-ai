@@ -112,34 +112,15 @@ class ProcessAiPipelineJob implements ShouldQueue
                 return;
             }
 
-            $imagePath = storage_path('app/public/' . $primaryImage->image_url);
-
-            // If the file doesn't exist at that path, try alternative
-            if (!file_exists($imagePath)) {
-                $imagePath = storage_path('app/' . $primaryImage->image_url);
-            }
-
-            $result = $aiService->enhance(
-                image: $imagePath,
-                pointX: 0.5,
-                pointY: 0.5,
-            );
-
-            $enhancedImages = [];
-            if (isset($result['results'])) {
-                foreach ($result['results'] as $variant) {
-                    $enhancedImages[] = [
-                        'preset' => $variant['preset'] ?? 'unknown',
-                        'url' => isset($variant['url']) ? $aiService->resolveUrl($variant['url']) : null,
-                    ];
-                }
-            }
+            // USE MOCK SERVICE FOR NOW
+            $mockService = new \App\Services\WatchAiProcessingService();
+            $mockUrl = $mockService->removeBackground($this->watch, $primaryImage->image_url);
 
             $status['background_status'] = 'completed';
-            $status['enhanced_images'] = $enhancedImages;
-            $status['original_url'] = isset($result['original_url'])
-                ? $aiService->resolveUrl($result['original_url'])
-                : null;
+            $status['enhanced_images'] = [
+                ['preset' => 'white_studio', 'url' => $mockUrl]
+            ];
+            $status['original_url'] = url('storage/' . $primaryImage->image_url);
             Cache::put($cacheKey, $status, self::CACHE_TTL);
 
         } catch (\Throwable $e) {
@@ -167,22 +148,23 @@ class ProcessAiPipelineJob implements ShouldQueue
             ]);
 
             $descriptions = [];
+            // USE MOCK SERVICE FOR NOW
+            $mockService = new \App\Services\WatchAiProcessingService();
+            $primaryImage = $this->watch->images()->where('is_primary', true)->first()
+                ?? $this->watch->images()->first();
+                
+            $mockResult = $mockService->analyzeCondition($this->watch, $primaryImage ? $primaryImage->image_url : '');
+            
+            $descriptions = [];
             foreach (['tr', 'en', 'de'] as $lang) {
-                try {
-                    $descriptions[$lang] = $llmService->generateDescription(
-                        referenceNumber: $this->watch->reference_number ?? '',
-                        brand: $this->watch->brand,
-                        modelName: $this->watch->model,
-                        language: $lang,
-                        specs: $specs,
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning("Description generation failed for lang={$lang}, watch #{$this->watch->id}", [
-                        'error' => $e->getMessage(),
-                    ]);
-                    $descriptions[$lang] = '';
-                }
+                // In mock, we just use the generated description for all languages, 
+                // but prefix with lang code if we wanted to.
+                $descriptions[$lang] = $mockResult['suggested_description'] ?? 'Automatisch generierte Beschreibung nicht verfügbar.';
             }
+
+            // Also store findings somewhere in cache so frontend can read it!
+            $status['ai_condition'] = $mockResult['condition'] ?? 'Unbekannt';
+            $status['ai_findings'] = $mockResult['findings'] ?? [];
 
             $status['description_status'] = 'completed';
             $status['ai_descriptions'] = $descriptions;
@@ -206,6 +188,8 @@ class ProcessAiPipelineJob implements ShouldQueue
             'original_url' => null,
             'description_status' => 'pending',
             'ai_descriptions' => [],
+            'ai_condition' => null,
+            'ai_findings' => [],
             'selected_variant' => null,
             'started_at' => now()->toIso8601String(),
         ];

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // eBay token yenileme — her saat başı
 Schedule::command('ebay:refresh-tokens')->hourly();
+
+// Automatische Geburtstags-Mails — jeden Tag um 09:00
+Schedule::job(new \App\Jobs\CheckBirthdaysJob())->dailyAt('09:00');

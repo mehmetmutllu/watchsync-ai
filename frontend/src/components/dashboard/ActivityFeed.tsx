@@ -10,31 +10,33 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import type { RecentActivity } from "@/types";
+import { useTranslations } from "next-intl";
 
 const STATUS_CONFIG = {
   success: {
     icon: CheckCircle2,
     dot: "bg-semantic-success",
     badge: "bg-semantic-success/10 text-semantic-success",
-    label: "Synced ✓",
+    labelKey: "synced",
   },
   failed: {
     icon: XCircle,
     dot: "bg-semantic-error",
     badge: "bg-semantic-error/10 text-semantic-error",
-    label: "Error ✗",
+    labelKey: "error",
   },
   pending: {
     icon: Clock,
     dot: "bg-semantic-warning",
     badge: "bg-semantic-warning/10 text-semantic-warning",
-    label: "Pending ⏳",
+    labelKey: "pending",
   },
 } as const;
 
 const POLL_INTERVAL = 10_000; // 10 saniye
 
 export default function ActivityFeed() {
+  const t = useTranslations("ActivityFeed");
   const [activities, setActivities] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [polling, setPolling] = useState(false);
@@ -109,17 +111,17 @@ export default function ActivityFeed() {
 
   if (loading) {
     return (
-      <div className="bg-surface/50 backdrop-blur-sm border border-border-subtle rounded-xl shadow-[var(--shadow-card)]">
-        <div className="px-6 py-4 border-b border-border-subtle">
-          <div className="h-5 w-32 bg-surface-elevated rounded animate-pulse" />
+      <div className="glass-strong rounded-2xl shadow-lg border border-white/10">
+        <div className="px-6 py-4 border-b border-white/10">
+          <div className="h-5 w-32 bg-white/10 rounded animate-pulse" />
         </div>
-        <div className="divide-y divide-border-subtle">
+        <div className="divide-y divide-white/10">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4 px-6 py-4">
-              <div className="w-2 h-2 rounded-full bg-surface-elevated animate-pulse" />
-              <div className="flex-1 h-4 bg-surface-elevated rounded animate-pulse" />
-              <div className="w-16 h-5 bg-surface-elevated rounded-full animate-pulse" />
-              <div className="w-20 h-3 bg-surface-elevated rounded animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-white/10 animate-pulse" />
+              <div className="flex-1 h-4 bg-white/10 rounded animate-pulse" />
+              <div className="w-16 h-5 bg-white/10 rounded-full animate-pulse" />
+              <div className="w-20 h-3 bg-white/10 rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -128,20 +130,20 @@ export default function ActivityFeed() {
   }
 
   return (
-    <div className="bg-surface/50 backdrop-blur-sm border border-border-subtle rounded-xl shadow-[var(--shadow-card)]">
+    <div className="glass-strong rounded-2xl shadow-lg border border-white/10">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-accent-blue" strokeWidth={1.5} />
           <h2 className="text-lg font-semibold text-primary-text">
-            Activity Feed
+            {t("title")}
           </h2>
         </div>
         <div className="flex items-center gap-2">
           {polling && (
             <RefreshCw className="w-3.5 h-3.5 text-secondary-text animate-spin" />
           )}
-          <span className="text-xs text-disabled-text">Live</span>
+          <span className="text-xs text-disabled-text">{t("live")}</span>
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-semantic-success opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-semantic-success" />
@@ -157,12 +159,11 @@ export default function ActivityFeed() {
             strokeWidth={1}
           />
           <p className="text-sm text-secondary-text">
-            Henüz bir aktivite yok. Envanter ekleyip platformlara senkronize
-            etmeye başlayın.
+            {t("empty")}
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-border-subtle max-h-[400px] overflow-y-auto">
+        <div className="divide-y divide-white/10 max-h-[400px] overflow-y-auto">
           {activities.map((activity) => {
             const config = STATUS_CONFIG[activity.status];
             const isNew = newIds.has(activity.id);
@@ -172,7 +173,7 @@ export default function ActivityFeed() {
                 key={activity.id}
                 className={`
                   flex items-center gap-4 px-6 py-3.5
-                  hover:bg-surface-elevated/50 transition-all duration-300
+                  hover:bg-white/5 transition-all duration-300
                   ${isNew ? "animate-slide-up bg-accent-blue/5" : ""}
                 `}
               >
@@ -185,7 +186,7 @@ export default function ActivityFeed() {
                 <span
                   className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${config.badge}`}
                 >
-                  {config.label}
+                  {t(config.labelKey)}
                 </span>
                 <span className="text-xs text-disabled-text whitespace-nowrap min-w-[70px] text-right">
                   {activity.time}

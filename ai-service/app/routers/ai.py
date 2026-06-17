@@ -47,8 +47,8 @@ async def segment(
     if len(contents) > settings.max_upload_size_mb * 1024 * 1024:
         raise HTTPException(413, f"Image exceeds {settings.max_upload_size_mb}MB limit.")
 
-    pil_image = Image.open(image.file).convert("RGB")
     image.file.seek(0)
+    pil_image = Image.open(image.file).convert("RGB")
 
     mask = segment_image(pil_image, point_x, point_y)
     rgba = extract_rgba(pil_image, mask)
@@ -85,8 +85,8 @@ async def replace_bg(
     if len(contents) > settings.max_upload_size_mb * 1024 * 1024:
         raise HTTPException(413, f"Image exceeds {settings.max_upload_size_mb}MB limit.")
 
-    pil_image = Image.open(image.file).convert("RGBA")
     image.file.seek(0)
+    pil_image = Image.open(image.file).convert("RGBA")
 
     custom_bg = None
     if custom_background is not None:
@@ -130,8 +130,8 @@ async def enhance(
     if len(contents) > settings.max_upload_size_mb * 1024 * 1024:
         raise HTTPException(413, f"Image exceeds {settings.max_upload_size_mb}MB limit.")
 
-    pil_image = Image.open(image.file).convert("RGB")
     image.file.seek(0)
+    pil_image = Image.open(image.file).convert("RGB")
 
     # Step 1: Segment
     mask = segment_image(pil_image, point_x, point_y)

@@ -107,7 +107,11 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // Customer CRM
     Route::get('/customers', [CustomerController::class, 'index']);
     Route::post('/customers', [CustomerController::class, 'store']);
+    Route::get('/customers/stats', [CustomerController::class, 'stats']);
+    Route::get('/customers/upcoming-birthdays', [CustomerController::class, 'upcomingBirthdays']);
     Route::get('/customers/{id}', [CustomerController::class, 'show']);
+    Route::get('/customers/{id}/timeline', [CustomerController::class, 'timeline']);
+    Route::get('/customers/{id}/matches', [CustomerController::class, 'matches']);
     Route::put('/customers/{id}', [CustomerController::class, 'update']);
     Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
     Route::post('/customers/{id}/notes', [CustomerController::class, 'storeNote']);
@@ -142,6 +146,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // AI Text Generation
     Route::post('/ai/generate-description', [DescriptionController::class, 'generate']);
     Route::post('/watches/{id}/generate-description', [DescriptionController::class, 'generateForWatch']);
+    Route::post('/customers/{id}/generate-pitch', [AiController::class, 'generatePitch']);
+    Route::post('/customers/{id}/generate-birthday-pitch', [AiController::class, 'generateBirthdayPitch']);
+    Route::post('/customers/{id}/sentiment', [AiController::class, 'sentiment']);
 
     // Market Scanner
     Route::get('/market/ebay-test', [MarketController::class, 'ebayTest']);
@@ -155,3 +162,95 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/price-alerts', [MarketController::class, 'alertStore']);
     Route::delete('/price-alerts/{id}', [MarketController::class, 'alertDestroy']);
 });
+
+// ─── Admin Panel API ────────────────────────────────────────────────
+
+use App\Http\Controllers\Api\Admin\AdminAuthController;
+use App\Http\Controllers\Api\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\Admin\AdminFeedbackController;
+use App\Http\Controllers\Api\Admin\AdminWatchController;
+use App\Http\Controllers\Api\Admin\ContractController as AdminContractController;
+use App\Http\Controllers\Api\Admin\ManagerController;
+use App\Http\Controllers\Api\Admin\ReportController;
+use App\Http\Controllers\Api\Admin\SystemSettingController;
+use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Api\ContractPublicController;
+use App\Http\Controllers\Api\FeedbackController;
+
+// Admin auth — login CSRF-exempt ve throttle'lı
+Route::prefix('admin/auth')->group(function () {
+    Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:5,1');
+});
+
+// Admin korumalı rotalar
+Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
+    // Auth
+    Route::post('/auth/logout', [AdminAuthController::class, 'logout']);
+    Route::get('/auth/me', [AdminAuthController::class, 'me']);
+
+    // Dashboard
+    Route::get('/dashboard/stats', [AdminDashboardController::class, 'stats']);
+    Route::get('/dashboard/revenue-chart', [AdminDashboardController::class, 'revenueChart']);
+    Route::get('/dashboard/recent-activities', [AdminDashboardController::class, 'recentActivities']);
+    Route::get('/dashboard/user-growth', [AdminDashboardController::class, 'userGrowth']);
+
+    // Manager CRUD — sadece admin ve super_admin
+    Route::middleware('admin:super_admin,admin')->group(function () {
+        Route::get('/roles', [ManagerController::class, 'roles']);
+        Route::get('/managers', [ManagerController::class, 'index']);
+        Route::post('/managers', [ManagerController::class, 'store']);
+        Route::put('/managers/{id}', [ManagerController::class, 'update']);
+        Route::delete('/managers/{id}', [ManagerController::class, 'destroy']);
+    });
+
+    // C: Kullanıcı Yönetimi
+    Route::get('/users', [AdminUserController::class, 'index']);
+    Route::get('/users/{id}', [AdminUserController::class, 'show']);
+    Route::put('/users/{id}/status', [AdminUserController::class, 'updateStatus']);
+    Route::post('/users/{id}/reset-password', [AdminUserController::class, 'resetPassword']);
+    Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
+    Route::get('/users/{id}/watches', [AdminUserController::class, 'watches']);
+
+    // D: Saat Doğrulama
+    Route::get('/watches', [AdminWatchController::class, 'index']);
+    Route::get('/watches/flagged', [AdminWatchController::class, 'flagged']);
+    Route::get('/watches/{id}', [AdminWatchController::class, 'show']);
+    Route::put('/watches/{id}/validate', [AdminWatchController::class, 'validateWatch']);
+
+    // E: Gelir Raporları
+    Route::get('/reports/revenue', [ReportController::class, 'revenue']);
+    Route::get('/reports/commissions', [ReportController::class, 'commissions']);
+    Route::get('/reports/export', [ReportController::class, 'export']);
+
+    // F: Feedback Yönetimi (Admin)
+    Route::get('/feedbacks/stats', [AdminFeedbackController::class, 'stats']);
+    Route::get('/feedbacks', [AdminFeedbackController::class, 'index']);
+    Route::get('/feedbacks/{id}', [AdminFeedbackController::class, 'show']);
+    Route::put('/feedbacks/{id}', [AdminFeedbackController::class, 'update']);
+
+    // G: Sözleşme Yönetimi (Admin)
+    Route::get('/contracts', [AdminContractController::class, 'index']);
+    Route::post('/contracts', [AdminContractController::class, 'store']);
+    Route::put('/contracts/{id}', [AdminContractController::class, 'update']);
+    Route::post('/contracts/{id}/publish', [AdminContractController::class, 'publish']);
+    Route::get('/contracts/{id}/acceptances', [AdminContractController::class, 'acceptances']);
+
+    // H: Sistem Ayarları
+    Route::get('/settings', [SystemSettingController::class, 'index']);
+    Route::put('/settings', [SystemSettingController::class, 'update']);
+    Route::get('/system/health', [SystemSettingController::class, 'health']);
+});
+
+// ─── Feedback (Kullanıcı — auth opsiyonel POST, auth zorunlu GET) ───
+Route::post('/feedbacks', [FeedbackController::class, 'store'])->middleware('throttle:5,1');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/feedbacks/mine', [FeedbackController::class, 'mine']);
+});
+
+// ─── Sözleşmeler (Public + Auth) ────────────────────────────────────
+Route::get('/contracts/active', [ContractPublicController::class, 'active']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/contracts/{id}/accept', [ContractPublicController::class, 'accept']);
+    Route::get('/contracts/pending', [ContractPublicController::class, 'pending']);
+});
+Route::get('/contracts/{slug}', [ContractPublicController::class, 'show']);

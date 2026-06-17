@@ -22,8 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'ip.whitelist' => \App\Http\Middleware\IpWhitelist::class,
-            'cache.headers' => \App\Http\Middleware\CacheHeaders::class,
+            'ip.whitelist'     => \App\Http\Middleware\IpWhitelist::class,
+            'cache.headers'    => \App\Http\Middleware\CacheHeaders::class,
+            'admin'            => \App\Http\Middleware\AdminAuth::class,
+            'admin.permission' => \App\Http\Middleware\AdminPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

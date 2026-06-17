@@ -64,7 +64,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         isLoading: false,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Saatler yüklenirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_load_watches';
       set({ error: message, isLoading: false });
     }
   },
@@ -83,7 +83,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       set({ selectedWatch: watch, isDetailLoading: false });
       return watch;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Saat detayı yüklenirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_load_watch';
       set({ error: message, isDetailLoading: false });
       throw err;
     }
@@ -97,7 +97,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       get().fetchWatches();
       return watch;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Saat oluşturulurken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_create_watch';
       set({ error: message });
       throw err;
     }
@@ -114,7 +114,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       }));
       return updated;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Saat güncellenirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_update_watch';
       set({ error: message });
       throw err;
     }
@@ -133,7 +133,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     } catch (err: unknown) {
       // Rollback on error
       get().fetchWatches();
-      const message = err instanceof Error ? err.message : 'Saat silinirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_delete_watch';
       set({ error: message });
       throw err;
     }
@@ -148,7 +148,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         selectedWatch: state.selectedWatch?.id === id ? updated : state.selectedWatch,
       }));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Durum güncellenirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_update_status';
       set({ error: message });
       throw err;
     }

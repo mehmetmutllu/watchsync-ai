@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Watch;
 use App\Services\AiService;
+use App\Services\LlmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +14,7 @@ class AiController extends Controller
 {
     public function __construct(
         private readonly AiService $aiService,
+        private readonly LlmService $llmService,
     ) {}
 
     /**
@@ -142,6 +144,127 @@ class AiController extends Controller
                 'model_loaded' => false,
                 'error'        => $e->getMessage(),
             ], 503);
+        }
+    }
+
+    /**
+     * POST /api/customers/{id}/generate-pitch
+     *
+     * Generates an AI sales pitch (WhatsApp message) for a matched watch.
+     */
+    public function generatePitch(Request $request, int $id): JsonResponse
+    {
+        $customer = \App\Models\Customer::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'watch_id' => 'required|integer|exists:watches,id',
+            'language' => 'sometimes|string|in:en,de,tr',
+        ]);
+
+        $watch = \App\Models\Watch::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($validated['watch_id']);
+
+        $language = $validated['language'] ?? 'en';
+
+        try {
+            $pitch = $this->llmService->generatePitchMessage($customer, $watch, $language);
+
+            return response()->json([
+                'data' => [
+                    'pitch' => $pitch,
+                    'language' => $language,
+                    'watch_id' => $watch->id,
+                    'customer_id' => $customer->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('AI generatePitch failed', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'AI service unavailable.'], 503);
+        }
+    }
+
+    /**
+     * POST /api/customers/{id}/generate-birthday-pitch
+     *
+     * Generates an AI birthday message with watch suggestions.
+     */
+    public function generateBirthdayPitch(Request $request, int $id): JsonResponse
+    {
+        $customer = \App\Models\Customer::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'language' => 'sometimes|string|in:en,de,tr',
+            'include_watches' => 'sometimes|boolean'
+        ]);
+
+        $language = $validated['language'] ?? 'en';
+        $includeWatches = $validated['include_watches'] ?? true;
+        
+        $watches = [];
+        if ($includeWatches) {
+            // Find watches matching desired_watch or just some random premium watches
+            $query = \App\Models\Watch::where('dealer_id', $request->user()->dealer_id)
+                ->where('status', 'available');
+                
+            $desiredWatch = $customer->metadata['desired_watch'] ?? null;
+            if ($desiredWatch) {
+                // Try to match
+                $parts = explode(' ', $desiredWatch);
+                $query->where(function($q) use ($parts) {
+                    foreach ($parts as $part) {
+                        $q->orWhere('brand', 'like', "%{$part}%")
+                          ->orWhere('model', 'like', "%{$part}%");
+                    }
+                });
+            }
+            
+            // Get up to 3 watches
+            $watches = $query->inRandomOrder()->take(3)->get()->toArray();
+        }
+
+        try {
+            $pitch = $this->llmService->generateBirthdayEmail($customer, $watches, $language);
+
+            return response()->json([
+                'data' => [
+                    'pitch' => $pitch,
+                    'language' => $language,
+                    'watches' => $watches,
+                    'customer_id' => $customer->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('AI generateBirthdayPitch failed', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'AI service unavailable.'], 503);
+        }
+    }
+
+    /**
+     * POST /api/customers/{id}/sentiment
+     *
+     * Analyzes customer notes to generate a sentiment and preferences summary.
+     */
+    public function sentiment(Request $request, int $id): JsonResponse
+    {
+        $customer = \App\Models\Customer::where('dealer_id', $request->user()->dealer_id)
+            ->findOrFail($id);
+
+        $language = $request->input('language', 'de');
+
+        try {
+            $sentiment = $this->llmService->analyzeCustomerSentiment($customer, $language);
+
+            return response()->json([
+                'data' => [
+                    'sentiment' => $sentiment,
+                    'customer_id' => $customer->id,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('AI customer sentiment failed', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'AI service unavailable.'], 503);
         }
     }
 }

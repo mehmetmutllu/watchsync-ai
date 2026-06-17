@@ -52,7 +52,6 @@ export interface ActivityFeedResponse {
 export interface AuthResponse {
   message: string;
   user: User;
-  token: string;
 }
 
 export interface DashboardResponse {
@@ -144,8 +143,8 @@ export interface PaginatedResponse<T> {
   last_page: number;
   per_page: number;
   total: number;
-  from: number | null;
-  to: number | null;
+  from?: number | null;
+  to?: number | null;
 }
 
 // ─── Platform Types ────────────────────────────────────────
@@ -179,8 +178,8 @@ export interface PlatformSyncStatus {
   platform_name: string;
   connected: boolean;
   sync_status: SyncStatus;
-  last_synced_at: string | null;
-  error_message: string | null;
+  last_synced_at?: string | null;
+  error_message?: string | null;
 }
 
 // ─── Notification Types ────────────────────────────────────
@@ -241,6 +240,8 @@ export interface AiPipelineStatus {
   original_url: string | null;
   description_status: AiStepStatus;
   ai_descriptions: Record<string, string>;
+  ai_condition?: string | null;
+  ai_findings?: string[];
   selected_variant: string | null;
   started_at: string;
 }

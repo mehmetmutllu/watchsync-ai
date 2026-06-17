@@ -16,43 +16,31 @@ import StepPhotos from './StepPhotos';
 import StepAiProcessing from './StepAiProcessing';
 import StepReviewPublish from './StepReviewPublish';
 import type { Watch, WatchFormData, WatchImage } from '@/types';
+import { useTranslations } from 'next-intl';
 
-// ─── Zod Validation Schema ────────────────────────────────────
 
-export const watchWizardSchema = z.object({
-  brand: z.string().min(1, 'Marka zorunludur'),
-  model: z.string().min(1, 'Model zorunludur'),
-  condition: z.enum(['new', 'unworn', 'very_good', 'good', 'fair'], {
-    message: 'Kondisyon seçiniz',
-  }),
-  reference_number: z.string().optional(),
-  year: z.number().min(1800).max(new Date().getFullYear() + 1).optional(),
-  features: z.object({
-    case_material: z.string().optional(),
-    bracelet_material: z.string().optional(),
-    dial_color: z.string().optional(),
-    movement: z.string().optional(),
-    case_diameter: z.string().optional(),
-    water_resistance: z.string().optional(),
-    power_reserve: z.string().optional(),
-    scope_of_delivery: z.string().optional(),
-  }).optional(),
-  cost_price: z.number().min(0).optional(),
-  sale_price: z.number().min(0).optional(),
-  currency: z.enum(['EUR', 'USD', 'GBP', 'TRY', 'CHF']).optional(),
-  description: z.string().max(10000).optional(),
-});
 
-export type WatchWizardFormData = z.infer<typeof watchWizardSchema>;
-
-const STEPS = [
-  { id: 1, label: 'Marka & Model' },
-  { id: 2, label: 'Detaylar' },
-  { id: 3, label: 'Fiyatlandırma' },
-  { id: 4, label: 'Fotoğraflar' },
-  { id: 5, label: 'AI İşleme' },
-  { id: 6, label: 'Yayınla' },
-];
+export interface WatchWizardFormData {
+  brand: string;
+  model: string;
+  condition: 'new' | 'unworn' | 'very_good' | 'good' | 'fair';
+  reference_number?: string;
+  year?: number;
+  features?: {
+    case_material?: string;
+    bracelet_material?: string;
+    dial_color?: string;
+    movement?: string;
+    case_diameter?: string;
+    water_resistance?: string;
+    power_reserve?: string;
+    scope_of_delivery?: string;
+  };
+  cost_price?: number;
+  sale_price?: number;
+  currency?: 'EUR' | 'USD' | 'GBP' | 'TRY' | 'CHF';
+  description?: string;
+}
 
 interface WatchWizardProps {
   watchId?: number;
@@ -63,6 +51,7 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
   const isEdit = !!watchId;
   const { fetchWatches } = useInventoryStore();
   const addToast = useToastStore((s) => s.addToast);
+  const t = useTranslations('Wizard');
 
   const [step, setStep] = useState(1);
   const [savedWatchId, setSavedWatchId] = useState<number | null>(watchId ?? null);
@@ -74,8 +63,41 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
+  const watchWizardSchema = useMemo(() => z.object({
+    brand: z.string().min(1, t('brand_required')),
+    model: z.string().min(1, t('model_required')),
+    condition: z.enum(['new', 'unworn', 'very_good', 'good', 'fair'], {
+      message: t('condition_required'),
+    }),
+    reference_number: z.string().optional(),
+    year: z.coerce.number().min(1800).max(new Date().getFullYear() + 1).optional().or(z.literal('')),
+    features: z.object({
+      case_material: z.string().optional(),
+      bracelet_material: z.string().optional(),
+      dial_color: z.string().optional(),
+      movement: z.string().optional(),
+      case_diameter: z.string().optional(),
+      water_resistance: z.string().optional(),
+      power_reserve: z.string().optional(),
+      scope_of_delivery: z.string().optional(),
+    }).optional(),
+    cost_price: z.coerce.number().min(0).optional().or(z.literal('')),
+    sale_price: z.coerce.number().min(0).optional().or(z.literal('')),
+    currency: z.enum(['EUR', 'USD', 'GBP', 'TRY', 'CHF']).optional(),
+    description: z.string().max(10000).optional(),
+  }), [t]);
+
+  const localizedSteps = useMemo(() => [
+    { id: 1, label: t('step_brand_model') },
+    { id: 2, label: t('step_details') },
+    { id: 3, label: t('step_pricing') },
+    { id: 4, label: t('step_photos') },
+    { id: 5, label: t('step_ai_processing') },
+    { id: 6, label: t('step_review_publish') },
+  ], [t]);
+
   const methods = useForm<WatchWizardFormData>({
-    resolver: zodResolver(watchWizardSchema),
+    resolver: zodResolver(watchWizardSchema) as any,
     defaultValues: {
       brand: '',
       model: '',
@@ -120,9 +142,9 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
           );
         }
       })
-      .catch(() => addToast({ type: 'error', title: 'Saat bilgileri yüklenirken hata oluştu.' }))
+      .catch(() => addToast({ type: 'error', title: t('error_load_watch') }))
       .finally(() => setIsLoadingWatch(false));
-  }, [isEdit, watchId, reset, addToast]);
+  }, [isEdit, watchId, reset, addToast, t]);
 
   // Save watch (create or update) — called when leaving step 3 or earlier
   const saveWatch = useCallback(async (): Promise<number | null> => {
@@ -151,10 +173,10 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
         return watch.id;
       }
     } catch {
-      addToast({ type: 'error', title: 'Saat kaydedilirken hata oluştu.' });
+      addToast({ type: 'error', title: t('error_save_watch') });
       return null;
     }
-  }, [getValues, savedWatchId, addToast]);
+  }, [getValues, savedWatchId, addToast, t]);
 
   // Upload pending files when moving from step 4
   const uploadPendingFiles = useCallback(async (wId: number) => {
@@ -173,11 +195,11 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
       ]);
       setPendingFiles([]);
     } catch {
-      addToast({ type: 'error', title: 'Fotoğraf yüklenirken hata oluştu.' });
+      addToast({ type: 'error', title: t('error_upload_failed') });
     } finally {
       setIsUploading(false);
     }
-  }, [pendingFiles, existingImages.length, addToast]);
+  }, [pendingFiles, existingImages.length, addToast, t]);
 
   const goNext = async () => {
     let valid = true;
@@ -197,7 +219,7 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
     } else if (step === 4) {
       // Must have at least 1 photo
       if (existingImages.length === 0 && pendingFiles.length === 0) {
-        addToast({ type: 'warning', title: 'En az 1 fotoğraf yüklemelisiniz.' });
+        addToast({ type: 'warning', title: t('warning_min_photos') });
         return;
       }
       if (savedWatchId && pendingFiles.length > 0) {
@@ -230,7 +252,7 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          {STEPS.map((s, i) => (
+          {localizedSteps.map((s, i) => (
             <div key={s.id} className="flex items-center">
               <button
                 onClick={() => s.id < step && setStep(s.id)}
@@ -247,14 +269,14 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
               >
                 {s.id < step ? <Check className="w-4 h-4" /> : s.id}
               </button>
-              {i < STEPS.length - 1 && (
+              {i < localizedSteps.length - 1 && (
                 <div className={`w-8 sm:w-16 lg:w-24 h-0.5 mx-1 ${s.id < step ? 'bg-accent-green' : 'bg-border-subtle'}`} />
               )}
             </div>
           ))}
         </div>
         <div className="flex justify-between">
-          {STEPS.map((s) => (
+          {localizedSteps.map((s) => (
             <span key={s.id} className={`text-[10px] sm:text-xs ${s.id === step ? 'text-accent-blue font-medium' : 'text-secondary-text'}`}>
               {s.label}
             </span>
@@ -292,12 +314,12 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
               onSaveDraft={async () => {
                 await saveWatch();
                 fetchWatches();
-                addToast({ type: 'success', title: 'Taslak olarak kaydedildi.' });
+                addToast({ type: 'success', title: t('toast_draft_saved') });
                 router.push('/dashboard/inventory');
               }}
               onPublishComplete={() => {
                 fetchWatches();
-                addToast({ type: 'success', title: 'Saat başarıyla yayınlandı!' });
+                addToast({ type: 'success', title: t('toast_publish_success') });
                 router.push('/dashboard/inventory');
               }}
             />
@@ -313,7 +335,7 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
           className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-default transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="w-4 h-4" />
-          Geri
+          {t('back_btn')}
         </button>
 
         {step < 6 ? (
@@ -326,7 +348,7 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
               <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
             ) : (
               <>
-                İleri
+                {t('next_btn')}
                 <ChevronRight className="w-4 h-4" />
               </>
             )}

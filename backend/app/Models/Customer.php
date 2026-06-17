@@ -13,8 +13,11 @@ class Customer extends Model
     use HasFactory, Notifiable;
     protected $fillable = [
         'dealer_id',
+        'pipeline_stage',
         'first_name',
         'last_name',
+        'birth_date',
+        'auto_send_birthday_mail',
         'email',
         'phone',
         'company',
@@ -23,12 +26,16 @@ class Customer extends Model
         'country',
         'postal_code',
         'tags',
+        'metadata',
     ];
 
     protected function casts(): array
     {
         return [
+            'birth_date' => 'date',
+            'auto_send_birthday_mail' => 'boolean',
             'tags' => 'array',
+            'metadata' => 'array',
         ];
     }
 

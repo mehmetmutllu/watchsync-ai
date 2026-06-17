@@ -4,26 +4,28 @@ import { useState, useCallback } from 'react';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import type { WatchStatus, WatchCondition } from '@/types';
+import { useTranslations } from 'next-intl';
 
-const STATUS_OPTIONS: { value: WatchStatus | ''; label: string }[] = [
-  { value: '', label: 'Tüm Durumlar' },
-  { value: 'draft', label: 'Taslak' },
-  { value: 'active', label: 'Aktif' },
-  { value: 'reserved', label: 'Rezerve' },
-  { value: 'sold', label: 'Satıldı' },
-  { value: 'maintenance', label: 'Bakımda' },
-];
+const STATUS_OPTIONS = [
+  { value: '', labelKey: 'all_statuses' },
+  { value: 'draft', labelKey: 'status_draft' },
+  { value: 'active', labelKey: 'status_active' },
+  { value: 'reserved', labelKey: 'status_reserved' },
+  { value: 'sold', labelKey: 'status_sold' },
+  { value: 'maintenance', labelKey: 'status_maintenance' },
+] as const;
 
-const CONDITION_OPTIONS: { value: WatchCondition | ''; label: string }[] = [
-  { value: '', label: 'Tüm Kondisyonlar' },
-  { value: 'new', label: 'Sıfır' },
-  { value: 'unworn', label: 'Kullanılmamış' },
-  { value: 'very_good', label: 'Çok İyi' },
-  { value: 'good', label: 'İyi' },
-  { value: 'fair', label: 'Orta' },
-];
+const CONDITION_OPTIONS = [
+  { value: '', labelKey: 'all_conditions' },
+  { value: 'new', labelKey: 'cond_new' },
+  { value: 'unworn', labelKey: 'cond_unworn' },
+  { value: 'very_good', labelKey: 'cond_very_good' },
+  { value: 'good', labelKey: 'cond_good' },
+  { value: 'fair', labelKey: 'cond_fair' },
+] as const;
 
 export default function WatchFilters() {
+  const t = useTranslations("Inventory");
   const { filters, setFilters } = useInventoryStore();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [searchInput, setSearchInput] = useState(filters.search || '');
@@ -60,12 +62,12 @@ export default function WatchFilters() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
           <input
             type="text"
-            placeholder="Marka, model veya referans no ara..."
+            placeholder={t("search_placeholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSearch}
-            className="w-full pl-10 pr-4 py-2 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
           />
         </div>
 
@@ -75,11 +77,11 @@ export default function WatchFilters() {
           onChange={(e) =>
             setFilters({ status: (e.target.value as WatchStatus) || undefined })
           }
-          className="px-3 py-2 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
+          className="px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
-              {opt.label}
+              {t(opt.labelKey)}
             </option>
           ))}
         </select>
@@ -90,11 +92,11 @@ export default function WatchFilters() {
           className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-colors ${
             showAdvanced
               ? 'bg-accent-blue/10 border-accent-blue text-accent-blue'
-              : 'bg-surface border-border-subtle text-secondary-text hover:text-primary-text'
+              : 'bg-black/20 border-white/10 text-secondary-text hover:text-primary-text hover:bg-white/5'
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
-          Filtreler
+          {t("filters")}
         </button>
 
         {/* Clear filters */}
@@ -104,7 +106,7 @@ export default function WatchFilters() {
             className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-semantic-error hover:bg-semantic-error/10 rounded-lg transition-colors"
           >
             <X className="w-4 h-4" />
-            Temizle
+            {t("clear")}
           </button>
         )}
       </div>
@@ -121,14 +123,14 @@ export default function WatchFilters() {
           >
             {CONDITION_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
-                {opt.label}
+                {t(opt.labelKey)}
               </option>
             ))}
           </select>
 
           <input
             type="number"
-            placeholder="Min fiyat"
+            placeholder={t("min_price")}
             value={filters.min_price ?? ''}
             onChange={(e) =>
               setFilters({ min_price: e.target.value ? Number(e.target.value) : undefined })
@@ -138,7 +140,7 @@ export default function WatchFilters() {
 
           <input
             type="number"
-            placeholder="Max fiyat"
+            placeholder={t("max_price")}
             value={filters.max_price ?? ''}
             onChange={(e) =>
               setFilters({ max_price: e.target.value ? Number(e.target.value) : undefined })

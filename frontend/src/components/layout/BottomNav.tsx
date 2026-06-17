@@ -9,21 +9,23 @@ import {
   BarChart3,
   Settings,
 } from "lucide-react";
-
-const navItems = [
-  { href: "/dashboard", label: "Ana Sayfa", icon: LayoutDashboard },
-  { href: "/dashboard/inventory", label: "Envanter", icon: Package },
-  { href: "/dashboard/ai-studio", label: "AI Studio", icon: Sparkles },
-  { href: "/dashboard/market-scanner", label: "Pazar", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
-];
+import { useTranslations } from "next-intl";
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const t = useTranslations("BottomNav");
+
+  const navItems = [
+    { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/dashboard/inventory", label: t("inventory"), icon: Package },
+    { href: "/dashboard/ai-studio", label: t("ai_studio"), icon: Sparkles },
+    { href: "/dashboard/market-scanner", label: t("market"), icon: BarChart3 },
+    { href: "/dashboard/settings", label: t("settings"), icon: Settings },
+  ];
 
   return (
     <nav
-      aria-label="Mobil navigasyon"
+      aria-label={t("mobile_nav")}
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-strong border-t border-border-subtle"
     >
       <div className="flex items-center justify-around h-16 px-1">

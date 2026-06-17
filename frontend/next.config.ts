@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 const apiOrigin = apiUrl.replace(/\/api\/?$/, "");
@@ -22,6 +24,14 @@ const nextConfig: NextConfig = {
       },
     ],
     formats: ["image/avif", "image/webp"],
+  },
+  turbopack: {
+    resolveAlias: {
+      "@sentry/core": "./src/lib/sentry-stub.ts",
+      "@sentry/nextjs": "./src/lib/sentry-stub.ts",
+      "@sentry/node": "./src/lib/sentry-stub.ts",
+      "@sentry/react": "./src/lib/sentry-stub.ts",
+    },
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],
@@ -52,34 +62,43 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // Static assets — uzun cache
+      // Static assets — uzun cache (sadece production)
+      ...(process.env.NODE_ENV === "production"
+        ? [
+            {
+              source: "/_next/static/(.*)",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ],
+            },
+            {
+              source: "/fonts/(.*)",
+              headers: [
+                {
+                  key: "Cache-Control",
+                  value: "public, max-age=31536000, immutable",
+                },
+              ],
+            },
+          ]
+        : []),
+    ];
+  },
+  async rewrites() {
+    return [
       {
-        source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
+        source: "/sanctum/:path*",
+        destination: `${apiOrigin}/sanctum/:path*`,
       },
-      // Fontlar — uzun cache
       {
-        source: "/fonts/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
+        source: "/api/:path*",
+        destination: `${apiOrigin}/api/:path*`,
       },
     ];
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  disableLogger: true,
-});
+export default withNextIntl(nextConfig);

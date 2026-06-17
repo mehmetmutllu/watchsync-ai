@@ -16,6 +16,7 @@ import {
 import dynamic from 'next/dynamic';
 import type { PlatformInfo } from '@/types';
 import { platformsApi } from '@/lib/platforms-api';
+import { useTranslations, useLocale } from 'next-intl';
 
 // Lazy load — modal sadece kullanıcı ? butonuna tıklayınca yüklenir
 const PlatformHelpModal = dynamic(() => import('./PlatformHelpModal'), {
@@ -29,30 +30,15 @@ interface PlatformCardProps {
   onSaveCredentials: (platformId: number, apiKey: string, apiSecret: string) => Promise<void>;
 }
 
-const PLATFORM_CONFIG: Record<string, { color: string; description: string; icon: string }> = {
-  eBay: {
-    color: 'text-blue-400',
-    description: 'eBay OAuth bağlantısı ile saatlerinizi eBay\'de listeleyin.',
-    icon: '🛒',
-  },
-  Chrono24: {
-    color: 'text-amber-400',
-    description: 'Chrono24 XML Feed ile saatlerinizi otomatik yayınlayın.',
-    icon: '⌚',
-  },
-  Shopify: {
-    color: 'text-green-400',
-    description: 'Shopify mağazanız ile envanter senkronizasyonu.',
-    icon: '🏪',
-  },
-};
-
 export default function PlatformCard({
   platform,
   onConnect,
   onDisconnect,
   onSaveCredentials,
 }: PlatformCardProps) {
+  const t = useTranslations('PlatformCard');
+  const locale = useLocale();
+
   const [showForm, setShowForm] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
@@ -62,9 +48,25 @@ export default function PlatformCard({
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const config = PLATFORM_CONFIG[platform.name] || {
+  const config = {
+    eBay: {
+      color: 'text-blue-400',
+      description: t('eBay_desc'),
+      icon: '🛒',
+    },
+    Chrono24: {
+      color: 'text-amber-400',
+      description: t('Chrono24_desc'),
+      icon: '⌚',
+    },
+    Shopify: {
+      color: 'text-green-400',
+      description: t('Shopify_desc'),
+      icon: '🏪',
+    },
+  }[platform.name] || {
     color: 'text-accent-blue',
-    description: 'Platform bağlantısı.',
+    description: t('default_desc'),
     icon: '🔗',
   };
 
@@ -80,9 +82,9 @@ export default function PlatformCard({
   };
 
   const statusLabel = {
-    connected: 'Bağlı',
-    disconnected: 'Bağlı Değil',
-    error: 'Hata',
+    connected: t('status_connected'),
+    disconnected: t('status_disconnected'),
+    error: t('status_error'),
   };
 
   const statusColor = {
@@ -104,7 +106,7 @@ export default function PlatformCard({
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm(`${platform.name} bağlantısını kesmek istediğinize emin misiniz?`)) return;
+    if (!window.confirm(t('confirm_disconnect', { name: platform.name }))) return;
     setIsDisconnecting(true);
     try {
       await onDisconnect(platform);
@@ -122,7 +124,7 @@ export default function PlatformCard({
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Bağlantı testi başarısız oldu.';
+        t('test_failed');
       setTestResult({ success: false, message });
     } finally {
       setIsTesting(false);
@@ -133,7 +135,7 @@ export default function PlatformCard({
   const isOAuthPlatform = platform.name === 'eBay';
 
   return (
-    <div className="bg-surface border border-border-subtle rounded-lg p-6 hover:border-border-strong transition-colors">
+    <div className="glass-strong glass-hover rounded-2xl p-6 shadow-lg border border-white/10">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -147,7 +149,7 @@ export default function PlatformCard({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowHelp(true)}
-            title="Nasıl bağlanılır?"
+            title={t('how_to_connect')}
             className="p-1 text-secondary-text hover:text-accent-blue rounded-md hover:bg-surface-elevated transition-colors"
           >
             <HelpCircle className="w-5 h-5" />
@@ -161,26 +163,24 @@ export default function PlatformCard({
 
       {/* Connection Info */}
       {platform.status === 'connected' && (
-        <div className="mb-4 p-3 bg-surface-elevated rounded-md space-y-1.5">
+        <div className="mb-4 p-3 bg-white/5 rounded-lg border border-white/10 space-y-1.5">
           {platform.last_synced_at && (
             <p className="text-xs text-secondary-text">
-              Son Senkronizasyon:{' '}
-              <span className="text-primary-text">
-                {new Date(platform.last_synced_at).toLocaleString('tr-TR')}
-              </span>
+              {t('last_synced', {
+                date: new Date(platform.last_synced_at).toLocaleString(locale)
+              })}
             </p>
           )}
           {platform.token_expires_at && (
             <p className="text-xs text-secondary-text">
-              Token Süresi:{' '}
-              <span className="text-primary-text">
-                {new Date(platform.token_expires_at).toLocaleString('tr-TR')}
-              </span>
+              {t('token_expires', {
+                date: new Date(platform.token_expires_at).toLocaleString(locale)
+              })}
             </p>
           )}
           {platform.has_api_key && (
             <p className="text-xs text-secondary-text flex items-center gap-1">
-              <Key className="w-3 h-3" /> API Anahtarı Kayıtlı
+              <Key className="w-3 h-3" /> {t('api_key_saved')}
             </p>
           )}
         </div>
@@ -196,7 +196,7 @@ export default function PlatformCard({
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-blue text-white text-sm font-medium hover:bg-accent-blue-hover transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
-                eBay&apos;e Bağlan
+                {t('connect_ebay')}
               </button>
             ) : (
               <button
@@ -204,7 +204,7 @@ export default function PlatformCard({
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-blue text-white text-sm font-medium hover:bg-accent-blue-hover transition-colors"
               >
                 <Key className="w-4 h-4" />
-                API Anahtarı Gir
+                {t('enter_api_key')}
               </button>
             )}
           </>
@@ -220,7 +220,7 @@ export default function PlatformCard({
               ) : (
                 <Wifi className="w-4 h-4" />
               )}
-              Bağlantıyı Test Et
+              {t('test_connection')}
             </button>
             <button
               onClick={handleDisconnect}
@@ -232,7 +232,7 @@ export default function PlatformCard({
               ) : (
                 <Unlink className="w-4 h-4" />
               )}
-              Bağlantıyı Kes
+              {t('disconnect')}
             </button>
           </>
         )}
@@ -245,7 +245,7 @@ export default function PlatformCard({
             className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border-strong text-secondary-text text-sm font-medium hover:text-primary-text hover:bg-surface-elevated transition-colors"
           >
             <Globe className="w-4 h-4" />
-            XML Feed Önizle
+            {t('preview_xml')}
           </a>
         )}
       </div>
@@ -269,29 +269,29 @@ export default function PlatformCard({
       )}
 
       {showForm && !isOAuthPlatform && (
-        <div className="mt-4 p-4 bg-surface-elevated rounded-lg border border-border-subtle space-y-3 animate-fade-in">
+        <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/10 space-y-3 animate-fade-in">
           <div>
             <label className="block text-xs font-medium text-secondary-text mb-1.5">
-              API Anahtarı
+              {t('api_key_label')}
             </label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="API anahtarınızı girin..."
-              className="w-full px-3 py-2 rounded-md bg-surface border border-border-strong text-primary-text text-sm placeholder:text-disabled-text focus:outline-none focus:ring-2 focus:ring-accent-blue/50"
+              placeholder={t('api_key_placeholder')}
+              className="w-full px-3 py-2.5 rounded-lg bg-black/20 border border-white/10 text-primary-text text-sm placeholder:text-disabled-text focus:outline-none focus:ring-2 focus:ring-accent-blue/50"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-secondary-text mb-1.5">
-              API Secret
+              {t('api_secret_label')}
             </label>
             <input
               type="password"
               value={apiSecret}
               onChange={(e) => setApiSecret(e.target.value)}
-              placeholder="API secret'ınızı girin..."
-              className="w-full px-3 py-2 rounded-md bg-surface border border-border-strong text-primary-text text-sm placeholder:text-disabled-text focus:outline-none focus:ring-2 focus:ring-accent-blue/50"
+              placeholder={t('api_secret_placeholder')}
+              className="w-full px-3 py-2.5 rounded-lg bg-black/20 border border-white/10 text-primary-text text-sm placeholder:text-disabled-text focus:outline-none focus:ring-2 focus:ring-accent-blue/50"
             />
           </div>
           <div className="flex gap-2 pt-1">
@@ -305,7 +305,7 @@ export default function PlatformCard({
               ) : (
                 <CheckCircle className="w-4 h-4" />
               )}
-              Kaydet
+              {t('save')}
             </button>
             <button
               onClick={() => {
@@ -315,7 +315,7 @@ export default function PlatformCard({
               }}
               className="px-4 py-2 rounded-lg border border-border-strong text-secondary-text text-sm font-medium hover:text-primary-text hover:bg-surface transition-colors"
             >
-              İptal
+              {t('cancel')}
             </button>
           </div>
         </div>

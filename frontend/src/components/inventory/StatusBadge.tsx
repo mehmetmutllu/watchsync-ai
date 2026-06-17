@@ -3,30 +3,26 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { WatchStatus } from '@/types';
+import { useTranslations } from 'next-intl';
 
-const STATUS_CONFIG: Record<WatchStatus, { label: string; color: string; bg: string }> = {
+const STATUS_CONFIG: Record<WatchStatus, { color: string; bg: string }> = {
   draft: {
-    label: 'Taslak',
     color: 'text-secondary-text',
     bg: 'bg-secondary-text/10',
   },
   active: {
-    label: 'Aktif',
     color: 'text-semantic-success',
     bg: 'bg-semantic-success/10',
   },
   reserved: {
-    label: 'Rezerve',
     color: 'text-semantic-warning',
     bg: 'bg-semantic-warning/10',
   },
   sold: {
-    label: 'Satıldı',
     color: 'text-accent-blue',
     bg: 'bg-accent-blue/10',
   },
   maintenance: {
-    label: 'Bakımda',
     color: 'text-semantic-error',
     bg: 'bg-semantic-error/10',
   },
@@ -43,9 +39,21 @@ export default function StatusBadge({
   onStatusChange,
   allowedTransitions,
 }: StatusBadgeProps) {
+  const t = useTranslations('Inventory');
   const [isOpen, setIsOpen] = useState(false);
   const config = STATUS_CONFIG[status];
   const canChange = onStatusChange && allowedTransitions && allowedTransitions.length > 0;
+
+  const getStatusLabel = (s: WatchStatus) => {
+    const map: Record<WatchStatus, string> = {
+      draft: 'status_draft',
+      active: 'status_active',
+      reserved: 'status_reserved',
+      sold: 'status_sold',
+      maintenance: 'status_maintenance',
+    };
+    return t(map[s]);
+  };
 
   return (
     <div className="relative">
@@ -61,7 +69,7 @@ export default function StatusBadge({
           transition-opacity
         `}
       >
-        {config.label}
+        {getStatusLabel(status)}
         {canChange && <ChevronDown className="w-3 h-3" />}
       </button>
 
@@ -86,7 +94,7 @@ export default function StatusBadge({
                   `}
                 >
                   <span className={`w-2 h-2 rounded-full ${targetConfig.bg}`} />
-                  {targetConfig.label}
+                  {getStatusLabel(targetStatus)}
                 </button>
               );
             })}

@@ -8,6 +8,7 @@ import { useInventoryStore } from '@/stores/inventoryStore';
 import { watchesApi } from '@/lib/watches-api';
 import { generateDescription } from '@/lib/market-api';
 import type { WatchFormData, Watch } from '@/types';
+import { useTranslations } from 'next-intl';
 
 // ─── Zod Validation Schema ────────────────────────────────────
 
@@ -68,6 +69,26 @@ interface WatchFormModalProps {
 }
 
 export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps) {
+  const t = useTranslations('WatchForm');
+  const tInv = useTranslations('Inventory');
+  const tCommon = useTranslations('Common');
+
+  const steps = useMemo(() => [
+    { id: 1, label: t('step_brand_model') },
+    { id: 2, label: t('step_ref_year') },
+    { id: 3, label: t('step_details') },
+    { id: 4, label: t('step_photos') },
+    { id: 5, label: t('step_pricing') },
+  ], [t]);
+
+  const conditionOptions = useMemo(() => [
+    { value: 'new', label: tInv('cond_new') },
+    { value: 'unworn', label: tInv('cond_unworn') },
+    { value: 'very_good', label: tInv('cond_very_good') },
+    { value: 'good', label: tInv('cond_good') },
+    { value: 'fair', label: tInv('cond_fair') },
+  ], [tInv]);
+
   const isEdit = watchId !== null;
   const { createWatch, updateWatch, fetchWatches } = useInventoryStore();
   const [step, setStep] = useState(1);
@@ -142,7 +163,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
           );
         }
       })
-      .catch(() => setSubmitError('Saat bilgileri yüklenirken hata oluştu.'))
+      .catch(() => setSubmitError(t('toast_watch_load_failed')))
       .finally(() => setIsLoadingWatch(false));
   }, [isEdit, watchId, reset]);
 
@@ -162,7 +183,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
     const brand = watch('brand');
     const model = watch('model');
     if (!brand || !model) {
-      setAiFillError('AI ile doldurmak için en azından Marka ve Model gerekli.');
+      setAiFillError(t('ai_fill_error_brand_model'));
       return;
     }
     setIsAiFilling(true);
@@ -183,7 +204,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
         setValue('description', result.description);
       }
     } catch {
-      setAiFillError('AI servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.');
+      setAiFillError(t('ai_fill_error_service'));
     } finally {
       setIsAiFilling(false);
     }
@@ -223,7 +244,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
           await watchesApi.uploadImages(resultWatch.id, pendingFiles, existingImages.length === 0);
           setPendingFiles([]);
         } catch {
-          setSubmitError('Saat kaydedildi fakat görseller yüklenirken hata oluştu.');
+          setSubmitError(t('toast_save_success_images_failed'));
         }
         setIsUploading(false);
       }
@@ -238,10 +259,10 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
           const messages = Object.values(apiErrors).flat().join(', ');
           setSubmitError(messages);
         } else {
-          setSubmitError(axiosErr.response?.data?.message || 'Bir hata oluştu.');
+          setSubmitError(axiosErr.response?.data?.message || tCommon('error'));
         }
       } else {
-        setSubmitError('Bir hata oluştu.');
+        setSubmitError(tCommon('error'));
       }
     }
     setIsSubmitting(false);
@@ -271,16 +292,16 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
       await watchesApi.deleteImage(savedWatchId, imageId);
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
     } catch {
-      setSubmitError('Görsel silinirken hata oluştu.');
+      setSubmitError(t('toast_image_delete_failed'));
     }
   };
 
   if (isLoadingWatch) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="bg-surface border border-border-subtle rounded-xl p-8">
+        <div className="glass-strong border border-white/10 shadow-lg rounded-2xl p-8">
           <Loader2 className="w-8 h-8 text-accent-blue animate-spin mx-auto" />
-          <p className="mt-3 text-sm text-secondary-text">Yükleniyor...</p>
+          <p className="mt-3 text-sm text-secondary-text">{t('loading')}</p>
         </div>
       </div>
     );
@@ -289,13 +310,13 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] bg-surface border border-border-subtle rounded-xl flex flex-col animate-fade-in"
+        className="relative w-full max-w-2xl max-h-[90vh] glass-strong border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-2xl flex flex-col animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h2 className="text-xl font-semibold text-primary-text">
-            {isEdit ? 'Saati Düzenle' : 'Yeni Saat Ekle'}
+            {isEdit ? t('title_edit') : t('title_add')}
           </h2>
           <button
             onClick={onClose}
@@ -306,8 +327,8 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
         </div>
 
         {/* Steps indicator */}
-        <div className="flex items-center px-6 py-3 border-b border-border-subtle gap-1">
-          {STEPS.map((s, i) => (
+        <div className="flex items-center px-6 py-3 border-b border-white/10 gap-1">
+          {steps.map((s, i) => (
             <div key={s.id} className="flex items-center flex-1">
               <button
                 onClick={() => step > s.id && setStep(s.id)}
@@ -332,10 +353,10 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 </span>
                 <span className="hidden sm:inline">{s.label}</span>
               </button>
-              {i < STEPS.length - 1 && (
+              {i < steps.length - 1 && (
                 <div
                   className={`flex-1 h-px mx-2 ${
-                    step > s.id ? 'bg-semantic-success/40' : 'bg-border-subtle'
+                    step > s.id ? 'bg-semantic-success/40' : 'bg-white/10'
                   }`}
                 />
               )}
@@ -351,12 +372,12 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
               <div className="space-y-4 animate-fade-in">
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Marka <span className="text-semantic-error">*</span>
+                    {t('brand_label')}
                   </label>
                   <input
-                    {...register('brand', { required: 'Marka zorunludur' })}
-                    placeholder="ör. Rolex"
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                    {...register('brand', { required: t('brand_required') })}
+                    placeholder={t('brand_placeholder')}
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                   />
                   {errors.brand && (
                     <p className="mt-1 text-xs text-semantic-error">{errors.brand.message}</p>
@@ -365,12 +386,12 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
 
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Model <span className="text-semantic-error">*</span>
+                    {t('model_label')}
                   </label>
                   <input
-                    {...register('model', { required: 'Model zorunludur' })}
-                    placeholder="ör. Submariner"
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                    {...register('model', { required: t('model_required') })}
+                    placeholder={t('model_placeholder')}
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                   />
                   {errors.model && (
                     <p className="mt-1 text-xs text-semantic-error">{errors.model.message}</p>
@@ -379,13 +400,13 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
 
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Kondisyon <span className="text-semantic-error">*</span>
+                    {t('condition_label')}
                   </label>
                   <select
-                    {...register('condition', { required: 'Kondisyon seçiniz' })}
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
+                    {...register('condition', { required: t('condition_required') })}
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
                   >
-                    {CONDITION_OPTIONS.map((opt) => (
+                    {conditionOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
@@ -403,27 +424,27 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
               <div className="space-y-4 animate-fade-in">
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Referans Numarası
+                    {t('ref_label')}
                   </label>
                   <input
                     {...register('reference_number')}
-                    placeholder="ör. 126610LN"
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                    placeholder={t('ref_placeholder')}
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                   />
                   <p className="mt-1 text-xs text-secondary-text">
-                    Pazar tarayıcısı ve fiyat karşılaştırma için referans numarası önemlidir.
+                    {t('ref_desc')}
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Üretim Yılı
+                    {t('year_label')}
                   </label>
                   <input
                     type="number"
                     {...register('year')}
-                    placeholder="ör. 2023"
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                    placeholder={t('year_placeholder')}
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                   />
                 </div>
               </div>
@@ -435,22 +456,22 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Mekanizma
+                      {t('movement_label')}
                     </label>
                     <input
                       {...register('features.movement')}
-                      placeholder="ör. Otomatik"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('movement_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Kasa Malzemesi
+                      {t('case_material_label')}
                     </label>
                     <input
                       {...register('features.case_material')}
-                      placeholder="ör. Çelik"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('case_material_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                 </div>
@@ -458,22 +479,22 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Kordon/Bilezik
+                      {t('bracelet_material_label')}
                     </label>
                     <input
                       {...register('features.bracelet_material')}
-                      placeholder="ör. Oyster Çelik"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('bracelet_material_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Kadran Rengi
+                      {t('dial_color_label')}
                     </label>
                     <input
                       {...register('features.dial_color')}
-                      placeholder="ör. Siyah"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('dial_color_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                 </div>
@@ -481,22 +502,22 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Kasa Çapı
+                      {t('case_diameter_label')}
                     </label>
                     <input
                       {...register('features.case_diameter')}
-                      placeholder="ör. 41mm"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('case_diameter_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Su Geçirmezlik
+                      {t('water_resistance_label')}
                     </label>
                     <input
                       {...register('features.water_resistance')}
-                      placeholder="ör. 300m"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('water_resistance_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                 </div>
@@ -504,22 +525,22 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Güç Rezervi
+                      {t('power_reserve_label')}
                     </label>
                     <input
                       {...register('features.power_reserve')}
-                      placeholder="ör. 70 saat"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('power_reserve_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Teslimat Kapsamı
+                      {t('scope_label')}
                     </label>
                     <input
                       {...register('features.scope_of_delivery')}
-                      placeholder="ör. Kutu, Belgeler"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      placeholder={t('scope_placeholder')}
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                 </div>
@@ -533,15 +554,15 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
-                  className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border-subtle rounded-lg hover:border-accent-blue/50 transition-colors cursor-pointer"
+                  className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-lg hover:border-accent-blue/50 transition-colors cursor-pointer"
                   onClick={() => document.getElementById('image-upload')?.click()}
                 >
                   <Upload className="w-8 h-8 text-disabled-text mb-3" />
                   <p className="text-sm text-secondary-text mb-1">
-                    Görselleri sürükleyip bırakın veya tıklayın
+                    {t('images_drag_drop')}
                   </p>
                   <p className="text-xs text-disabled-text">
-                    JPEG, PNG, WebP — Maks. 10 MB / görsel
+                    {t('images_specs')}
                   </p>
                   <input
                     id="image-upload"
@@ -556,7 +577,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 {/* Existing images */}
                 {existingImages.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-secondary-text mb-2">Mevcut Görseller</p>
+                    <p className="text-sm font-medium text-secondary-text mb-2">{t('images_existing')}</p>
                     <div className="grid grid-cols-4 gap-3">
                       {existingImages.map((img) => (
                         <div key={img.id} className="relative group rounded-lg overflow-hidden bg-surface-elevated">
@@ -567,7 +588,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                           />
                           {img.is_primary && (
                             <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-accent-blue text-white text-[10px] rounded font-medium">
-                              Ana
+                              {t('images_primary')}
                             </span>
                           )}
                           <button
@@ -587,7 +608,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 {pendingFiles.length > 0 && (
                   <div>
                     <p className="text-sm font-medium text-secondary-text mb-2">
-                      Yüklenecek Görseller ({pendingFiles.length})
+                      {t('images_pending', { count: pendingFiles.length })}
                     </p>
                     <div className="grid grid-cols-4 gap-3">
                       {pendingFiles.map((file, i) => (
@@ -616,7 +637,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 {existingImages.length === 0 && pendingFiles.length === 0 && (
                   <div className="flex flex-col items-center py-6 text-center">
                     <ImageIcon className="w-10 h-10 text-disabled-text mb-2" />
-                    <p className="text-sm text-secondary-text">Henüz görsel eklenmemiş</p>
+                    <p className="text-sm text-secondary-text">{t('images_empty')}</p>
                   </div>
                 )}
               </div>
@@ -627,11 +648,11 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
               <div className="space-y-4 animate-fade-in">
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Para Birimi
+                    {t('currency_label')}
                   </label>
                   <select
                     {...register('currency')}
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue transition-colors"
                   >
                     {CURRENCY_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -644,33 +665,33 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Maliyet Fiyatı
+                      {t('cost_price_label')}
                     </label>
                     <input
                       type="number"
                       step="0.01"
                       {...register('cost_price')}
                       placeholder="0.00"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                      Satış Fiyatı
+                      {t('sale_price_label')}
                     </label>
                     <input
                       type="number"
                       step="0.01"
                       {...register('sale_price')}
                       placeholder="0.00"
-                      className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+                      className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text font-mono placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
                     />
                   </div>
                 </div>
 
                 {/* Profit preview */}
-                <div className="p-4 bg-surface-elevated rounded-lg border border-border-subtle">
-                  <p className="text-xs text-secondary-text mb-1">Tahmini Kar Marjı</p>
+                <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                  <p className="text-xs text-secondary-text mb-1">{t('estimated_profit')}</p>
                   <ProfitPreview
                     costPrice={watch('cost_price')}
                     salePrice={watch('sale_price')}
@@ -680,16 +701,16 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
 
                 <div>
                   <label className="block text-sm font-medium text-secondary-text mb-1.5">
-                    Başlangıç Durumu
+                    {t('initial_status')}
                   </label>
                   <div className="flex gap-3">
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
                       <input type="radio" value="draft" {...register('status')} className="text-accent-blue" />
-                      <span className="text-sm text-primary-text">Taslak</span>
+                      <span className="text-sm text-primary-text">{t('status_draft')}</span>
                     </label>
-                    <label className="flex items-center gap-2 px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
+                    <label className="flex items-center gap-2 px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg cursor-pointer hover:border-accent-blue transition-colors">
                       <input type="radio" value="active" {...register('status')} className="text-accent-blue" />
-                      <span className="text-sm text-primary-text">Aktif</span>
+                      <span className="text-sm text-primary-text">{t('status_active')}</span>
                     </label>
                   </div>
                 </div>
@@ -698,7 +719,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-sm font-medium text-secondary-text">
-                      Açıklama
+                      {t('description_label')}
                     </label>
                     <button
                       type="button"
@@ -711,14 +732,14 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                       ) : (
                         <Sparkles className="w-3.5 h-3.5" />
                       )}
-                      {isAiFilling ? 'Üretiliyor...' : 'AI ile Tamamla'}
+                      {isAiFilling ? t('ai_filling') : t('ai_fill_btn')}
                     </button>
                   </div>
                   <textarea
                     {...register('description')}
                     rows={4}
-                    placeholder="Saat hakkında detaylı açıklama... AI ile otomatik üretebilirsiniz."
-                    className="w-full px-4 py-2.5 bg-surface-elevated border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors resize-none"
+                    placeholder={t('description_placeholder')}
+                    className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors resize-none"
                   />
                   {aiFillError && (
                     <p className="mt-1 text-xs text-semantic-error">{aiFillError}</p>
@@ -736,14 +757,14 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-border-subtle">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-white/10">
             <button
               type="button"
               onClick={step === 1 ? onClose : goPrev}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm text-secondary-text hover:text-primary-text rounded-lg hover:bg-surface-elevated transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              {step === 1 ? 'İptal' : 'Geri'}
+              {step === 1 ? t('cancel') : t('back_btn')}
             </button>
 
             {step < 5 ? (
@@ -752,7 +773,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 onClick={goNext}
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-accent-blue text-white text-sm font-medium rounded-lg hover:bg-accent-blue-hover transition-colors"
               >
-                İleri
+                {t('next_btn')}
                 <ChevronRight className="w-4 h-4" />
               </button>
             ) : (
@@ -764,7 +785,7 @@ export default function WatchFormModal({ watchId, onClose }: WatchFormModalProps
                 {(isSubmitting || isUploading) && (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 )}
-                {isEdit ? 'Güncelle' : 'Kaydet'}
+                {isEdit ? t('submit_update') : t('submit_save')}
               </button>
             )}
           </div>
@@ -785,6 +806,7 @@ function ProfitPreview({
   salePrice: number | '' | undefined;
   currency: string;
 }) {
+  const t = useTranslations("WatchForm");
   const cost = costPrice ? Number(costPrice) : 0;
   const sale = salePrice ? Number(salePrice) : 0;
   const profit = sale - cost;
@@ -800,7 +822,7 @@ function ProfitPreview({
   const sym = symbols[currency] || currency + ' ';
 
   if (!cost && !sale) {
-    return <p className="text-sm text-disabled-text">Fiyat bilgisi girilmedi</p>;
+    return <p className="text-sm text-disabled-text">{t('price_not_provided')}</p>;
   }
 
   return (
@@ -814,7 +836,7 @@ function ProfitPreview({
         {sym}
         {Math.abs(profit).toLocaleString('en-US', { minimumFractionDigits: 0 })}
       </span>
-      <span className="text-sm text-secondary-text">(%{margin} marj)</span>
+      <span className="text-sm text-secondary-text">{t('margin_preview', { margin })}</span>
     </div>
   );
 }

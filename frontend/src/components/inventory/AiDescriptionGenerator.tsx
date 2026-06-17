@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Sparkles, RefreshCw, Copy, Check, ChevronDown, Loader2, Languages } from 'lucide-react';
 import { generateDescription, type GenerateDescriptionParams, type GenerateDescriptionResult } from '@/lib/market-api';
 import type { Watch } from '@/types';
@@ -13,13 +14,14 @@ interface AiDescriptionGeneratorProps {
 }
 
 const LANGUAGE_OPTIONS: { value: Language; label: string; flag: string }[] = [
-  { value: 'en', label: 'English', flag: '🇬🇧' },
   { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { value: 'en', label: 'English', flag: '🇬🇧' },
   { value: 'tr', label: 'Türkçe', flag: '🇹🇷' },
 ];
 
 export default function AiDescriptionGenerator({ watch, onDescriptionReady }: AiDescriptionGeneratorProps) {
-  const [language, setLanguage] = useState<Language>('en');
+  const t = useTranslations('AiStudio');
+  const [language, setLanguage] = useState<Language>('de');
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -92,7 +94,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Açıklama üretilemedi. Lütfen tekrar deneyin.';
+        t('api_error');
       setError(message);
     } finally {
       setIsGenerating(false);
@@ -129,7 +131,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-accent-blue" />
-          <h3 className="text-sm font-semibold text-primary-text">AI Açıklama Üretici</h3>
+          <h3 className="text-sm font-semibold text-primary-text">{t('desc_generator_title')}</h3>
         </div>
         {/* Language Selector */}
         <div className="relative">
@@ -162,7 +164,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
 
       {!watch && (
         <p className="text-xs text-secondary-text px-3 py-2 rounded-lg bg-surface-elevated">
-          Açıklama üretmek için önce bir saat seçin.
+          {t('desc_generator_select_first')}
         </p>
       )}
 
@@ -175,17 +177,17 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
         {isGenerating ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            Üretiliyor...
+            {t('desc_generator_generating')}
           </>
         ) : description ? (
           <>
             <RefreshCw className="w-4 h-4" />
-            Yeniden Üret
+            {t('desc_generator_regenerate')}
           </>
         ) : (
           <>
             <Sparkles className="w-4 h-4" />
-            Açıklama Üret
+            {t('desc_generator_generate')}
           </>
         )}
       </button>
@@ -210,7 +212,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
             onInput={autoResizeTextarea}
             rows={6}
             className="w-full px-3 py-2.5 rounded-lg bg-surface-base border border-border-subtle text-sm text-primary-text resize-none focus:outline-none focus:ring-2 focus:ring-accent-blue/40 transition-colors"
-            placeholder="AI açıklaması burada görünecek..."
+            placeholder={t('desc_generator_placeholder')}
             readOnly={isStreaming}
           />
 
@@ -218,7 +220,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
           {isStreaming && (
             <div className="flex items-center gap-1.5 text-xs text-accent-blue">
               <span className="w-1.5 h-4 bg-accent-blue animate-pulse rounded-full" />
-              Yazılıyor...
+              {t('desc_generator_writing')}
             </div>
           )}
 
@@ -232,12 +234,12 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-semantic-success" />
-                    Kopyalandı
+                    {t('desc_generator_copied')}
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    Kopyala
+                    {t('desc_generator_copy')}
                   </>
                 )}
               </button>
@@ -247,7 +249,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 transition-colors"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  Açıklamayı Uygula
+                  {t('desc_generator_apply')}
                 </button>
               )}
             </div>

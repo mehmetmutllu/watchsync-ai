@@ -24,7 +24,7 @@ export const usePlatformStore = create<PlatformState>((set, get) => ({
       const platforms = await platformsApi.list();
       set({ platforms, isLoading: false });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Platform verileri yüklenirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_load_platforms';
       set({ error: message, isLoading: false });
     }
   },
@@ -36,7 +36,7 @@ export const usePlatformStore = create<PlatformState>((set, get) => ({
       // Platformları yenile
       await get().fetchPlatforms();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Kimlik bilgileri güncellenirken hata oluştu.';
+      const message = err instanceof Error ? err.message : 'error_update_credentials';
       set({ error: message });
       throw err;
     }
@@ -53,7 +53,7 @@ export const usePlatformStore = create<PlatformState>((set, get) => ({
         ),
       }));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Platform bağlantısı kesilemedi.';
+      const message = err instanceof Error ? err.message : 'error_disconnect_platform';
       set({ error: message });
       throw err;
     }

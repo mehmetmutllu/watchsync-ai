@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Search, Menu, LogOut } from "lucide-react";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationStore } from "@/stores/notificationStore";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import { GlobalSearch } from "./GlobalSearch";
 import NotificationDrawer from "./NotificationDrawer";
 
 interface TopBarProps {
@@ -16,6 +18,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
   const { user, logout } = useAuthStore();
   const { unreadCount, fetchNotifications, toggleDrawer } = useNotificationStore();
   const router = useRouter();
+  const t = useTranslations("TopBar");
 
   // Bildirimleri periyodik olarak çek (30 saniyede bir)
   useEffect(() => {
@@ -58,30 +61,13 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
           className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg
             text-secondary-text hover:text-primary-text hover:bg-surface-elevated
             transition-colors duration-150"
-          aria-label="Toggle menu"
+          aria-label={t("toggle_menu")}
         >
           <Menu className="w-5 h-5" strokeWidth={1.5} />
         </button>
 
         {/* Search */}
-        <div className="relative hidden sm:block">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text"
-            strokeWidth={1.5}
-          />
-          <input
-            type="search"
-            role="searchbox"
-            aria-label="Saat, SKU veya müşteri ara"
-            placeholder="Search watches, SKUs, customers..."
-            className="w-64 lg:w-80 h-9 pl-10 pr-4 rounded-lg
-              bg-surface text-sm text-primary-text placeholder-disabled-text
-              border border-border-subtle
-              focus:border-accent-blue focus:shadow-[var(--shadow-focus)]
-              transition-all duration-150
-              outline-none"
-          />
-        </div>
+        <GlobalSearch />
       </div>
 
       {/* Right Section */}
@@ -92,7 +78,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
           className="relative flex items-center justify-center w-9 h-9 rounded-lg
             text-secondary-text hover:text-primary-text hover:bg-surface-elevated
             transition-colors duration-150"
-          aria-label="Notifications"
+          aria-label={t("notifications")}
         >
           <Bell className="w-5 h-5" strokeWidth={1.5} />
           {unreadCount > 0 && (
@@ -111,7 +97,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
           className="flex items-center justify-center w-9 h-9 rounded-lg
             text-secondary-text hover:text-semantic-error hover:bg-surface-elevated
             transition-colors duration-150"
-          aria-label="Çıkış yap"
+          aria-label={t("logout")}
         >
           <LogOut className="w-5 h-5" strokeWidth={1.5} />
         </button>
@@ -127,7 +113,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
           </div>
           <div className="hidden lg:block text-left">
             <p className="text-sm font-medium text-primary-text leading-none">
-              {user?.name || "Kullanıcı"}
+              {user?.name || t("user_fallback")}
             </p>
             <p className="text-xs text-secondary-text mt-0.5 capitalize">
               {user?.role || "—"}

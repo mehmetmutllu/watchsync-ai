@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useEffect } from 'react';
-import { Upload, X, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { watchesApi } from '@/lib/watches-api';
 import { useToastStore } from '@/stores/toastStore';
 
@@ -32,6 +33,7 @@ export default function StepPhotos({
   onPendingFilesChange,
   isUploading,
 }: StepPhotosProps) {
+  const t = useTranslations('Wizard');
   const addToast = useToastStore((s) => s.addToast);
 
   const pendingPreviews = useMemo(
@@ -72,15 +74,15 @@ export default function StepPhotos({
 
     for (const file of files) {
       if (total + valid.length >= 20) {
-        addToast({ type: 'warning', title: 'Maksimum 20 fotoğraf yükleyebilirsiniz.' });
+        addToast({ type: 'warning', title: t('error_max_photos') });
         break;
       }
       if (!ALLOWED_TYPES.includes(file.type)) {
-        addToast({ type: 'warning', title: `${file.name}: Sadece JPEG, PNG ve WebP desteklenir.` });
+        addToast({ type: 'warning', title: t('error_unsupported_type', { name: file.name }) });
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
-        addToast({ type: 'warning', title: `${file.name}: Dosya boyutu 10MB'ı aşamaz.` });
+        addToast({ type: 'warning', title: t('error_max_size', { name: file.name }) });
         continue;
       }
       valid.push(file);
@@ -101,7 +103,7 @@ export default function StepPhotos({
       await watchesApi.deleteImage(watchId, imageId);
       onExistingImagesChange(existingImages.filter((img) => img.id !== imageId));
     } catch {
-        addToast({ type: 'error', title: 'Fotoğraf silinirken hata oluştu.' });
+      addToast({ type: 'error', title: t('error_delete_failed') });
     }
   };
 
@@ -110,9 +112,9 @@ export default function StepPhotos({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-primary-text mb-1">Fotoğraflar</h2>
+        <h2 className="text-xl font-semibold text-primary-text mb-1">{t('photos_title')}</h2>
         <p className="text-sm text-secondary-text">
-          Saatinizin fotoğraflarını yükleyin. En az 1 fotoğraf zorunludur. (Maks. 10MB/görsel)
+          {t('photos_desc')}
         </p>
       </div>
 
@@ -131,13 +133,13 @@ export default function StepPhotos({
         />
         <Upload className="w-10 h-10 text-secondary-text mx-auto mb-3" />
         <p className="text-sm font-medium text-primary-text">
-          Fotoğrafları sürükleyip bırakın
+          {t('drop_title')}
         </p>
         <p className="text-xs text-secondary-text mt-1">
-          veya dosya seçmek için tıklayın — JPEG, PNG, WebP (maks. 10MB)
+          {t('drop_desc')}
         </p>
         <p className="text-xs text-tertiary-text mt-2">
-          {totalCount}/20 fotoğraf
+          {t('photo_count', { count: totalCount })}
         </p>
       </div>
 
@@ -160,7 +162,7 @@ export default function StepPhotos({
                 <X className="w-3.5 h-3.5" />
               </button>
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent h-8 flex items-end px-2 pb-1">
-                <span className="text-[10px] text-white/80">Yüklendi</span>
+                <span className="text-[10px] text-white/80">{t('uploaded_label')}</span>
               </div>
             </div>
           ))}
@@ -176,7 +178,7 @@ export default function StepPhotos({
                 <X className="w-3.5 h-3.5" />
               </button>
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent h-8 flex items-end px-2 pb-1">
-                <span className="text-[10px] text-amber-400">Bekliyor</span>
+                <span className="text-[10px] text-amber-400">{t('pending_label')}</span>
               </div>
             </div>
           ))}
@@ -187,7 +189,7 @@ export default function StepPhotos({
       {isUploading && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-accent-blue/10 border border-accent-blue/20">
           <div className="animate-spin w-5 h-5 border-2 border-accent-blue border-t-transparent rounded-full" />
-          <span className="text-sm text-accent-blue">Fotoğraflar yükleniyor...</span>
+          <span className="text-sm text-accent-blue">{t('uploading_label')}</span>
         </div>
       )}
 
@@ -195,7 +197,7 @@ export default function StepPhotos({
       {totalCount === 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <ImageIcon className="w-5 h-5 text-amber-500 flex-shrink-0" />
-          <span className="text-sm text-amber-500">Sonraki adıma geçmek için en az 1 fotoğraf yüklemelisiniz.</span>
+          <span className="text-sm text-amber-500">{t('warning_min_photos')}</span>
         </div>
       )}
     </div>

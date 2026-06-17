@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -50,7 +51,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Dealer::class);
     }
 
+    public function adminUser(): HasOne
+    {
+        return $this->hasOne(AdminUser::class);
+    }
+
     // ─── Helpers ───────────────────────────────────────────────
+
+    public function isAdmin(): bool
+    {
+        return $this->adminUser !== null && $this->adminUser->is_active;
+    }
 
     public function isOwner(): bool
     {

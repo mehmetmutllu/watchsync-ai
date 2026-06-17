@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X, Bell, CheckCheck, AlertCircle, CheckCircle, Clock, Info, Check } from 'lucide-react';
 import { useNotificationStore } from '@/stores/notificationStore';
 import type { NotificationType } from '@/types';
+import { useTranslations } from "next-intl";
 
 const TYPE_CONFIG: Record<NotificationType, { icon: typeof CheckCircle; color: string; bg: string }> = {
   success: { icon: CheckCircle, color: 'text-semantic-success', bg: 'bg-semantic-success/10' },
@@ -14,6 +15,7 @@ const TYPE_CONFIG: Record<NotificationType, { icon: typeof CheckCircle; color: s
 };
 
 export default function NotificationDrawer() {
+  const t = useTranslations("NotificationDrawer");
   const { notifications, unreadCount, isDrawerOpen, isLoading, closeDrawer, markAllRead, markRead } =
     useNotificationStore();
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -57,10 +59,10 @@ export default function NotificationDrawer() {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Şimdi';
-    if (minutes < 60) return `${minutes} dk önce`;
-    if (hours < 24) return `${hours} sa önce`;
-    return `${days} gün önce`;
+    if (minutes < 1) return t("now");
+    if (minutes < 60) return t("mins_ago", { mins: minutes });
+    if (hours < 24) return t("hours_ago", { hours });
+    return t("days_ago", { days });
   };
 
   return (
@@ -80,7 +82,7 @@ export default function NotificationDrawer() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
           <div className="flex items-center gap-2.5">
             <Bell className="w-5 h-5 text-primary-text" strokeWidth={1.5} />
-            <h2 className="text-lg font-semibold text-primary-text">Bildirimler</h2>
+            <h2 className="text-lg font-semibold text-primary-text">{t("title")}</h2>
             {unreadCount > 0 && (
               <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-semantic-error text-white">
                 {unreadCount}
@@ -94,7 +96,7 @@ export default function NotificationDrawer() {
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-text rounded-md hover:bg-surface-elevated transition-colors"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
-                Tümünü oku
+                {t("mark_all_read")}
               </button>
             )}
             <button
@@ -123,9 +125,9 @@ export default function NotificationDrawer() {
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-60 text-center px-6">
               <Bell className="w-10 h-10 text-disabled-text mb-3" strokeWidth={1} />
-              <p className="text-secondary-text text-sm">Henüz bildirim yok</p>
+              <p className="text-secondary-text text-sm">{t("empty_title")}</p>
               <p className="text-disabled-text text-xs mt-1">
-                Senkronizasyon olayları burada görünecek
+                {t("empty_desc")}
               </p>
             </div>
           ) : (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import { CheckCircle, AlertTriangle, Loader2, RefreshCw, Image as ImageIcon } from 'lucide-react';
 import { watchesApi } from '@/lib/watches-api';
 import { useToastStore } from '@/stores/toastStore';
@@ -9,16 +10,16 @@ import type { AiPipelineStatus, AiStepStatus } from '@/types';
 import type { WatchWizardFormData } from './WatchWizard';
 
 const PRESETS: Record<string, string> = {
-  white_studio: 'Beyaz Stüdyo',
-  black_velvet: 'Siyah Kadife',
-  marble: 'Mermer',
-  grey_gradient: 'Gri Gradyan',
+  white_studio: 'bg_white_studio',
+  black_velvet: 'bg_black_velvet',
+  marble: 'bg_marble',
+  grey_gradient: 'bg_gradient_gray',
 };
 
 const LANG_TABS = [
-  { code: 'tr', label: 'Türkçe' },
-  { code: 'en', label: 'English' },
   { code: 'de', label: 'Deutsch' },
+  { code: 'en', label: 'English' },
+  { code: 'tr', label: 'Türkçe' },
 ];
 
 interface StepAiProcessingProps {
@@ -40,25 +41,27 @@ function StatusIcon({ status }: { status: AiStepStatus }) {
   }
 }
 
-function statusLabel(status: AiStepStatus): string {
+function statusLabel(status: AiStepStatus, t: any): string {
   switch (status) {
-    case 'pending': return 'Bekliyor';
-    case 'processing': return 'İşleniyor...';
-    case 'completed': return 'Tamamlandı';
-    case 'failed': return 'Hata';
-    case 'skipped': return 'Atlandı';
+    case 'pending': return t('status_pending');
+    case 'processing': return t('status_processing');
+    case 'completed': return t('status_completed');
+    case 'failed': return t('status_failed');
+    case 'skipped': return t('status_skipped');
     default: return '';
   }
 }
 
 export default function StepAiProcessing({ watchId, existingImages }: StepAiProcessingProps) {
+  const t = useTranslations('Wizard');
+  const tAi = useTranslations('AiStudio');
   const { setValue, watch } = useFormContext<WatchWizardFormData>();
   const addToast = useToastStore((s) => s.addToast);
 
   const [pipelineStatus, setPipelineStatus] = useState<AiPipelineStatus | null>(null);
   const [isTriggering, setIsTriggering] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
-  const [descLang, setDescLang] = useState('tr');
+  const [descLang, setDescLang] = useState('de');
   const [editedDescriptions, setEditedDescriptions] = useState<Record<string, string>>({});
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const triggeredRef = useRef(false);
@@ -81,7 +84,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
       await watchesApi.aiProcess(watchId);
       startPolling();
     } catch {
-      addToast({ type: 'error', title: 'AI pipeline başlatılamadı.' });
+      addToast({ type: 'error', title: t('toast_ai_trigger_failed') });
     } finally {
       setIsTriggering(false);
     }
@@ -128,7 +131,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
   const handleDescriptionChange = (lang: string, text: string) => {
     setEditedDescriptions((prev) => ({ ...prev, [lang]: text }));
     // Update form description with current language's text
-    if (lang === 'tr') {
+    if (lang === 'de') {
       setValue('description', text);
     }
   };
@@ -147,7 +150,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
         selected_variant: selectedVariant || undefined,
       });
       setValue('description', desc);
-      addToast({ type: 'success', title: 'Açıklama kaydedildi.' });
+      addToast({ type: 'success', title: t('toast_desc_saved') });
     }
   };
 
@@ -162,21 +165,26 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
 
   const primaryImage = existingImages.find((img) => img.is_primary) || existingImages[0];
 
+  const getPresetLabel = (preset: string) => {
+    const key = PRESETS[preset];
+    return key ? tAi(key) : preset;
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-primary-text mb-1">AI İşleme</h2>
+        <h2 className="text-xl font-semibold text-primary-text mb-1">{t('ai_title')}</h2>
         <p className="text-sm text-secondary-text">
-          Fotoğraflarınız otomatik olarak AI ile işleniyor. Sonuçları inceleyip düzenleyebilirsiniz.
+          {t('ai_desc')}
         </p>
       </div>
 
       {/* Pipeline Progress */}
       <div className="space-y-3">
         {[
-          { key: 'validation_status' as const, label: 'Görsel Doğrulama', desc: 'Fotoğrafın saat olup olmadığı kontrol ediliyor' },
-          { key: 'background_status' as const, label: 'Arka Plan İyileştirme', desc: 'Profesyonel arka plan varyantları oluşturuluyor' },
-          { key: 'description_status' as const, label: 'Açıklama Üretimi', desc: '3 dilde ilan açıklaması üretiliyor (TR/EN/DE)' },
+          { key: 'validation_status' as const, label: t('step_validation'), desc: t('step_validation_desc') },
+          { key: 'background_status' as const, label: t('step_background'), desc: t('step_background_desc') },
+          { key: 'description_status' as const, label: t('step_description'), desc: t('step_description_desc') },
         ].map(({ key, label, desc }) => {
           const status = pipelineStatus?.[key] || (isTriggering ? 'pending' : 'pending');
           return (
@@ -191,7 +199,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
                 status === 'failed' ? 'text-semantic-error' :
                 'text-secondary-text'
               }`}>
-                {statusLabel(status as AiStepStatus)}
+                {statusLabel(status as AiStepStatus, t)}
               </span>
             </div>
           );
@@ -212,8 +220,8 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
           )}
           <span className="text-sm">
             {pipelineStatus.validation_result.is_watch
-              ? `Görsel doğrulandı (güven: ${((pipelineStatus.validation_result.confidence || 0) * 100).toFixed(0)}%)`
-              : 'Görsel doğrulanamadı — lütfen saat fotoğrafı yüklediğinizden emin olun.'
+              ? t('validation_success', { confidence: ((pipelineStatus.validation_result.confidence || 0) * 100).toFixed(0) })
+              : t('validation_failed')
             }
           </span>
         </div>
@@ -222,7 +230,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
       {/* Background Variants */}
       {pipelineStatus?.background_status === 'completed' && pipelineStatus.enhanced_images.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-primary-text mb-3">Arka Plan Varyantları</h3>
+          <h3 className="text-sm font-medium text-primary-text mb-3">{t('bg_variants')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Original */}
             {primaryImage && (
@@ -233,9 +241,9 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
                   !selectedVariant ? 'border-accent-blue' : 'border-border-subtle hover:border-border-default'
                 }`}
               >
-                <img src={primaryImage.url} alt="Orijinal" className="w-full h-full object-cover" />
+                <img src={primaryImage.url} alt={t('original_variant')} className="w-full h-full object-cover" />
                 <span className="absolute bottom-1 inset-x-1 text-center text-[10px] font-medium text-white bg-black/50 rounded px-1 py-0.5">
-                  Orijinal
+                  {t('original_variant')}
                 </span>
               </button>
             )}
@@ -249,17 +257,46 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
                 }`}
               >
                 {variant.url ? (
-                  <img src={variant.url} alt={PRESETS[variant.preset] || variant.preset} className="w-full h-full object-cover" />
+                  <img src={variant.url} alt={getPresetLabel(variant.preset)} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-surface-secondary">
                     <ImageIcon className="w-8 h-8 text-tertiary-text" />
                   </div>
                 )}
                 <span className="absolute bottom-1 inset-x-1 text-center text-[10px] font-medium text-white bg-black/50 rounded px-1 py-0.5">
-                  {PRESETS[variant.preset] || variant.preset}
+                  {getPresetLabel(variant.preset)}
                 </span>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Condition & Findings */}
+      {pipelineStatus?.description_status === 'completed' && pipelineStatus.ai_condition && (
+        <div className="bg-surface-secondary/30 border border-border-subtle rounded-lg p-4">
+          <h3 className="text-sm font-medium text-primary-text mb-3 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-accent-blue" />
+            KI-Zustandsbericht
+          </h3>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-secondary-text">Zustand (geschätzt):</span>
+              <span className="font-medium text-primary-text">{pipelineStatus.ai_condition}</span>
+            </div>
+            {pipelineStatus.ai_findings && pipelineStatus.ai_findings.length > 0 && (
+              <div className="pt-2">
+                <span className="text-xs text-secondary-text uppercase tracking-wider font-semibold">Erkannte Merkmale:</span>
+                <ul className="mt-2 space-y-1">
+                  {pipelineStatus.ai_findings.map((finding, idx) => (
+                    <li key={idx} className="text-sm text-primary-text flex items-start gap-2">
+                      <span className="text-accent-blue mt-0.5">•</span>
+                      <span>{finding}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -268,12 +305,12 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
       {pipelineStatus?.description_status === 'completed' && Object.keys(pipelineStatus.ai_descriptions).length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-primary-text">AI Açıklama</h3>
+            <h3 className="text-sm font-medium text-primary-text">{t('ai_desc_title')}</h3>
             <button
               onClick={handleApplyDescription}
               className="text-xs font-medium text-accent-blue hover:text-accent-blue-hover transition-colors"
             >
-              Kaydet & Uygula
+              {t('save_apply')}
             </button>
           </div>
 
@@ -300,7 +337,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
             onChange={(e) => handleDescriptionChange(descLang, e.target.value)}
             rows={6}
             className="w-full px-4 py-3 bg-surface-secondary border border-border-subtle rounded-lg text-primary-text text-sm resize-y focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue"
-            placeholder="AI açıklama üretiliyor..."
+            placeholder={t('desc_placeholder')}
           />
         </div>
       )}
@@ -314,7 +351,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text border border-border-subtle rounded-lg hover:border-border-default transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${isProcessing ? 'animate-spin' : ''}`} />
-          Yeniden Üret
+          {t('regenerate_btn')}
         </button>
       </div>
     </div>

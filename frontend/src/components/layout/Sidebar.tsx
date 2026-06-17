@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "./LanguageSwitcher";
 import {
   LayoutDashboard,
   Package,
@@ -15,14 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/inventory", label: "Inventory", icon: Package },
-  { href: "/dashboard/market-scanner", label: "Market Scanner", icon: BarChart3 },
-  { href: "/dashboard/crm", label: "CRM", icon: Users },
-  { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-];
+// navItems will be defined inside the component to use translations
 
 interface SidebarProps {
   collapsed: boolean;
@@ -32,6 +26,16 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const t = useTranslations("Sidebar");
+
+  const navItems = [
+    { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/dashboard/inventory", label: t("inventory"), icon: Package },
+    { href: "/dashboard/market-scanner", label: t("market_scanner"), icon: BarChart3 },
+    { href: "/dashboard/crm", label: t("crm"), icon: Users },
+    { href: "/dashboard/invoices", label: t("invoices"), icon: FileText },
+    { href: "/dashboard/settings", label: t("settings"), icon: Settings },
+  ];
 
   return (
     <>
@@ -130,11 +134,14 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           })}
         </nav>
 
-        {/* Collapse Toggle */}
-        <div className="p-3 border-t border-border-subtle">
+        {/* Bottom Area: Language Switcher & Collapse Toggle */}
+        <div className="flex flex-col border-t border-border-subtle">
+          <div className={`px-3 py-3 ${collapsed ? "hidden" : "block"}`}>
+            <LanguageSwitcher />
+          </div>
           <button
             onClick={onToggle}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg
+            className="w-full flex items-center justify-center gap-2 px-3 py-3
               text-secondary-text hover:text-primary-text hover:bg-surface-elevated
               transition-all duration-150"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -144,7 +151,6 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             ) : (
               <>
                 <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
-                <span className="text-xs font-medium">Collapse</span>
               </>
             )}
           </button>

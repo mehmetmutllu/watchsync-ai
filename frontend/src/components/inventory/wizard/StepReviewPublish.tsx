@@ -1,20 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useFormContext } from 'react-hook-form';
 import { Check, Save, Rocket, ExternalLink } from 'lucide-react';
 import { watchesApi } from '@/lib/watches-api';
 import { usePlatformStore } from '@/stores/platformStore';
 import { useToastStore } from '@/stores/toastStore';
+import { useTranslations } from 'next-intl';
 import type { WatchWizardFormData } from './WatchWizard';
-
-const CONDITION_LABELS: Record<string, string> = {
-  new: 'Sıfır',
-  unworn: 'Kullanılmamış',
-  very_good: 'Çok İyi',
-  good: 'İyi',
-  fair: 'Orta',
-};
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: '€', USD: '$', GBP: '£', TRY: '₺', CHF: 'CHF',
@@ -42,6 +34,7 @@ export default function StepReviewPublish({
   onSaveDraft,
   onPublishComplete,
 }: StepReviewPublishProps) {
+  const t = useTranslations('Wizard');
   const { platforms, fetchPlatforms } = usePlatformStore();
   const addToast = useToastStore((s) => s.addToast);
 
@@ -68,7 +61,7 @@ export default function StepReviewPublish({
 
   const handlePublish = async () => {
     if (selectedPlatforms.size === 0) {
-      addToast({ type: 'warning', title: 'En az 1 platform seçmelisiniz.' });
+      addToast({ type: 'warning', title: t('toast_min_platforms') });
       return;
     }
 
@@ -80,7 +73,7 @@ export default function StepReviewPublish({
         onPublishComplete();
       }, 2000);
     } catch {
-      addToast({ type: 'error', title: 'Yayınlama sırasında hata oluştu.' });
+      addToast({ type: 'error', title: t('toast_publish_failed') });
     } finally {
       setIsPublishing(false);
     }
@@ -97,17 +90,29 @@ export default function StepReviewPublish({
 
   const currencySymbol = CURRENCY_SYMBOLS[formData.currency || 'EUR'] || '€';
 
+  const getConditionLabel = (condition: string) => {
+    const map: Record<string, string> = {
+      new: 'cond_new_label',
+      unworn: 'cond_unworn_label',
+      very_good: 'cond_very_good_label',
+      good: 'cond_good_label',
+      fair: 'cond_fair_label',
+    };
+    const key = map[condition];
+    return key ? t(key) : condition;
+  };
+
   if (publishSuccess) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="w-16 h-16 rounded-full bg-accent-green/20 flex items-center justify-center mb-4">
           <Check className="w-8 h-8 text-accent-green" />
         </div>
-        <h2 className="text-xl font-semibold text-primary-text mb-2">Saat Yayınlandı!</h2>
+        <h2 className="text-xl font-semibold text-primary-text mb-2">{t('published_title')}</h2>
         <p className="text-sm text-secondary-text mb-6">
-          Saatiniz seçilen platformlara başarıyla gönderildi.
+          {t('published_desc')}
         </p>
-        <p className="text-xs text-secondary-text">Envanter sayfasına yönlendiriliyorsunuz...</p>
+        <p className="text-xs text-secondary-text">{t('redirect_msg')}</p>
       </div>
     );
   }
@@ -115,8 +120,8 @@ export default function StepReviewPublish({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-primary-text mb-1">Son Kontrol & Yayınla</h2>
-        <p className="text-sm text-secondary-text">Bilgileri kontrol edin, platformları seçin ve yayınlayın.</p>
+        <h2 className="text-xl font-semibold text-primary-text mb-1">{t('review_title')}</h2>
+        <p className="text-sm text-secondary-text">{t('review_desc')}</p>
       </div>
 
       {/* Summary Card */}
@@ -133,10 +138,10 @@ export default function StepReviewPublish({
             </div>
           ) : (
             <div className="aspect-square rounded-xl bg-surface-secondary flex items-center justify-center border border-border-subtle">
-              <span className="text-secondary-text text-sm">Fotoğraf yok</span>
+              <span className="text-secondary-text text-sm">{t('no_photos')}</span>
             </div>
           )}
-          <p className="text-xs text-secondary-text text-center mt-2">{existingImages.length} fotoğraf</p>
+          <p className="text-xs text-secondary-text text-center mt-2">{t('photo_count_plural', { count: existingImages.length })}</p>
         </div>
 
         {/* Details */}
@@ -152,20 +157,20 @@ export default function StepReviewPublish({
 
           <div className="grid grid-cols-2 gap-3">
             {formData.year && (
-              <InfoItem label="Üretim Yılı" value={String(formData.year)} />
+              <InfoItem label={t('year_label')} value={String(formData.year)} />
             )}
-            <InfoItem label="Kondisyon" value={CONDITION_LABELS[formData.condition] || formData.condition} />
+            <InfoItem label={t('condition_label')} value={getConditionLabel(formData.condition)} />
             {formData.features?.case_material && (
-              <InfoItem label="Kasa" value={formData.features.case_material} />
+              <InfoItem label={t('case_label')} value={formData.features.case_material} />
             )}
             {formData.features?.dial_color && (
-              <InfoItem label="Kadran" value={formData.features.dial_color} />
+              <InfoItem label={t('dial_label')} value={formData.features.dial_color} />
             )}
             {formData.features?.movement && (
-              <InfoItem label="Hareket" value={formData.features.movement} />
+              <InfoItem label={t('movement_label')} value={formData.features.movement} />
             )}
             {formData.features?.bracelet_material && (
-              <InfoItem label="Kayış" value={formData.features.bracelet_material} />
+              <InfoItem label={t('bracelet_label')} value={formData.features.bracelet_material} />
             )}
           </div>
 
@@ -173,7 +178,7 @@ export default function StepReviewPublish({
           <div className="flex gap-4 p-3 rounded-lg bg-accent-blue/5 border border-accent-blue/20">
             {formData.cost_price && (
               <div>
-                <span className="text-xs text-secondary-text">Maliyet</span>
+                <span className="text-xs text-secondary-text">{t('cost_label')}</span>
                 <p className="text-sm font-medium text-primary-text">
                   {currencySymbol}{Number(formData.cost_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                 </p>
@@ -181,7 +186,7 @@ export default function StepReviewPublish({
             )}
             {formData.sale_price && (
               <div>
-                <span className="text-xs text-secondary-text">Satış Fiyatı</span>
+                <span className="text-xs text-secondary-text">{t('sale_label')}</span>
                 <p className="text-sm font-semibold text-accent-blue">
                   {currencySymbol}{Number(formData.sale_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                 </p>
@@ -192,7 +197,7 @@ export default function StepReviewPublish({
           {/* Description Preview */}
           {formData.description && (
             <div className="p-3 rounded-lg bg-surface-secondary/50 border border-border-subtle">
-              <span className="text-xs text-secondary-text block mb-1">Açıklama</span>
+              <span className="text-xs text-secondary-text block mb-1">{t('desc_label')}</span>
               <p className="text-sm text-primary-text line-clamp-3">{formData.description}</p>
             </div>
           )}
@@ -201,7 +206,7 @@ export default function StepReviewPublish({
 
       {/* Platform Selection */}
       <div>
-        <h3 className="text-sm font-medium text-primary-text mb-3">Yayınlanacak Platformlar</h3>
+        <h3 className="text-sm font-medium text-primary-text mb-3">{t('publish_platforms')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {platforms.map((platform) => {
             const isConnected = platform.status === 'connected';
@@ -228,7 +233,7 @@ export default function StepReviewPublish({
                 <div>
                   <p className="text-sm font-medium text-primary-text">{platform.name}</p>
                   <p className="text-xs text-secondary-text">
-                    {isConnected ? 'Bağlı' : 'Bağlı değil'}
+                    {isConnected ? t('connected_status') : t('disconnected_status')}
                   </p>
                 </div>
               </button>
@@ -250,7 +255,7 @@ export default function StepReviewPublish({
           ) : (
             <Save className="w-4 h-4" />
           )}
-          Taslak Olarak Kaydet
+          {t('save_draft_btn')}
         </button>
         <button
           type="button"
@@ -263,7 +268,7 @@ export default function StepReviewPublish({
           ) : (
             <Rocket className="w-4 h-4" />
           )}
-          Yayınla
+          {t('publish_btn')}
         </button>
       </div>
     </div>

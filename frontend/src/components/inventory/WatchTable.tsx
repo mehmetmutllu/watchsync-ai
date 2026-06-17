@@ -18,6 +18,7 @@ import type { Watch, WatchStatus } from '@/types';
 import StatusBadge from './StatusBadge';
 import PlatformToggles from './PlatformToggles';
 import SyncStatusBadges from './SyncStatusBadges';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface WatchTableProps {
   watches: Watch[];
@@ -35,13 +36,13 @@ interface WatchTableProps {
 }
 
 const SORT_COLUMNS = [
-  { key: 'brand', label: 'Marka / Model' },
-  { key: 'reference_number', label: 'Ref No' },
-  { key: 'status', label: 'Durum' },
-  { key: 'cost_price', label: 'Maliyet' },
-  { key: 'sale_price', label: 'Satış Fiyatı' },
-  { key: 'created_at', label: 'Oluşturulma' },
-];
+  { key: 'brand', labelKey: 'col_brand' },
+  { key: 'reference_number', labelKey: 'col_ref' },
+  { key: 'status', labelKey: 'col_status' },
+  { key: 'cost_price', labelKey: 'col_cost' },
+  { key: 'sale_price', labelKey: 'col_sale' },
+  { key: 'created_at', labelKey: 'col_created' },
+] as const;
 
 export default function WatchTable({
   watches,
@@ -52,6 +53,8 @@ export default function WatchTable({
   selectedIds,
   onSelectionChange,
 }: WatchTableProps) {
+  const t = useTranslations("Inventory");
+  const locale = useLocale();
   const { filters, setFilters, fetchWatches, isLoading } = useInventoryStore();
   const { platforms, fetchPlatforms } = usePlatformStore();
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
@@ -134,16 +137,16 @@ export default function WatchTable({
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Bu saati silmek istediğinize emin misiniz?')) {
+    if (window.confirm(t('delete_confirm'))) {
       onDelete(id);
     }
     setMenuOpenId(null);
   };
 
   return (
-    <div className="bg-surface border border-border-subtle rounded-lg overflow-hidden">
+    <div className="glass-strong rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-white/10">
       {/* Mobile Card View (< 768px) */}
-      <div className="md:hidden divide-y divide-border-subtle">
+      <div className="md:hidden divide-y divide-white/10">
         {watches.map((watch) => (
           <div
             key={watch.id}
@@ -156,18 +159,18 @@ export default function WatchTable({
                   type="checkbox"
                   checked={selectedIds.has(watch.id)}
                   onChange={() => handleSelectRow(watch.id)}
-                  className="rounded border-border-strong bg-surface-elevated"
-                  aria-label={`${watch.brand} ${watch.model} seç`}
+                  className="rounded border-white/20 bg-white/5 text-accent-blue focus:ring-accent-blue focus:ring-offset-0 focus:ring-offset-transparent"
+                  aria-label={t('select_row', { brand: watch.brand, model: watch.model })}
                 />
                 {watch.thumbnail_url ? (
                   <img
                     src={watch.thumbnail_url}
                     alt={`${watch.brand} ${watch.model}`}
-                    className="w-12 h-12 rounded-md object-cover bg-surface-elevated"
+                    className="w-12 h-12 rounded-lg object-cover bg-white/5 shadow-md border border-white/10"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-md bg-surface-elevated flex items-center justify-center">
-                    <Eye className="w-4 h-4 text-disabled-text" />
+                  <div className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
+                    <Eye className="w-4 h-4 text-white/40" />
                   </div>
                 )}
               </div>
@@ -192,7 +195,7 @@ export default function WatchTable({
                 <button
                   onClick={(e) => openMenu(watch.id, e.currentTarget)}
                   className="p-1.5 rounded-md hover:bg-surface-elevated transition-colors text-secondary-text"
-                  aria-label="İşlemler"
+                  aria-label={t('th_actions')}
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
@@ -202,13 +205,13 @@ export default function WatchTable({
             {/* Price Row */}
             <div className="flex items-center justify-between text-sm">
               <div>
-                <span className="text-xs text-secondary-text">Maliyet: </span>
+                <span className="text-xs text-secondary-text">{t("label_cost")}</span>
                 <span className="font-mono text-secondary-text">
                   {formatPrice(watch.cost_price, watch.currency)}
                 </span>
               </div>
               <div>
-                <span className="text-xs text-secondary-text">Satış: </span>
+                <span className="text-xs text-secondary-text">{t("label_sale")}</span>
                 <span className="font-mono text-primary-text font-medium">
                   {formatPrice(watch.sale_price, watch.currency)}
                 </span>
@@ -222,17 +225,17 @@ export default function WatchTable({
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border-subtle">
+            <tr className="border-b border-white/10 bg-white/5">
               <th className="w-10 px-4 py-3">
                 <input
                   type="checkbox"
                   checked={selectedIds.size === watches.length && watches.length > 0}
                   onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="rounded border-border-strong bg-surface-elevated"
+                  className="rounded border-white/20 bg-white/5 text-accent-blue focus:ring-accent-blue focus:ring-offset-0 focus:ring-offset-transparent"
                 />
               </th>
               <th className="w-14 px-2 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
-                Görsel
+                {t("th_image")}
               </th>
               {SORT_COLUMNS.map((col) => (
                 <th
@@ -241,7 +244,7 @@ export default function WatchTable({
                   onClick={() => handleSort(col.key)}
                 >
                   <div className="flex items-center gap-1.5">
-                    {col.label}
+                    {t(col.labelKey)}
                     {filters.sort_by === col.key && (
                       filters.sort_dir === 'asc' ? (
                         <ChevronUp className="w-3.5 h-3.5 text-accent-blue" />
@@ -253,13 +256,13 @@ export default function WatchTable({
                 </th>
               ))}
               <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
-                Platform
+                {t("th_platforms")}
               </th>
               <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
-                Sync
+                {t('th_sync')}
               </th>
               <th className="w-16 px-4 py-3 text-right text-xs uppercase tracking-wider text-secondary-text font-medium">
-                İşlem
+                {t("th_actions")}
               </th>
             </tr>
           </thead>
@@ -267,7 +270,7 @@ export default function WatchTable({
             {watches.map((watch) => (
               <tr
                 key={watch.id}
-                className="border-b border-border-subtle hover:bg-surface-elevated/50 transition-colors"
+                className="border-b border-white/5 hover:bg-white/10 transition-colors"
               >
                 {/* Checkbox */}
                 <td className="px-4 py-3">
@@ -275,7 +278,7 @@ export default function WatchTable({
                     type="checkbox"
                     checked={selectedIds.has(watch.id)}
                     onChange={() => handleSelectRow(watch.id)}
-                    className="rounded border-border-strong bg-surface-elevated"
+                    className="rounded border-white/20 bg-white/5 text-accent-blue focus:ring-accent-blue focus:ring-offset-0 focus:ring-offset-transparent"
                   />
                 </td>
 
@@ -285,11 +288,11 @@ export default function WatchTable({
                     <img
                       src={watch.thumbnail_url}
                       alt={`${watch.brand} ${watch.model}`}
-                      className="w-10 h-10 rounded-md object-cover bg-surface-elevated"
+                      className="w-10 h-10 rounded-lg object-cover bg-white/5 shadow-md border border-white/10"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-md bg-surface-elevated flex items-center justify-center">
-                      <Eye className="w-4 h-4 text-disabled-text" />
+                    <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
+                      <Eye className="w-4 h-4 text-white/40" />
                     </div>
                   )}
                 </td>
@@ -339,7 +342,7 @@ export default function WatchTable({
                 {/* Created */}
                 <td className="px-4 py-3">
                   <span className="text-xs text-secondary-text">
-                    {new Date(watch.created_at).toLocaleDateString('tr-TR')}
+                    {new Date(watch.created_at).toLocaleDateString(locale)}
                   </span>
                 </td>
 
@@ -395,14 +398,14 @@ export default function WatchTable({
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary-text hover:text-primary-text hover:bg-surface transition-colors"
             >
               <Edit className="w-3.5 h-3.5" />
-              Düzenle
+              {t("action_edit")}
             </button>
             <button
               onClick={() => handleDelete(menuOpenId)}
               className="flex items-center gap-2 w-full px-3 py-2 text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Sil
+              {t("action_delete")}
             </button>
           </div>
         </>,
@@ -411,20 +414,28 @@ export default function WatchTable({
 
       {/* Pagination */}
       {pagination.last_page > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-border-subtle">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-white/5">
           <p className="text-xs sm:text-sm text-secondary-text">
-            <span className="hidden sm:inline">Toplam {pagination.total} kayıttan{' '}</span>
-            {(pagination.current_page - 1) * pagination.per_page + 1}-
-            {Math.min(pagination.current_page * pagination.per_page, pagination.total)}
-            <span className="sm:hidden"> / {pagination.total}</span>
-            <span className="hidden sm:inline">{' '}gösteriliyor</span>
+            <span className="hidden sm:inline">
+              {t("showing_total", {
+                total: pagination.total,
+                start: (pagination.current_page - 1) * pagination.per_page + 1,
+                end: Math.min(pagination.current_page * pagination.per_page, pagination.total)
+              })}
+            </span>
+            <span className="sm:hidden">
+              {(pagination.current_page - 1) * pagination.per_page + 1}-
+              {Math.min(pagination.current_page * pagination.per_page, pagination.total)}
+              {' / '}
+              {pagination.total}
+            </span>
           </p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => goToPage(pagination.current_page - 1)}
               disabled={pagination.current_page <= 1}
               className="p-2 rounded-md text-secondary-text hover:text-primary-text hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Önceki sayfa"
+              aria-label={t('previous_page')}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -473,7 +484,7 @@ export default function WatchTable({
               onClick={() => goToPage(pagination.current_page + 1)}
               disabled={pagination.current_page >= pagination.last_page}
               className="p-2 rounded-md text-secondary-text hover:text-primary-text hover:bg-surface-elevated disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Sonraki sayfa"
+              aria-label={t('next_page')}
             >
               <ChevronRight className="w-4 h-4" />
             </button>

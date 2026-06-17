@@ -470,7 +470,7 @@ class WatchController extends Controller
 
         $dispatched = [];
         foreach ($connections as $connection) {
-            SyncInventoryJob::dispatch($watch, $connection);
+            SyncInventoryJob::dispatch($watch->id, $watch->dealer_id, $connection->platform_id);
             $dispatched[] = $connection->platform_id;
         }
 

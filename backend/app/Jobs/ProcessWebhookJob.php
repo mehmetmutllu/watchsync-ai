@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\PlatformConnection;
-use App\Models\SyncLog;
 use App\Models\Watch;
 use App\Services\InventoryLockService;
 use App\Services\InventoryStateMachine;
@@ -88,11 +87,12 @@ class ProcessWebhookJob implements ShouldQueue
         }
 
         try {
+            $orderId = $this->payload['order_id'] ?? 'N/A';
             $lockService->safeStatusTransition(
                 $watch,
                 'reserved',
                 $stateMachine,
-                notes: "Auto-reserved via {$this->platform} webhook (order #{$this->payload['order_id'] ?? 'N/A'})",
+                notes: "Auto-reserved via {$this->platform} webhook (order #{$orderId})",
             );
 
             Log::info("ProcessWebhookJob: Watch reserved via webhook", [

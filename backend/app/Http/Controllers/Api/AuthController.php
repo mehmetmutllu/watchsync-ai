@@ -57,7 +57,7 @@ class AuthController extends Controller
             ], 201);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Registration Error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'message' => 'Kayıt işlemi sırasında bir sunucu hatası oluştu.',
             ], 500);

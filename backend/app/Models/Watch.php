@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Dealer;
+use App\Models\WatchImage;
+use App\Models\SyncLog;
+use App\Models\InventoryStatusHistory;
 
 class Watch extends Model
 {
@@ -28,6 +32,8 @@ class Watch extends Model
         'ebay_offer_id',
         'shopify_product_id',
         'shopify_variant_id',
+        'validation_status',
+        'validation_details',
     ];
 
     /**
@@ -36,10 +42,11 @@ class Watch extends Model
     protected function casts(): array
     {
         return [
-            'features'   => 'array',
-            'cost_price' => 'decimal:2',
-            'sale_price' => 'decimal:2',
-            'year'       => 'integer',
+            'features'           => 'array',
+            'validation_details' => 'array',
+            'cost_price'         => 'decimal:2',
+            'sale_price'         => 'decimal:2',
+            'year'               => 'integer',
         ];
     }
 

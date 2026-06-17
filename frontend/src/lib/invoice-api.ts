@@ -85,9 +85,17 @@ export async function deleteInvoice(id: number): Promise<void> {
   await api.delete(`/invoices/${id}`);
 }
 
-export function getInvoicePdfUrl(id: number): string {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  return `${baseUrl}/invoices/${id}/pdf`;
+export async function downloadInvoicePdf(id: number, filename: string): Promise<void> {
+  const response = await api.get(`/invoices/${id}/pdf`, {
+    responseType: 'blob'
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
 }
 
 export async function sendInvoice(id: number): Promise<{ message: string }> {
