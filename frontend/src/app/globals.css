@@ -57,6 +57,7 @@
     0% {
       opacity: 0;
     }
+
     100% {
       opacity: 1;
     }
@@ -67,6 +68,7 @@
       opacity: 0;
       transform: translateY(8px);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0);
@@ -74,10 +76,12 @@
   }
 
   @keyframes pulseSoft {
+
     0%,
     100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.7;
     }
@@ -88,6 +92,7 @@
       opacity: 0;
       transform: translateX(100%);
     }
+
     100% {
       opacity: 1;
       transform: translateX(0);
@@ -105,6 +110,7 @@
       opacity: 0;
       transform: scale(0.95);
     }
+
     100% {
       opacity: 1;
       transform: scale(1);
@@ -116,9 +122,11 @@
       opacity: 0;
       transform: scale(0.3);
     }
+
     50% {
       transform: scale(1.05);
     }
+
     100% {
       opacity: 1;
       transform: scale(1);
@@ -129,6 +137,7 @@
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
@@ -139,6 +148,7 @@
       opacity: 0;
       transform: translateY(6px);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0);
@@ -212,6 +222,7 @@ body::after {
 .glass-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .glass-hover:hover {
   transform: translateY(-2px);
   background: rgba(18, 18, 26, 0.95);
@@ -248,6 +259,7 @@ body::after {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
@@ -268,20 +280,22 @@ body::after {
 
 /* ===== Global Click Effects (Premium & Professional) ===== */
 @layer base {
-  button:not(:disabled), 
-  a[href], 
+
+  button:not(:disabled),
+  a[href],
   [role="button"]:not(:disabled) {
-    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), 
-                filter 0.15s cubic-bezier(0.4, 0, 0.2, 1), 
-                background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+      filter 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  
-  button:not(:disabled):active, 
-  a[href]:active, 
+
+  button:not(:disabled):active,
+  a[href]:active,
   [role="button"]:not(:disabled):active {
     transform: scale(0.96) !important;
-    filter: brightness(1.1) !important; /* Slight glow up instead of dark for dark mode luxury */
+    filter: brightness(1.1) !important;
+    /* Slight glow up instead of dark for dark mode luxury */
   }
 }
 
@@ -289,6 +303,7 @@ body::after {
 .card-hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-elevated);
@@ -301,11 +316,25 @@ body::after {
 }
 
 /* Stagger animation delay for lists */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
 
 /* Page transition wrapper */
 .page-transition {
@@ -314,17 +343,16 @@ body::after {
 
 /* Shimmer loading */
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(30, 41, 59, 0) 0%,
-    rgba(51, 65, 85, 0.3) 50%,
-    rgba(30, 41, 59, 0) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(30, 41, 59, 0) 0%,
+      rgba(51, 65, 85, 0.3) 50%,
+      rgba(30, 41, 59, 0) 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite linear;
 }
 
 @media (pointer: coarse) {
+
   button,
   [role="button"],
   a,
