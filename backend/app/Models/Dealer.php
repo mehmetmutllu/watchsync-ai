@@ -25,6 +25,7 @@ class Dealer extends Model
         'website',
         'notification_preferences',
         'status',
+        'invitation_expiry_days',
     ];
 
     protected function casts(): array
@@ -39,6 +40,11 @@ class Dealer extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
     }
 
     public function watches(): HasMany

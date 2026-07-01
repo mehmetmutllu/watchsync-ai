@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\DescriptionController;
 use App\Http\Controllers\Api\EbayController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\PlatformController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\WatchController;
 use App\Http\Controllers\Api\WebhookController;
 use Illuminate\Http\Request;
@@ -57,110 +59,150 @@ Route::prefix('webhooks')->middleware('throttle:30,1')->group(function () {
     Route::post('/shopify', [WebhookController::class, 'shopify']);
 });
 
+// Davet kabul akışı — public, token ile; brute-force koruması için throttle
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('/invitations/{token}', [InvitationController::class, 'show']);
+    Route::post('/invitations/{token}/accept', [InvitationController::class, 'accept']);
+});
+
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/activities', [DashboardController::class, 'activities']);
 
     // Bulk operations — düşük limit (must be before {id} routes)
     Route::middleware('throttle:bulk-operations')->group(function () {
-        Route::post('/watches/bulk-publish', [PlatformController::class, 'bulkPublish']);
+        Route::post('/watches/bulk-publish', [PlatformController::class, 'bulkPublish'])
+            ->middleware('permission:inventory.publish');
     });
-    Route::get('/watches/bulk-publish/{batchId}/status', [PlatformController::class, 'bulkPublishStatus']);
+    Route::get('/watches/bulk-publish/{batchId}/status', [PlatformController::class, 'bulkPublishStatus'])
+        ->middleware('permission:inventory.publish');
 
     // Watch CRUD — yazma işlemleri ayrı limit
-    Route::get('/watches', [WatchController::class, 'index']);
+    Route::get('/watches', [WatchController::class, 'index'])->middleware('permission:inventory.view');
     Route::middleware('throttle:inventory-write')->group(function () {
-        Route::post('/watches', [WatchController::class, 'store']);
-        Route::put('/watches/{id}', [WatchController::class, 'update']);
-        Route::delete('/watches/{id}', [WatchController::class, 'destroy']);
-        Route::patch('/watches/{id}/status', [WatchController::class, 'updateStatus']);
-        Route::post('/watches/{id}/images', [WatchController::class, 'uploadImages']);
-        Route::delete('/watches/{watchId}/images/{imageId}', [WatchController::class, 'deleteImage']);
-        Route::post('/watches/{id}/ai-process', [WatchController::class, 'aiProcess']);
-        Route::put('/watches/{id}/ai-results', [WatchController::class, 'aiResults']);
-        Route::post('/watches/{id}/publish', [WatchController::class, 'publish']);
+        Route::post('/watches', [WatchController::class, 'store'])->middleware('permission:inventory.create');
+        Route::put('/watches/{id}', [WatchController::class, 'update'])->middleware('permission:inventory.edit');
+        Route::delete('/watches/{id}', [WatchController::class, 'destroy'])->middleware('permission:inventory.delete');
+        Route::patch('/watches/{id}/status', [WatchController::class, 'updateStatus'])->middleware('permission:inventory.edit');
+        Route::post('/watches/{id}/images', [WatchController::class, 'uploadImages'])->middleware('permission:inventory.edit');
+        Route::delete('/watches/{watchId}/images/{imageId}', [WatchController::class, 'deleteImage'])->middleware('permission:inventory.edit');
+        Route::post('/watches/{id}/ai-process', [WatchController::class, 'aiProcess'])->middleware('permission:ai.use');
+        Route::put('/watches/{id}/ai-results', [WatchController::class, 'aiResults'])->middleware('permission:ai.use');
+        Route::post('/watches/{id}/publish', [WatchController::class, 'publish'])->middleware('permission:inventory.publish');
     });
-    Route::get('/watches/{id}', [WatchController::class, 'show']);
-    Route::get('/watches/{id}/ai-status', [WatchController::class, 'aiStatus']);
+    Route::get('/watches/{id}', [WatchController::class, 'show'])->middleware('permission:inventory.view');
+    Route::get('/watches/{id}/ai-status', [WatchController::class, 'aiStatus'])->middleware('permission:inventory.view');
 
     // Platform management — senkronizasyon limiti
-    Route::get('/platforms', [PlatformController::class, 'index']);
+    Route::get('/platforms', [PlatformController::class, 'index'])->middleware('permission:platforms.manage');
     Route::middleware('throttle:platform-sync')->group(function () {
-        Route::put('/platforms/{id}/credentials', [PlatformController::class, 'updateCredentials']);
-        Route::post('/platforms/{id}/disconnect', [PlatformController::class, 'disconnect']);
-        Route::post('/platforms/{id}/test-connection', [PlatformController::class, 'testConnection']);
-        Route::post('/watches/{watchId}/platforms/{platformId}/toggle', [PlatformController::class, 'toggleSync']);
+        Route::put('/platforms/{id}/credentials', [PlatformController::class, 'updateCredentials'])->middleware('permission:platforms.manage');
+        Route::post('/platforms/{id}/disconnect', [PlatformController::class, 'disconnect'])->middleware('permission:platforms.manage');
+        Route::post('/platforms/{id}/test-connection', [PlatformController::class, 'testConnection'])->middleware('permission:platforms.manage');
+        Route::post('/watches/{watchId}/platforms/{platformId}/toggle', [PlatformController::class, 'toggleSync'])->middleware('permission:inventory.publish');
     });
 
     // eBay OAuth
-    Route::get('/ebay/auth-url', [EbayController::class, 'authUrl']);
-    Route::post('/ebay/disconnect', [EbayController::class, 'disconnect']);
+    Route::get('/ebay/auth-url', [EbayController::class, 'authUrl'])->middleware('permission:platforms.manage');
+    Route::post('/ebay/disconnect', [EbayController::class, 'disconnect'])->middleware('permission:platforms.manage');
 
     // Watch sync status
-    Route::get('/watches/{watchId}/sync-status', [PlatformController::class, 'syncStatus']);
+    Route::get('/watches/{watchId}/sync-status', [PlatformController::class, 'syncStatus'])->middleware('permission:inventory.view');
 
     // Notifications
     Route::get('/notifications', [DashboardController::class, 'notifications']);
     Route::post('/notifications/read-all', [DashboardController::class, 'markAllNotificationsRead']);
     Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead']);
 
+    // Ekip Yönetimi — yalnızca owner || team.manage
+    Route::middleware('permission:team.manage')->group(function () {
+        Route::get('/team', [TeamController::class, 'index']);
+        Route::get('/team/permissions', [TeamController::class, 'permissions']);
+        Route::post('/team/invitations', [TeamController::class, 'storeInvitation']);
+        Route::post('/team/invitations/{invitation}/resend', [TeamController::class, 'resendInvitation']);
+        Route::delete('/team/invitations/{invitation}', [TeamController::class, 'destroyInvitation']);
+        Route::put('/team/members/{user}/permissions', [TeamController::class, 'updateMemberPermissions']);
+        Route::put('/team/members/{user}/role', [TeamController::class, 'updateMemberRole']);
+        Route::post('/team/members/{user}/disable', [TeamController::class, 'disableMember']);
+        Route::post('/team/members/{user}/enable', [TeamController::class, 'enableMember']);
+        Route::delete('/team/members/{user}', [TeamController::class, 'destroyMember']);
+
+        // Ekip davet varsayılanları
+        Route::get('/settings/team-defaults', [SettingsController::class, 'getTeamDefaults']);
+        Route::put('/settings/team-defaults', [SettingsController::class, 'updateTeamDefaults']);
+    });
+
     // Customer CRM
-    Route::get('/customers', [CustomerController::class, 'index']);
-    Route::post('/customers', [CustomerController::class, 'store']);
-    Route::get('/customers/stats', [CustomerController::class, 'stats']);
-    Route::get('/customers/upcoming-birthdays', [CustomerController::class, 'upcomingBirthdays']);
-    Route::get('/customers/{id}', [CustomerController::class, 'show']);
-    Route::get('/customers/{id}/timeline', [CustomerController::class, 'timeline']);
-    Route::get('/customers/{id}/matches', [CustomerController::class, 'matches']);
-    Route::put('/customers/{id}', [CustomerController::class, 'update']);
-    Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
-    Route::post('/customers/{id}/notes', [CustomerController::class, 'storeNote']);
-    Route::delete('/customers/{customerId}/notes/{noteId}', [CustomerController::class, 'destroyNote']);
+    Route::middleware('permission:crm.view')->group(function () {
+        Route::get('/customers', [CustomerController::class, 'index']);
+        Route::get('/customers/stats', [CustomerController::class, 'stats']);
+        Route::get('/customers/upcoming-birthdays', [CustomerController::class, 'upcomingBirthdays']);
+        Route::get('/customers/{id}', [CustomerController::class, 'show']);
+        Route::get('/customers/{id}/timeline', [CustomerController::class, 'timeline']);
+        Route::get('/customers/{id}/matches', [CustomerController::class, 'matches']);
+    });
+    Route::middleware('permission:crm.manage')->group(function () {
+        Route::post('/customers', [CustomerController::class, 'store']);
+        Route::put('/customers/{id}', [CustomerController::class, 'update']);
+        Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+        Route::post('/customers/{id}/notes', [CustomerController::class, 'storeNote']);
+        Route::delete('/customers/{customerId}/notes/{noteId}', [CustomerController::class, 'destroyNote']);
+    });
 
     // Invoices
-    Route::get('/invoices', [InvoiceController::class, 'index']);
-    Route::post('/invoices', [InvoiceController::class, 'store']);
-    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
-    Route::put('/invoices/{id}', [InvoiceController::class, 'update']);
-    Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
-    Route::middleware('throttle:downloads')->group(function () {
-        Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf']);
+    Route::middleware('permission:invoices.view')->group(function () {
+        Route::get('/invoices', [InvoiceController::class, 'index']);
+        Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
+        Route::middleware('throttle:downloads')->group(function () {
+            Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'downloadPdf']);
+        });
     });
-    Route::post('/invoices/{id}/send', [InvoiceController::class, 'send']);
+    Route::middleware('permission:invoices.manage')->group(function () {
+        Route::post('/invoices', [InvoiceController::class, 'store']);
+        Route::put('/invoices/{id}', [InvoiceController::class, 'update']);
+        Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy']);
+        Route::post('/invoices/{id}/send', [InvoiceController::class, 'send']);
+    });
 
     // Settings — düşük limit
     Route::middleware('throttle:settings')->group(function () {
         Route::put('/settings/profile', [SettingsController::class, 'updateProfile']);
         Route::put('/settings/password', [SettingsController::class, 'changePassword']);
-        Route::put('/settings/company', [SettingsController::class, 'updateCompany']);
-        Route::get('/settings/notifications', [SettingsController::class, 'getNotifications']);
-        Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications']);
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::put('/settings/company', [SettingsController::class, 'updateCompany']);
+            Route::get('/settings/notifications', [SettingsController::class, 'getNotifications']);
+            Route::put('/settings/notifications', [SettingsController::class, 'updateNotifications']);
+        });
     });
 
     // AI Service
-    Route::post('/watches/{id}/ai-enhance', [AiController::class, 'enhance']);
-    Route::post('/ai/segment', [AiController::class, 'segment']);
-    Route::post('/ai/replace-background', [AiController::class, 'replaceBackground']);
-    Route::get('/ai/health', [AiController::class, 'health']);
+    Route::middleware('permission:ai.use')->group(function () {
+        Route::post('/watches/{id}/ai-enhance', [AiController::class, 'enhance']);
+        Route::post('/ai/segment', [AiController::class, 'segment']);
+        Route::post('/ai/replace-background', [AiController::class, 'replaceBackground']);
+        Route::get('/ai/health', [AiController::class, 'health']);
 
-    // AI Text Generation
-    Route::post('/ai/generate-description', [DescriptionController::class, 'generate']);
-    Route::post('/watches/{id}/generate-description', [DescriptionController::class, 'generateForWatch']);
-    Route::post('/customers/{id}/generate-pitch', [AiController::class, 'generatePitch']);
-    Route::post('/customers/{id}/generate-birthday-pitch', [AiController::class, 'generateBirthdayPitch']);
-    Route::post('/customers/{id}/sentiment', [AiController::class, 'sentiment']);
+        // AI Text Generation
+        Route::post('/ai/generate-description', [DescriptionController::class, 'generate']);
+        Route::post('/watches/{id}/generate-description', [DescriptionController::class, 'generateForWatch']);
+        Route::post('/customers/{id}/generate-pitch', [AiController::class, 'generatePitch']);
+        Route::post('/customers/{id}/generate-birthday-pitch', [AiController::class, 'generateBirthdayPitch']);
+        Route::post('/customers/{id}/sentiment', [AiController::class, 'sentiment']);
+    });
 
     // Market Scanner
-    Route::get('/market/ebay-test', [MarketController::class, 'ebayTest']);
-    Route::get('/market/prices/{ref}', [MarketController::class, 'prices']);
-    Route::get('/market/competitors/{ref}', [MarketController::class, 'competitors']);
-    Route::get('/market/watchcharts-trend/{ref}', [MarketController::class, 'watchChartsTrend']);
-    Route::post('/market/scan', [MarketController::class, 'scan']);
+    Route::middleware('permission:market.view')->group(function () {
+        Route::get('/market/ebay-test', [MarketController::class, 'ebayTest']);
+        Route::get('/market/prices/{ref}', [MarketController::class, 'prices']);
+        Route::get('/market/competitors/{ref}', [MarketController::class, 'competitors']);
+        Route::get('/market/watchcharts-trend/{ref}', [MarketController::class, 'watchChartsTrend']);
+        Route::post('/market/scan', [MarketController::class, 'scan']);
 
-    // Price Alerts
-    Route::get('/price-alerts', [MarketController::class, 'alertIndex']);
-    Route::post('/price-alerts', [MarketController::class, 'alertStore']);
-    Route::delete('/price-alerts/{id}', [MarketController::class, 'alertDestroy']);
+        // Price Alerts
+        Route::get('/price-alerts', [MarketController::class, 'alertIndex']);
+        Route::post('/price-alerts', [MarketController::class, 'alertStore']);
+        Route::delete('/price-alerts/{id}', [MarketController::class, 'alertDestroy']);
+    });
 });
 
 // ─── Admin Panel API ────────────────────────────────────────────────

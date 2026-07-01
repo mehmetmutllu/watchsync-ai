@@ -40,6 +40,7 @@
     "market_scanner": "Market Scanner",
     "crm": "CRM",
     "invoices": "Invoices",
+    "team": "Team",
     "settings": "Settings"
   },
   "TopBar": {

@@ -22,12 +22,26 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'status',
+        'permissions',
+        'invited_by',
+        'invited_at',
+        'last_login_at',
         'notifications_read_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * Serileştirmede eklenecek türetilmiş alanlar.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'effective_permissions',
     ];
 
     /**
@@ -40,6 +54,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at'     => 'datetime',
             'password'              => 'hashed',
+            'permissions'           => 'array',
+            'invited_at'            => 'datetime',
+            'last_login_at'         => 'datetime',
             'notifications_read_at' => 'datetime',
         ];
     }
@@ -54,6 +71,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function adminUser(): HasOne
     {
         return $this->hasOne(AdminUser::class);
+    }
+
+    public function invitedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'invited_by');
     }
 
     // ─── Helpers ───────────────────────────────────────────────
@@ -76,5 +98,70 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isStaff(): bool
     {
         return $this->role === 'staff';
+    }
+
+    // ─── Status ────────────────────────────────────────────────
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->status === 'disabled';
+    }
+
+    public function isInvited(): bool
+    {
+        return $this->status === 'invited';
+    }
+
+    // ─── Permissions ───────────────────────────────────────────
+
+    /**
+     * Kullanıcının etkin izin listesi.
+     * owner → tüm izinler; explicit permissions varsa onlar; yoksa rol preset'i.
+     *
+     * @return array<int, string>
+     */
+    public function effectivePermissions(): array
+    {
+        if ($this->isOwner()) {
+            return array_keys(config('permissions.permissions'));
+        }
+
+        if (is_array($this->permissions)) {
+            return $this->permissions;
+        }
+
+        return config("permissions.presets.{$this->role}", []);
+    }
+
+    /**
+     * Kullanıcı belirtilen izne sahip mi? owner her zaman true.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->isOwner()) {
+            return true;
+        }
+
+        return in_array($permission, $this->effectivePermissions(), true);
+    }
+
+    public function canManageTeam(): bool
+    {
+        return $this->isOwner() || $this->hasPermission('team.manage');
+    }
+
+    /**
+     * Accessor: serileştirmede `effective_permissions` alanı olarak görünür.
+     *
+     * @return array<int, string>
+     */
+    public function getEffectivePermissionsAttribute(): array
+    {
+        return $this->effectivePermissions();
     }
 }

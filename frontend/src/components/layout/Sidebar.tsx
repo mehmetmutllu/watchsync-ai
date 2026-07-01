@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { usePermission } from "@/hooks/usePermission";
 import {
   LayoutDashboard,
   Package,
   BarChart3,
   Users,
+  UsersRound,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +29,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const t = useTranslations("Sidebar");
+  const { canManageTeam } = usePermission();
 
   const navItems = [
     { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
@@ -34,6 +37,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { href: "/dashboard/market-scanner", label: t("market_scanner"), icon: BarChart3 },
     { href: "/dashboard/crm", label: t("crm"), icon: Users },
     { href: "/dashboard/invoices", label: t("invoices"), icon: FileText },
+    ...(canManageTeam() ? [{ href: "/dashboard/team", label: t("team"), icon: UsersRound }] : []),
     { href: "/dashboard/settings", label: t("settings"), icon: Settings },
   ];
 

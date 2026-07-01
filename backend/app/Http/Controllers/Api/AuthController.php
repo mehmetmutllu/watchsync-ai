@@ -82,10 +82,21 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $request->session()->regenerate();
-
         /** @var User $user */
         $user = Auth::user();
+
+        // Devre dışı bırakılmış kullanıcı giriş yapamaz
+        if ($user->isDisabled()) {
+            Auth::guard('web')->logout();
+
+            return response()->json([
+                'message' => 'Hesabınız devre dışı bırakılmış.',
+            ], 401);
+        }
+
+        $request->session()->regenerate();
+
+        $user->forceFill(['last_login_at' => now()])->save();
 
         return response()->json([
             'message' => 'Giriş başarılı.',

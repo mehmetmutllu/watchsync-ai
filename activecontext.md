@@ -1,7 +1,7 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-07-01  
-> **Mevcut Faz:** Aşama 5 — API Key Girişi & Gerçek Veri Testi DEVAM EDİYOR 🔄  
+> **Son Güncelleme:** 2026-07-02  
+> **Mevcut Faz:** Aşama 7 — Ekip Yönetimi & İzin Sistemi DEVAM EDİYOR 🔄 (backend A–G ✅ + frontend H ✅; kalan I, J, K)  
 > **Sıradaki (PLANLANDI):** Aşama 7 — Ekip Yönetimi & İzin Sistemi (detaylı plan bu dosyanın SONUNDA; geliştirme sonraki chat'te başlayacak, her adımda Playwright testi)  
 > **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
@@ -652,23 +652,26 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 
 ---
 
-## 📌 Son Oturum (2026-07-01)
+## 📌 Son Oturum (2026-07-02)
 
-**Yapılanlar:**
-- GitHub repo `develop` dalı `C:\xampp\watchsync-ai`'ye klonlandı; proje XAMPP ortamında sıfırdan ayağa kaldırıldı.
-- PHP 8.3.31 portable `C:\php83`'e kuruldu (sistem `php` 7.3'tü, Laravel 13 `^8.3` istiyor). Composer 8.3 üstünde çalıştırıldı.
-- Backend: `composer install` (Horizon pcntl/posix ignore), `.env` XAMPP'e göre (DB_PORT=**3307** MariaDB, cache=file, queue=sync, mail=log), key:generate, `watchsync` DB, `migrate --seed` ✅.
-- Port çakışması çözüldü: 8000'de kullanıcının "İkra Vakfı" projesi vardı → backend **:8001**'e alındı (`APP_URL`, `NEXT_PUBLIC_API_URL`, `start-dev.bat` güncellendi).
-- Frontend: `npm install`, `.env.local`, `npm run dev` :3000 ✅. Doğrulandı (login `/de`'ye yönleniyor, 200).
-- Tüm sistem detaylı incelendi (backend + frontend + docs) — 21 model, 27 controller, 31 migration.
-- **Aşama 7 (Ekip Yönetimi & İzin Sistemi)** en ince detayına kadar planlandı → progress.md "AŞAMA 7" (49 görev) + activecontext "AŞAMA 7 DETAYLI SPEC".
-- Oturum sürekliliği ritüeli kuruldu: proje kökü `CLAUDE.md`, `.claude/commands/watch-kaydet.md` + `watch-devam.md`, projeye özel memory.
+**Yapılanlar (Aşama 7 — Ekip Yönetimi & İzin Sistemi):**
+- Dal açıldı: `feature/team-management` (develop'tan).
+- **Blok A — İzin config:** `backend/config/permissions.php` (16 kanonik izin + owner/manager/staff preset'leri + invitable_roles + default_invitation_expiry_days=7).
+- **Blok B — Şema:** migration `users`'a (status/permissions/invited_by/invited_at/last_login_at) + yeni `invitations` tablosu (token_hash unique, dealer/email index). `migrate` ✅, mevcut kullanıcılar active/null backfill.
+- **Blok C — Model:** `Invitation` modeli (isExpired/isPending/scopePending). `User`: fillable+casts, `effectivePermissions()`, `hasPermission()`, `canManageTeam()`, status helper'ları, `effective_permissions` accessor `$appends`'e eklendi (→ /auth/me).
+- **Blok D — Yetki zorlama:** `DealerPermission` middleware + `permission` alias; login `status=disabled`→401 + `last_login_at`; 4 Watch FormRequest `authorize()` gerçek izne bağlandı; `routes/api.php` 29 rotaya `permission:` (watches/crm/invoices/platforms/market/ai/settings).
+- **Blok G — Fiyat gizleme:** `WatchResource` (view_price/view_cost yoksa sale_price/cost_price çıkarılır); WatchController index/show → `resolve()` ile şema korunarak; DashboardController stats → view_price yoksa `total_inventory_value` gizli.
+- **Blok E — Davet API:** `TeamController` (12 uç), public `InvitationController` (show/accept), FormRequest'ler (Invite/Accept/UpdateMemberPermissions), `TeamInvitationNotification` (mail, FRONTEND_URL/invite/{token}), Settings team-defaults GET/PUT, `dealers.invitation_expiry_days` migration. **Bug fix:** accept'te `email_verified_at` mass-assignment → `forceFill`.
+- **Blok F — Güvenlik:** team.manage zorunlu, owner davet edilemez, subset izin kontrolü, aynı-dealer 403, son-owner koruması, e-posta global unique, disabled giriş engeli — hepsi TeamController'da.
+- **Blok H — Frontend UI:** tipler (TeamMember/TeamInvitation/PermissionCatalog...), `team-api.ts`+`invitationApi`, `permissions.ts`, `usePermission` hook + `<Can>`, `dashboard/team/page.tsx` + bileşenler (MemberList/MemberRow/PendingInvitations/InviteMemberModal/PermissionMatrix), Sidebar "Ekip" (izne göre) + i18n, WatchTable & Dashboard KPI fiyat gizleme gating.
 
 **Mevcut durum:**
-- Backend :8001 ve frontend :3000 çalışır durumda (bu oturumda). Kod değişikliği YOK — sadece kurulum + planlama + doküman.
-- Aşama 7 için henüz kod yazılmadı; plan hazır.
+- Backend testleri: WatchCrud/CustomerCrud/Dashboard/Settings/InventoryLock geçiyor. (Önceden var olan 4 hata: AuthTest register/login session + InvoiceTest x2 — BENİM değişikliklerimle ilgisiz, baseline'da da fail.)
+- Frontend `tsc --noEmit` yeni kodda temiz; team/dashboard/inventory sayfaları 200.
+- Uçtan uca akış tinker ile doğrulandı (davet→token→kabul→doğru rol/izin). **Tarayıcı etkileşim testi henüz yapılmadı (Blok K).**
+- Kod henüz commit'lendi (bu oturum sonu). Kalan bloklar: I, J, K.
 
 **Sonraki adımlar (watch-devam ile):**
-1. `git checkout develop && git checkout -b feature/team-management`.
-2. `start-dev.bat` ile ortamı ayağa kaldır.
-3. progress.md "AŞAMA 7" sırasını uygula (A→B→C→D→G backend, E→F, H→I→J frontend), her blok sonrası Playwright (K).
+1. **Blok I — Davet Kabul Sayfası:** `src/app/[locale]/(auth)/invite/[token]/page.tsx` — `invitationApi.show(token)` ile doğrula → isim+şifre formu → `invitationApi.accept` → dashboard'a yönlendir; geçersiz/süresi dolmuş/kabul edilmiş hata durumları. ⚠️ Next 16 async params (bkz. AGENTS.md / node_modules/next/dist/docs).
+2. **Blok J — i18n:** `messages/{de,en,tr}.json` → `Team` namespace (davet/rol/izin etiketleri, hata/başarı). Şu an team UI metinleri sabit TR string; namespace'e taşınacak.
+3. **Blok K — Playwright E2E:** `e2e/team.spec.ts` (owner davet → bekleyen listede → token ile kabul → giriş; view_price yok → fiyat gizli; team.manage yok → menü yok; disable → giriş engeli; manager subset 403; expired token; son owner silinemez). Davet POST yanıtı local/testing'de `accept_url` döndürüyor (token seam hazır). Her ekran mobil+masaüstü görsel kontrol.
