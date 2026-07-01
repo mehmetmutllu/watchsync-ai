@@ -1169,3 +1169,129 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 | İlk Yükleme Süresi (FCP) | < 1.5s |
 | API Yanıt Süresi (P95) | < 200ms |
 | Eşzamanlı Kullanıcı Desteği | 100+ |
+
+---
+
+## 🧑‍🤝‍🧑 AŞAMA 7 — EKİP YÖNETİMİ & İZİN SİSTEMİ (Team Management & Permissions)
+
+> **Durum:** ⬜ Planlandı — sonraki chat'te geliştirilecek
+> **Tarih (plan):** 2026-07-01
+> **Amaç:** Bir bayi (owner) veya `team.manage` iznine sahip manager, e-posta ile çalışan davet edebilsin; davet edilen kişi maildeki linkten şifre oluşturup katılsın; kendisine verilen izinler dahilinde hareket etsin (ör. saatleri görebilir ama fiyatları göremez).
+> **Kilitlenen kararlar:** (1) Hibrit izin modeli = rol preset + çalışan bazında override; (2) davet edebilenler: owner **ve** `team.manage`'li manager; (3) davet geçerlilik süresi **ayarlanabilir** (varsayılan 7 gün, davet başına override + bayi varsayılanı); (4) tam kapsam bu aşamada; (5) her adımdan sonra Playwright ile test.
+> **Not:** Kimlik doğrulama session/cookie (Sanctum SPA) — değişmiyor. Veri zaten `dealer_id` ile kapsamlı; aynı bayiye eklenen çalışan otomatik aynı veriyi görür.
+
+### 🔑 A. İzin Taksonomisi & Rol Preset'leri (config)
+- [ ] `backend/config/permissions.php` oluştur — kanonik izin listesi + rol preset haritaları
+  - [ ] Modül/aksiyon izinleri: `inventory.view/create/edit/delete/publish`, `crm.view/manage`, `invoices.view/manage`, `market.view`, `platforms.manage`, `ai.use`, `settings.manage`, `team.manage`
+  - [ ] Alan düzeyi izinler: `inventory.view_cost` (maliyet fiyatı), `inventory.view_price` (satış fiyatı)
+  - [ ] Preset: `owner` = tümü (implicit `*`), `manager` = team.manage hariç geniş set, `staff` = dar set (varsayılan: `inventory.view`, `ai.use`)
+  - [ ] Preset'ler yalnızca başlangıç; owner çalışan bazında override eder
+
+### 🗄 B. Veritabanı Şeması
+- [ ] Migration: `users` tablosuna alanlar ekle
+  - [ ] `status` enum('active','invited','disabled') default 'active'
+  - [ ] `permissions` json null (explicit izinler; null → rol preset'ine düşer)
+  - [ ] `invited_by` FK users null, `invited_at` timestamp null
+  - [ ] `last_login_at` timestamp null
+- [ ] Migration: `invitations` tablosu oluştur
+  - [ ] `id, dealer_id (FK), email, role enum('manager','staff'), permissions json null`
+  - [ ] `token_hash (unique), invited_by (FK users), expires_at, accepted_at null, revoked_at null, timestamps`
+  - [ ] Index: (dealer_id, email), token_hash unique
+- [ ] `migrate` çalıştır + mevcut kullanıcılar backfill (hepsi `status=active`, `permissions=null`)
+
+### 🧩 C. Model & Yetki Mantığı
+- [ ] `app/Models/Invitation.php` — fillable, casts (permissions array, expires_at/accepted_at datetime), `isExpired()`, `isPending()`, scope `pending()`
+- [ ] `User.php` güncelle
+  - [ ] fillable'a `status, permissions, invited_by, invited_at, last_login_at`
+  - [ ] casts: `permissions => array`, `invited_at/last_login_at => datetime`
+  - [ ] `effectivePermissions(): array` (owner → tüm izinler; permissions!=null → permissions; değilse preset[role])
+  - [ ] `hasPermission(string $perm): bool` (owner her zaman true)
+  - [ ] `canManageTeam(): bool` (owner || hasPermission('team.manage'))
+  - [ ] `isActive()/isDisabled()/isInvited()`, `invitedBy()` ilişkisi
+
+### 🛡 D. Yetkilendirme Zorlaması (mevcut güvenlik borcunu da kapatır)
+- [ ] `app/Http/Middleware/DealerPermission.php` — `permission:<izin>` (owner implicit izinli)
+- [ ] `bootstrap/app.php` alias: `'permission' => DealerPermission::class`
+- [ ] `login` akışı: `status=disabled` ise girişi engelle (401) + `last_login_at` güncelle
+- [ ] FormRequest `authorize()` metotlarını gerçek izinlerle doldur:
+  - [ ] `StoreWatchRequest` → `inventory.create`, `UpdateWatchRequest` → `inventory.edit`, `UpdateWatchStatusRequest` → `inventory.edit`, `UploadWatchImageRequest` → `inventory.edit`
+- [ ] `routes/api.php` — ilgili grup/rotalara `permission:` middleware ekle (watches, customers, invoices, platforms, market, ai, settings)
+
+### ✉️ E. Davet & Şifre-Oluşturma Akışı (API)
+- [ ] `app/Http/Controllers/Api/TeamController.php`
+  - [ ] `GET /api/team` — bayinin üyeleri + bekleyen davetler + izin kataloğu
+  - [ ] `GET /api/team/permissions` — taksonomi + preset'ler (UI için)
+  - [ ] `POST /api/team/invitations` — { email, role, permissions[], expires_in_days? } → davet + token + notification
+  - [ ] `POST /api/team/invitations/{invitation}/resend`, `DELETE /api/team/invitations/{invitation}`
+  - [ ] `PUT /api/team/members/{user}/permissions`, `PUT /api/team/members/{user}/role`
+  - [ ] `POST /api/team/members/{user}/disable` / `enable`, `DELETE /api/team/members/{user}`
+- [ ] `app/Http/Controllers/Api/InvitationController.php` (public)
+  - [ ] `GET /api/invitations/{token}` — token doğrula, e-posta + davet bilgisi dön
+  - [ ] `POST /api/invitations/{token}/accept` — { name, password } → User yarat (dealer_id/role/permissions davetten, status=active, email_verified_at=now), daveti accepted işaretle, otomatik login
+- [ ] FormRequest'ler: `InviteTeamMemberRequest`, `AcceptInvitationRequest`, `UpdateMemberPermissionsRequest`
+- [ ] `app/Notifications/TeamInvitationNotification.php` — mail; link `FRONTEND_URL/invite/{token}` (dev'de log'a düşer)
+- [ ] Bayi davet varsayılanı: `GET/PUT /api/settings/team-defaults` (invitation_expiry_days) veya company settings'e ekle
+
+### 🔒 F. Güvenlik & Sınır Durumları
+- [ ] Team rotaları yalnızca owner || `team.manage` (middleware)
+- [ ] `role='owner'` davet edilemez
+- [ ] Privilege escalation koruması: davet eden, sahip olmadığı izni/`team.manage`'i veremez (subset kontrolü)
+- [ ] Hedef kullanıcı aynı `dealer_id`'de olmalı (aksi halde 403)
+- [ ] Son owner korunur (silinemez/rol düşürülemez/pasifleştirilemez)
+- [ ] E-posta global unique: başka bayide kayıtlı e-posta → 422 net mesaj; aynı bayide bekleyen davet varsa → değiştir/yeniden gönder
+- [ ] Token: yalnız hash saklanır, tek kullanımlık, süre kontrolü; davet oluşturma + resend throttle
+- [ ] Disabled kullanıcı giriş yapamaz
+
+### 🎯 G. Alan Düzeyi Fiyat Gizleme
+- [ ] `app/Http/Resources/WatchResource.php` — `inventory.view_price` yoksa `sale_price`, `inventory.view_cost` yoksa `cost_price` alanını **tamamen çıkar**
+- [ ] `WatchController` (index/show) → WatchResource kullan
+- [ ] `DashboardController@stats` → envanter değeri KPI'ını `inventory.view_price` yoksa gizle/maskele
+- [ ] (Takip) CRM portföy değerleri ve diğer fiyat gösterimlerinde tutarlı gizleme
+
+### 💻 H. Frontend — Ekip Yönetimi UI
+- [ ] Tip güncellemeleri: `User`'a `status`, `permissions`, `last_login_at`; yeni `TeamMember`, `Invitation`, `PermissionCatalog`
+- [ ] `src/lib/team-api.ts` — tüm team endpoint'leri
+- [ ] `src/lib/permissions.ts` — sabitler + `hasPermission(user, perm)` + preset yardımcıları
+- [ ] `src/hooks/usePermission.ts` (veya store selector) + `<Can permission="...">` sarmalayıcı
+- [ ] Sayfa: `src/app/[locale]/(dashboard)/dashboard/team/page.tsx` (owner/`team.manage` görür)
+- [ ] Bileşenler: `components/team/MemberList.tsx`, `InviteMemberModal.tsx` (email + rol + izin checkbox grid + süre), `PendingInvitations.tsx`, `PermissionMatrix.tsx`, `MemberRow.tsx`
+- [ ] Sidebar'a "Ekip" öğesi (izne göre görünür)
+- [ ] Gating: sidebar öğeleri + fiyat sütun/alanları izne göre gizle (WatchTable, saat detay, dashboard KPI)
+
+### 🔗 I. Frontend — Davet Kabul Sayfası
+- [ ] `src/app/[locale]/(auth)/invite/[token]/page.tsx` — GET ile token doğrula → isim + şifre formu → POST accept → dashboard'a yönlendir
+- [ ] Geçersiz/süresi dolmuş/kabul edilmiş token için hata durumları
+- [ ] ⚠️ Next 16 (bkz. `frontend/AGENTS.md`) — kod öncesi `node_modules/next/dist/docs/` kontrol
+
+### 🌐 J. i18n
+- [ ] `messages/de|en|tr.json` → `Team` namespace (davet, roller, izin etiketleri, hata/başarı mesajları)
+- [ ] Backend `lang/` davet e-posta metinleri (opsiyonel çok dilli)
+
+### 🧪 K. Playwright E2E Testleri (her adımdan sonra + toplu)
+- [ ] `e2e/team.spec.ts`
+  - [ ] Owner staff davet eder → bekleyen davet listesinde görünür
+  - [ ] Davet kabul (token ile) → şifre oluştur → giriş yap
+  - [ ] `inventory.view_price` olmayan staff fiyat sütunlarını **görmez**
+  - [ ] `team.manage` olmayan kullanıcı "Ekip" menüsünü görmez
+  - [ ] Owner staff'ı pasifleştirir → staff girişi engellenir
+  - [ ] Manager `team.manage`'i veremez (403) — privilege escalation
+  - [ ] Süresi dolmuş token → kabul başarısız
+  - [ ] Son owner silinemez
+- [ ] Test tohumu (seam): local/testing ortamında davet POST yanıtı accept URL/token döndürsün (Playwright token'ı alabilsin); prod'da dönmesin
+- [ ] Responsive/görsel kontrol: her ekran için mobil + masaüstü
+
+### 📋 Aşama 7 — Özet Tablo
+| Kategori | Görev Sayısı | Durum |
+|----------|-------------|-------|
+| A. İzin Taksonomisi & Preset | 4 | ⬜ Başlanmadı |
+| B. Veritabanı Şeması | 3 | ⬜ Başlanmadı |
+| C. Model & Yetki Mantığı | 2 | ⬜ Başlanmadı |
+| D. Yetkilendirme Zorlaması | 6 | ⬜ Başlanmadı |
+| E. Davet & Şifre Akışı (API) | 6 | ⬜ Başlanmadı |
+| F. Güvenlik & Sınır Durumları | 8 | ⬜ Başlanmadı |
+| G. Alan Düzeyi Fiyat Gizleme | 4 | ⬜ Başlanmadı |
+| H. Frontend Ekip UI | 8 | ⬜ Başlanmadı |
+| I. Davet Kabul Sayfası | 3 | ⬜ Başlanmadı |
+| J. i18n | 2 | ⬜ Başlanmadı |
+| K. Playwright E2E | 3 | ⬜ Başlanmadı |
+| **TOPLAM** | **49** | — |

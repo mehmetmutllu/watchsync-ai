@@ -1,8 +1,9 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-04-10  
+> **Son Güncelleme:** 2026-07-01  
 > **Mevcut Faz:** Aşama 5 — API Key Girişi & Gerçek Veri Testi DEVAM EDİYOR 🔄  
-> **Sıradaki:** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
+> **Sıradaki (PLANLANDI):** Aşama 7 — Ekip Yönetimi & İzin Sistemi (detaylı plan bu dosyanın SONUNDA; geliştirme sonraki chat'te başlayacak, her adımda Playwright testi)  
+> **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -540,3 +541,134 @@ frontend/src/app/(dashboard)/dashboard/market-scanner/page.tsx (eBay status bann
 4. **WatchCharts API** (opsiyonel, ücretli): https://watchcharts.com/api
 5. Key'ler girildikten sonra: `php artisan market:test-scan 126610LN` ile doğrula
 6. Production geçişinde: `EBAY_ENVIRONMENT=production` yap
+
+---
+
+## 🧑‍🤝‍🧑 AŞAMA 7 (SIRADAKİ) — EKİP YÖNETİMİ & İZİN SİSTEMİ — DETAYLI SPEC
+
+> **Plan tarihi:** 2026-07-01 · **Durum:** ⬜ Geliştirme sonraki chat'te başlar · **Görev listesi:** `progress.md` → "AŞAMA 7"
+> Bu bölüm bir sonraki chat'in **tek referansı**. Kararlar kilitli; belirsizlik yok.
+
+### 0) Yerel geliştirme ortamı gerçekleri (ÖNEMLİ — bu makine XAMPP)
+- Backend: `php artisan serve` **:8001** (8000'de kullanıcının başka projesi "İkra Vakfı" var). `APP_URL=http://127.0.0.1:8001`.
+- Frontend: Next.js **:3000**. `NEXT_PUBLIC_API_URL=http://127.0.0.1:8001/api`. Davet linki `FRONTEND_URL=http://localhost:3000/invite/{token}`.
+- DB: XAMPP MariaDB **:3307** (root/boş), DB `watchsync`. PHP **8.3** `C:\php83`. Composer'ı `php C:\ProgramData\ComposerSetup\bin\composer.phar` ile 8.3 üstünde çalıştır; PATH'e `C:\php83` öne al.
+- **Mail = log**, **Queue = sync**, **Redis yok** → davet e-postası `backend/storage/logs/laravel.log`'a düşer. Linki almak için: log'da `/invite/` ara.
+- Başlatma kolaylığı: proje kökünde `start-dev.bat`.
+- Giriş: `demo@watchsync.ai / password` (owner), `superadmin@watchsync.ai / SuperAdmin123!` (platform admin — ayrı sistem).
+
+### 1) Kilitlenen kararlar
+- Kimlik: session/cookie (Sanctum SPA) — değişmez.
+- İzin modeli: **hibrit** = rol preset (`owner/manager/staff`) + kullanıcı bazında `permissions` JSON override. Çözümleme: owner → tüm izinler; `permissions!=null` → onu kullan; değilse `config('permissions.presets')[role]`.
+- Davet edebilen: **owner || `team.manage`'li manager**.
+- Davet süresi: **ayarlanabilir** — davet başına `expires_in_days` (opsiyonel) + bayi varsayılanı `invitation_expiry_days` (default 7).
+- Veri kapsamı: mevcut `dealer_id` filtresi yeterli (WatchController zaten böyle). Yeni çalışan = aynı dealer_id.
+
+### 2) İzin taksonomisi (kanonik — `config/permissions.php`)
+```
+inventory.view, inventory.create, inventory.edit, inventory.delete, inventory.publish
+inventory.view_cost   (alan düzeyi: maliyet fiyatı)
+inventory.view_price  (alan düzeyi: satış fiyatı)
+crm.view, crm.manage
+invoices.view, invoices.manage
+market.view
+platforms.manage
+ai.use
+settings.manage
+team.manage
+```
+Preset başlangıç değerleri (owner=implicit tümü):
+- `manager`: team.manage HARİÇ hepsi
+- `staff`: `inventory.view`, `ai.use` (owner override ile genişletir)
+
+### 3) Veri modeli (migration'lar)
+`users` (eklenecek): `status enum('active','invited','disabled') default 'active'`, `permissions json null`, `invited_by FK users null`, `invited_at ts null`, `last_login_at ts null`.
+`invitations` (yeni): `id, dealer_id FK, email, role enum('manager','staff'), permissions json null, token_hash string unique, invited_by FK users, expires_at, accepted_at null, revoked_at null, timestamps`. Index (dealer_id,email).
+Backfill: mevcut kullanıcılar `status=active`, `permissions=null` (preset'e düşer).
+
+### 4) API sözleşmesi
+**Auth (owner || team.manage)** — grup `permission:team.manage`:
+- `GET /api/team` → `{ members:[{id,name,email,role,status,permissions,last_login_at}], invitations:[{id,email,role,expires_at,invited_by}], catalog:{...} }`
+- `GET /api/team/permissions` → `{ permissions:[...], presets:{owner,manager,staff} }`
+- `POST /api/team/invitations` body `{ email, role:'manager'|'staff', permissions:string[], expires_in_days?:int }` → 201 `{ invitation }` (local/testing'de ayrıca `accept_url` döner — Playwright için)
+- `POST /api/team/invitations/{id}/resend` · `DELETE /api/team/invitations/{id}`
+- `PUT /api/team/members/{user}/permissions` `{ permissions:string[] }`
+- `PUT /api/team/members/{user}/role` `{ role }`
+- `POST /api/team/members/{user}/disable` · `.../enable` · `DELETE /api/team/members/{user}`
+**Public:**
+- `GET /api/invitations/{token}` → `{ email, role, dealer_name, expires_at }` (geçersiz→404, süresi dolmuş→410)
+- `POST /api/invitations/{token}/accept` `{ name, password, password_confirmation }` → user yarat + auto-login → `{ user }`
+**Settings:** `GET/PUT /api/settings/team-defaults` `{ invitation_expiry_days }`
+
+### 5) Yetkilendirme zorlaması (mevcut güvenlik borcu da kapanır)
+- `DealerPermission` middleware + `permission` alias; rotalara `permission:inventory.edit` vb.
+- FormRequest `authorize()` → `$this->user()->hasPermission('...')` (şu an hepsi `true`).
+- `login`: `status=disabled` → 401; başarı → `last_login_at=now`.
+- Fiyat gizleme: `WatchResource` → izin yoksa `sale_price`/`cost_price` alanı **çıkarılır**; Dashboard KPI envanter değeri `inventory.view_price` yoksa gizlenir.
+
+### 6) Güvenlik kuralları (TeamController'da zorla)
+owner rolü davet edilemez · davet eden sahip olmadığı izni veremez (subset) · hedef aynı dealer · son owner korunur · e-posta global unique çakışması net 422 · token yalnız hash, tek kullanımlık, süreli, throttle · disabled giriş yapamaz.
+
+### 7) Oluşturulacak/değişecek dosyalar (özet)
+```
+backend/
+  config/permissions.php                                  (yeni)
+  database/migrations/*_add_team_fields_to_users.php      (yeni)
+  database/migrations/*_create_invitations_table.php      (yeni)
+  app/Models/Invitation.php                               (yeni)
+  app/Models/User.php                                     (güncelle: fillable/casts/hasPermission/effectivePermissions/canManageTeam/status)
+  app/Http/Middleware/DealerPermission.php                (yeni)  + bootstrap/app.php alias
+  app/Http/Controllers/Api/TeamController.php             (yeni)
+  app/Http/Controllers/Api/InvitationController.php       (yeni)
+  app/Http/Requests/Team/{Invite,UpdateMemberPermissions}Request.php, Auth/AcceptInvitationRequest.php (yeni)
+  app/Http/Resources/WatchResource.php                    (yeni)  + WatchController kullansın
+  app/Notifications/TeamInvitationNotification.php        (yeni)
+  app/Http/Controllers/Api/AuthController.php             (login: status + last_login_at)
+  app/Http/Controllers/Api/SettingsController.php         (team-defaults)
+  app/Http/Requests/Watch/*                               (authorize güncelle)
+  routes/api.php                                          (team + invitations + settings/team-defaults + permission middleware)
+frontend/
+  src/types/index.ts                                      (User: status/permissions; TeamMember, Invitation, PermissionCatalog)
+  src/lib/team-api.ts, src/lib/permissions.ts             (yeni)
+  src/hooks/usePermission.ts (veya store selector) + <Can>  (yeni)
+  src/app/[locale]/(dashboard)/dashboard/team/page.tsx    (yeni)
+  src/components/team/{MemberList,InviteMemberModal,PendingInvitations,PermissionMatrix,MemberRow}.tsx (yeni)
+  src/app/[locale]/(auth)/invite/[token]/page.tsx         (yeni)
+  src/components/layout/Sidebar.tsx                        (Ekip öğesi, izne göre)
+  src/components/inventory/WatchTable.tsx + saat detay + dashboard KPI (fiyat gizleme)
+  messages/{de,en,tr}.json                                (Team namespace)
+e2e/team.spec.ts                                          (yeni)
+```
+
+### 8) Playwright test planı (her adımda çalıştır)
+Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giriş; `inventory.view_price` yok → fiyat sütunları gizli; `team.manage` yok → Ekip menüsü yok; disable → giriş engeli; manager `team.manage` veremez (403); süresi dolmuş token → kabul başarısız; son owner silinemez. Token'ı almak için: davet POST yanıtı **local/testing'de** `accept_url` döndürür (prod'da dönmez). Her ekranda mobil+masaüstü görsel kontrol.
+
+### 9) Sonraki chat — buradan başla
+1. `develop`'tan feature dalı aç: `git checkout develop && git checkout -b feature/team-management` (repo başlangıçta `develop`'ta).
+2. Backend'i XAMPP kurulumuyla ayağa kaldır (`start-dev.bat` veya manuel; PHP 8.3 + composer.phar). 
+3. progress.md "AŞAMA 7" sırasını uygula: A→B→C→D→G (backend), sonra E→F, sonra H→I→J (frontend), her blok sonrası K (Playwright).
+4. Her adımda ilgili checkbox'ları işaretle; bitişte activecontext + progress güncelle.
+5. Özellik biterse: kullanıcıyla UX/UI + responsive incelemesi (skill'lerle) yapılacak.
+
+---
+
+## 📌 Son Oturum (2026-07-01)
+
+**Yapılanlar:**
+- GitHub repo `develop` dalı `C:\xampp\watchsync-ai`'ye klonlandı; proje XAMPP ortamında sıfırdan ayağa kaldırıldı.
+- PHP 8.3.31 portable `C:\php83`'e kuruldu (sistem `php` 7.3'tü, Laravel 13 `^8.3` istiyor). Composer 8.3 üstünde çalıştırıldı.
+- Backend: `composer install` (Horizon pcntl/posix ignore), `.env` XAMPP'e göre (DB_PORT=**3307** MariaDB, cache=file, queue=sync, mail=log), key:generate, `watchsync` DB, `migrate --seed` ✅.
+- Port çakışması çözüldü: 8000'de kullanıcının "İkra Vakfı" projesi vardı → backend **:8001**'e alındı (`APP_URL`, `NEXT_PUBLIC_API_URL`, `start-dev.bat` güncellendi).
+- Frontend: `npm install`, `.env.local`, `npm run dev` :3000 ✅. Doğrulandı (login `/de`'ye yönleniyor, 200).
+- Tüm sistem detaylı incelendi (backend + frontend + docs) — 21 model, 27 controller, 31 migration.
+- **Aşama 7 (Ekip Yönetimi & İzin Sistemi)** en ince detayına kadar planlandı → progress.md "AŞAMA 7" (49 görev) + activecontext "AŞAMA 7 DETAYLI SPEC".
+- Oturum sürekliliği ritüeli kuruldu: proje kökü `CLAUDE.md`, `.claude/commands/watch-kaydet.md` + `watch-devam.md`, projeye özel memory.
+
+**Mevcut durum:**
+- Backend :8001 ve frontend :3000 çalışır durumda (bu oturumda). Kod değişikliği YOK — sadece kurulum + planlama + doküman.
+- Aşama 7 için henüz kod yazılmadı; plan hazır.
+
+**Sonraki adımlar (watch-devam ile):**
+1. `git checkout develop && git checkout -b feature/team-management`.
+2. `start-dev.bat` ile ortamı ayağa kaldır.
+3. progress.md "AŞAMA 7" sırasını uygula (A→B→C→D→G backend, E→F, H→I→J frontend), her blok sonrası Playwright (K).
