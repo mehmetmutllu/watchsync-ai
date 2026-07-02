@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { X, Loader2, Send } from 'lucide-react';
 import { teamApi } from '@/lib/team-api';
 import { toast } from '@/stores/toastStore';
@@ -22,6 +23,7 @@ export default function InviteMemberModal({
   onClose,
   onInvited,
 }: InviteMemberModalProps) {
+  const t = useTranslations('Team');
   const { user } = usePermission();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'manager' | 'staff'>('staff');
@@ -48,15 +50,15 @@ export default function InviteMemberModal({
         permissions,
         expires_in_days: expiryDays,
       });
-      toast.success('Davet gönderildi', `${email} adresine davet iletildi.`);
+      toast.success(t('invite_sent_title'), t('invite_sent_desc', { email }));
       onInvited();
       onClose();
     } catch (err) {
-      let message = 'Davet gönderilemedi.';
+      let message = t('invite_error');
       if (axios.isAxiosError(err) && err.response?.data?.message) {
         message = err.response.data.message;
       }
-      toast.error('Hata', message);
+      toast.error(t('error'), message);
     } finally {
       setSubmitting(false);
     }
@@ -66,11 +68,11 @@ export default function InviteMemberModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-border-strong rounded-xl shadow-[var(--shadow-elevated)]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle sticky top-0 bg-surface">
-          <h2 className="text-lg font-semibold text-primary-text">Ekip Üyesi Davet Et</h2>
+          <h2 className="text-lg font-semibold text-primary-text">{t('invite_title')}</h2>
           <button
             onClick={onClose}
             className="text-secondary-text hover:text-primary-text"
-            aria-label="Kapat"
+            aria-label={t('close')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -78,32 +80,32 @@ export default function InviteMemberModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-secondary-text mb-1">E-posta</label>
+            <label className="block text-sm font-medium text-secondary-text mb-1">{t('email')}</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="uye@ornek.com"
+              placeholder={t('email_placeholder')}
               className="w-full px-3 py-2 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-secondary-text mb-1">Rol</label>
+              <label className="block text-sm font-medium text-secondary-text mb-1">{t('role')}</label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as 'manager' | 'staff')}
                 className="w-full px-3 py-2 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue"
               >
-                <option value="staff">Çalışan</option>
-                <option value="manager">Yönetici</option>
+                <option value="staff">{t('role_staff')}</option>
+                <option value="manager">{t('role_manager')}</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-secondary-text mb-1">
-                Geçerlilik (gün)
+                {t('expiry_days')}
               </label>
               <input
                 type="number"
@@ -117,7 +119,7 @@ export default function InviteMemberModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-secondary-text mb-2">İzinler</label>
+            <label className="block text-sm font-medium text-secondary-text mb-2">{t('permissions')}</label>
             <PermissionMatrix
               catalog={catalog.permissions}
               selected={permissions}
@@ -132,7 +134,7 @@ export default function InviteMemberModal({
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text"
             >
-              İptal
+              {t('cancel')}
             </button>
             <button
               type="submit"
@@ -140,7 +142,7 @@ export default function InviteMemberModal({
               className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Davet Gönder
+              {t('send_invite')}
             </button>
           </div>
         </form>

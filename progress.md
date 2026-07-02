@@ -1261,26 +1261,28 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [ ] (Tarayıcı etkileşim testi Blok K'de: owner davet → staff fiyat göremez → team.manage yoksa menü yok)
 
 ### 🔗 I. Frontend — Davet Kabul Sayfası
-- [ ] `src/app/[locale]/(auth)/invite/[token]/page.tsx` — GET ile token doğrula → isim + şifre formu → POST accept → dashboard'a yönlendir
-- [ ] Geçersiz/süresi dolmuş/kabul edilmiş token için hata durumları
-- [ ] ⚠️ Next 16 (bkz. `frontend/AGENTS.md`) — kod öncesi `node_modules/next/dist/docs/` kontrol
+- [x] `src/app/[locale]/(auth)/invite/[token]/page.tsx` — GET ile token doğrula → isim + şifre formu → POST accept → dashboard'a yönlendir
+- [x] Geçersiz/süresi dolmuş/kabul edilmiş token için hata durumları (404→Geçersiz, 410→Süresi doldu)
+- [x] ⚠️ Next 16: `params: Promise<{token}>` + `use(params)` deseni (admin `[id]` sayfasıyla aynı)
 
 ### 🌐 J. i18n
-- [ ] `messages/de|en|tr.json` → `Team` namespace (davet, roller, izin etiketleri, hata/başarı mesajları)
-- [ ] Backend `lang/` davet e-posta metinleri (opsiyonel çok dilli)
+- [x] `messages/de|en|tr.json` → `Team` namespace (davet, roller, izin etiketleri, hata/başarı) + `Invite` namespace (davet kabul sayfası). Team bileşenleri (page, MemberList, MemberRow, PendingInvitations, InviteMemberModal, PermissionMatrix) `useTranslations`'a taşındı.
+- [ ] Backend `lang/` davet e-posta metinleri (opsiyonel çok dilli — atlandı)
+- [ ] (Not) İzin `label`'ları backend `config/permissions.php`'den geliyor (TR); tam çoklu dil isterse backend tarafı gerekir.
 
-### 🧪 K. Playwright E2E Testleri (her adımdan sonra + toplu)
-- [ ] `e2e/team.spec.ts`
-  - [ ] Owner staff davet eder → bekleyen davet listesinde görünür
-  - [ ] Davet kabul (token ile) → şifre oluştur → giriş yap
-  - [ ] `inventory.view_price` olmayan staff fiyat sütunlarını **görmez**
-  - [ ] `team.manage` olmayan kullanıcı "Ekip" menüsünü görmez
-  - [ ] Owner staff'ı pasifleştirir → staff girişi engellenir
-  - [ ] Manager `team.manage`'i veremez (403) — privilege escalation
-  - [ ] Süresi dolmuş token → kabul başarısız
-  - [ ] Son owner silinemez
-- [ ] Test tohumu (seam): local/testing ortamında davet POST yanıtı accept URL/token döndürsün (Playwright token'ı alabilsin); prod'da dönmesin
-- [ ] Responsive/görsel kontrol: her ekran için mobil + masaüstü
+### 🧪 K. Playwright E2E Testleri — `e2e/team.spec.ts` ✅ 5/5 GEÇİYOR
+- [x] Owner staff davet eder → bekleyen davet listesinde görünür
+- [x] Davet kabul (accept_url token ile) → şifre oluştur → dashboard'a ulaşır
+- [x] `inventory.view_price` olmayan staff fiyat sütunlarını **görmez** (+ `team.manage` yok → "Ekip" menüsü yok)
+- [x] Owner staff'ı pasifleştirir → staff girişi 401 ile engellenir + "devre dışı" mesajı
+- [x] Son owner korunur (owner satırında Sil/Pasifleştir aksiyonu yok)
+- [x] Geçersiz token → "Geçersiz Davet" hata durumu
+- [ ] Manager `team.manage` veremez (403) & süresi dolmuş token → backend Feature testine bırakıldı (UI'da manager fixture/DB-expiry gerektirir); F bloğu zaten sunucuda zorluyor
+- [x] Test tohumu (seam): davet POST yanıtı local/testing'de `accept_url` döndürüyor (Playwright token'ı buradan alıyor)
+- [x] Responsive: davet/team ekranları mobil+masaüstü render (auth layout responsive)
+- **Yol boyunca bulunan 2 gerçek bug düzeltildi:**
+  - Tarayıcı SPA login CSRF: sayfa `localhost:3000` iken API `127.0.0.1:8001` farklı host → XSRF cookie okunamıyor → 419. `frontend/.env.local` `NEXT_PUBLIC_API_URL` `localhost:8001` yapıldı (SANCTUM/CORS/FRONTEND_URL zaten localhost).
+  - `lib/api.ts` 401 interceptor'ı locale önekini yok sayıyordu (`/tr/login` → `/login` başlamıyor) → login 401'inde sayfayı reload edip hata mesajını bastırıyordu. Locale-aware düzeltildi.
 
 ### 📋 Aşama 7 — Özet Tablo
 | Kategori | Görev Sayısı | Durum |
@@ -1293,7 +1295,7 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 | F. Güvenlik & Sınır Durumları | 8 | ✅ Tamamlandı (test kanıtı K'de) |
 | G. Alan Düzeyi Fiyat Gizleme | 4 | ✅ 3/4 (CRM portföy takip) |
 | H. Frontend Ekip UI | 8 | ✅ Tamamlandı (tarayıcı testi K'de) |
-| I. Davet Kabul Sayfası | 3 | ⬜ Başlanmadı |
-| J. i18n | 2 | ⬜ Başlanmadı |
-| K. Playwright E2E | 3 | ⬜ Başlanmadı |
-| **TOPLAM** | **49** | **~40 done · I/J/K kaldı** |
+| I. Davet Kabul Sayfası | 3 | ✅ Tamamlandı |
+| J. i18n | 2 | ✅ Team+Invite namespace (backend lang opsiyonel atlandı) |
+| K. Playwright E2E | 3 | ✅ 5/5 test geçiyor (manager-subset & expired → backend Feature) |
+| **TOPLAM** | **49** | **✅ Aşama 7 tamam · E2E yeşil · 2 gerçek bug fix** |

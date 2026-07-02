@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-02  
-> **Mevcut Faz:** Aşama 7 — Ekip Yönetimi & İzin Sistemi DEVAM EDİYOR 🔄 (backend A–G ✅ + frontend H ✅; kalan I, J, K)  
-> **Sıradaki (PLANLANDI):** Aşama 7 — Ekip Yönetimi & İzin Sistemi (detaylı plan bu dosyanın SONUNDA; geliştirme sonraki chat'te başlayacak, her adımda Playwright testi)  
+> **Mevcut Faz:** Aşama 7 — Ekip Yönetimi & İzin Sistemi ✅ TAMAMLANDI (A–K; E2E 5/5 yeşil; feature/team-management dalı, henüz develop'a PR açılmadı)  
+> **Sıradaki (PLANLANDI):** Skill'lerle TAM SİSTEM İNCELEMESİ — UI/UX (impeccable, design-review, emil-design-eng) + genel sistem/kod kalitesi (security-audit, react-patterns, simplify): açıkları/kötü yanları bul ve düzelt. Sonrasında `feature/team-management` → develop PR.  
 > **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -675,3 +675,27 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 1. **Blok I — Davet Kabul Sayfası:** `src/app/[locale]/(auth)/invite/[token]/page.tsx` — `invitationApi.show(token)` ile doğrula → isim+şifre formu → `invitationApi.accept` → dashboard'a yönlendir; geçersiz/süresi dolmuş/kabul edilmiş hata durumları. ⚠️ Next 16 async params (bkz. AGENTS.md / node_modules/next/dist/docs).
 2. **Blok J — i18n:** `messages/{de,en,tr}.json` → `Team` namespace (davet/rol/izin etiketleri, hata/başarı). Şu an team UI metinleri sabit TR string; namespace'e taşınacak.
 3. **Blok K — Playwright E2E:** `e2e/team.spec.ts` (owner davet → bekleyen listede → token ile kabul → giriş; view_price yok → fiyat gizli; team.manage yok → menü yok; disable → giriş engeli; manager subset 403; expired token; son owner silinemez). Davet POST yanıtı local/testing'de `accept_url` döndürüyor (token seam hazır). Her ekran mobil+masaüstü görsel kontrol.
+
+---
+
+## 📌 Son Oturum (2026-07-02 · devam — Aşama 7 I/J/K bitirildi)
+
+**Yapılanlar (Blok I, J, K + 2 gerçek bug fix):**
+- **Blok I — Davet Kabul Sayfası:** `frontend/src/app/[locale]/(auth)/invite/[token]/page.tsx` (yeni). Next 16 `params: Promise` + `use(params)`. Akış: `invitationApi.show(token)` ile doğrula → loading/invalid(404)/expired(410) durumları → isim+şifre formu (RHF+Zod, auth sayfalarıyla aynı stil) → `getCsrfCookie()` + `invitationApi.accept` → `fetchUser()` → `/dashboard`. Davet özet kartı (e-posta + rol rozeti).
+- **Blok J — i18n:** `messages/{tr,en,de}.json`'a `Invite` + `Team` namespace'leri eklendi (3 dil simetrik). Team bileşenleri sabit TR stringlerden `useTranslations('Team')`'e taşındı: `dashboard/team/page.tsx`, `MemberList`, `MemberRow`, `PendingInvitations`, `InviteMemberModal`, `PermissionMatrix`. (İzin `label`'ları hâlâ backend `config/permissions.php`'den TR geliyor — tam çoklu dil isterse backend gerekir. Backend davet e-posta lang'i opsiyonel, atlandı.)
+- **Blok K — Playwright:** `e2e/team.spec.ts` (yeni) — **5/5 GEÇİYOR**. Kapsam: owner login→team→davet (accept_url seam ile token)→bekleyen listede; yeni context'te davet kabul→dashboard; staff'ta fiyat sütunları + "Ekip" menüsü gizli; owner disable→staff login 401 "devre dışı"; owner satırında Sil/Pasifleştir yok (son-owner UI koruması); geçersiz token→"Geçersiz Davet". Manager-subset(403) & expired-token backend Feature testine bırakıldı (UI fixture/DB-expiry gerektirir; F bloğu sunucuda zaten zorluyor). Robustluk: locale determinizmi için `/tr` öneki, dev-hydration yarışına karşı `networkidle` + göz-toggle kanıtı, OnboardingTour `addInitScript` ile kapatıldı, cömert timeout.
+
+**Yol boyunca bulunan & düzeltilen 2 GERÇEK BUG (tarayıcı testinin amacı):**
+1. **SPA login CSRF 419 (tarayıcıda giriş bozuk):** Sayfa `localhost:3000`, API `127.0.0.1:8001` farklı host → JS `XSRF-TOKEN` cookie'sini okuyamıyor → `X-XSRF-TOKEN` header'ı gitmiyor → 419. SANCTUM_STATEFUL_DOMAINS/CORS/FRONTEND_URL zaten `localhost` olduğundan **`frontend/.env.local` `NEXT_PUBLIC_API_URL=http://localhost:8001/api`** yapıldı (host birleşti → cookie okunuyor → login 200). ⚠️ CLAUDE.md hâlâ `127.0.0.1:8001` diyor — **doküman güncellenmeli** (veya API'yi de 127.0.0.1'de tutup her şeyi 127.0.0.1'e almak; ama Next dev 127.0.0.1'de HMR/hydration bozuyor, localhost tercih edildi).
+2. **`lib/api.ts` 401 interceptor locale önekini yok sayıyordu:** `/tr/login`, `/login` ile başlamadığı için login 401'inde interceptor sayfayı `/login`'e sert reload edip hata mesajını bastırıyordu. `pathname.replace(/^\/(en|tr|de)(?=\/|$)/,'')` ile locale-aware düzeltildi (artık login sayfasında 401 → hata mesajı gösteriliyor).
+
+**Mevcut durum / ortam:**
+- Frontend dev sunucusu **yeni env ile yeniden başlatıldı** (eski PID 24664 kapatıldı, `npm run dev` arka planda `localhost:8001` API ile ayakta). Backend değişmedi (config cache yok, .env per-request okunuyor).
+- `tsc --noEmit`: yeni kodda temiz (kalan hatalar önceden var olan `__tests__` dosyalarında, ilgisiz).
+- Değişen/yeni dosyalar: `invite/[token]/page.tsx` (yeni), `e2e/team.spec.ts` (yeni), `messages/{tr,en,de}.json`, `dashboard/team/page.tsx`, `components/team/*` (5 dosya), `lib/api.ts` (interceptor fix), `frontend/.env.local` (API URL — gitignore).
+
+**Sonraki adımlar (SONRAKİ CHAT'İN İLK İŞİ — kullanıcı talebi):**
+1. **Skill'lerle TAM SİSTEM İNCELEMESİ:** tüm sistemi UI/UX ve genel sistem açısından incele; açıkları/kötü yanları bul, fikir üret ve **düzelt**. Kullanılacak skill'ler: `impeccable` + `frontend:design-review` + `emil-design-eng` (UI/UX), `security-audit` (güvenlik), `frontend:react-patterns` (React kalite), `simplify` (kod kalite). Dev ortam: `start-dev.bat` (frontend localhost:3000, backend localhost:8001) + Playwright/tarayıcı ile canlı inceleme. Giriş: demo@watchsync.ai / password.
+2. **CLAUDE.md/doküman:** `NEXT_PUBLIC_API_URL=http://localhost:8001/api` kararını yansıt (aksi halde temiz kurulumda tarayıcı login 419 olur).
+3. **Opsiyonel:** manager-subset(403) & expired-token için backend Feature testleri (`tests/Feature/TeamTest.php`) — F bloğu kanıtı.
+4. İnceleme + düzeltmeler bitince: `feature/team-management` → `develop` PR.

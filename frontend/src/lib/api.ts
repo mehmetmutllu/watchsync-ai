@@ -35,8 +35,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      // Admin sayfalarında admin login'e, diğerlerinde normal login'e yönlendir
+      // Locale önekini soy (/tr/login → /login) ki yönlendirme kararı doğru olsun.
+      const path = window.location.pathname.replace(/^\/(en|tr|de)(?=\/|$)/, '') || '/';
+      // Admin sayfalarında admin login'e, diğerlerinde normal login'e yönlendir.
+      // Zaten login sayfasındaysak yönlendirme yapma — hata mesajı gösterilebilsin.
       if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
         window.location.href = '/admin/login';
       } else if (!path.startsWith('/login') && !path.startsWith('/admin')) {

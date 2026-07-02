@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import type { PermissionCatalogItem } from '@/types';
 
 interface PermissionMatrixProps {
@@ -12,16 +13,7 @@ interface PermissionMatrixProps {
   grantable?: string[] | null;
 }
 
-const GROUP_LABELS: Record<string, string> = {
-  inventory: 'Envanter',
-  crm: 'Müşteriler',
-  invoices: 'Faturalar',
-  market: 'Pazar',
-  platforms: 'Platformlar',
-  ai: 'AI',
-  settings: 'Ayarlar',
-  team: 'Ekip',
-};
+const GROUP_KEYS = ['inventory', 'crm', 'invoices', 'market', 'platforms', 'ai', 'settings', 'team'];
 
 export default function PermissionMatrix({
   catalog,
@@ -30,6 +22,9 @@ export default function PermissionMatrix({
   disabled = false,
   grantable = null,
 }: PermissionMatrixProps) {
+  const t = useTranslations('Team');
+  const groupLabel = (group: string) =>
+    GROUP_KEYS.includes(group) ? t(`group_${group}` as `group_${string}`) : group;
   const groups = useMemo(() => {
     const map = new Map<string, PermissionCatalogItem[]>();
     for (const item of catalog) {
@@ -54,7 +49,7 @@ export default function PermissionMatrix({
       {groups.map(([group, items]) => (
         <div key={group} className="border border-border-subtle rounded-lg p-3">
           <h4 className="text-xs font-semibold uppercase tracking-wide text-secondary-text mb-2">
-            {GROUP_LABELS[group] ?? group}
+            {groupLabel(group)}
           </h4>
           <div className="grid gap-2 sm:grid-cols-2">
             {items.map((item) => {

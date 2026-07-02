@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Users, UserPlus, Loader2, ShieldAlert, X, Save } from 'lucide-react';
 import { teamApi } from '@/lib/team-api';
 import { toast } from '@/stores/toastStore';
@@ -13,6 +14,7 @@ import type { TeamResponse, TeamMember, TeamInvitation } from '@/types';
 import axios from 'axios';
 
 export default function TeamPage() {
+  const t = useTranslations('Team');
   const { user, canManageTeam } = usePermission();
   const [data, setData] = useState<TeamResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,7 @@ export default function TeamPage() {
       setData(team);
       setDefaultExpiry(defaults.invitation_expiry_days);
     } catch {
-      toast.error('Hata', 'Ekip bilgileri yüklenemedi.');
+      toast.error(t('error'), t('load_error'));
     } finally {
       setLoading(false);
     }
@@ -49,13 +51,13 @@ export default function TeamPage() {
     setSavingPerms(true);
     try {
       await teamApi.updateMemberPermissions(editing.id, editPerms);
-      toast.success('Kaydedildi', 'İzinler güncellendi.');
+      toast.success(t('perms_saved_title'), t('perms_saved_desc'));
       setEditing(null);
       load();
     } catch (err) {
-      let message = 'İzinler güncellenemedi.';
+      let message = t('perms_save_error');
       if (axios.isAxiosError(err) && err.response?.data?.message) message = err.response.data.message;
-      toast.error('Hata', message);
+      toast.error(t('error'), message);
     } finally {
       setSavingPerms(false);
     }
@@ -65,45 +67,45 @@ export default function TeamPage() {
     try {
       if (member.status === 'disabled') await teamApi.enableMember(member.id);
       else await teamApi.disableMember(member.id);
-      toast.success('Güncellendi', `${member.name} durumu değişti.`);
+      toast.success(t('status_updated_title'), t('status_updated_desc', { name: member.name }));
       load();
     } catch (err) {
-      let message = 'İşlem başarısız.';
+      let message = t('status_error');
       if (axios.isAxiosError(err) && err.response?.data?.message) message = err.response.data.message;
-      toast.error('Hata', message);
+      toast.error(t('error'), message);
     }
   };
 
   const handleDelete = async (member: TeamMember) => {
-    if (!window.confirm(`${member.name} ekipten silinsin mi?`)) return;
+    if (!window.confirm(t('delete_confirm', { name: member.name }))) return;
     try {
       await teamApi.removeMember(member.id);
-      toast.success('Silindi', `${member.name} ekipten çıkarıldı.`);
+      toast.success(t('deleted_title'), t('deleted_desc', { name: member.name }));
       load();
     } catch (err) {
-      let message = 'Silme başarısız.';
+      let message = t('delete_error');
       if (axios.isAxiosError(err) && err.response?.data?.message) message = err.response.data.message;
-      toast.error('Hata', message);
+      toast.error(t('error'), message);
     }
   };
 
   const handleResend = async (inv: TeamInvitation) => {
     try {
       await teamApi.resendInvitation(inv.id);
-      toast.success('Gönderildi', `${inv.email} adresine davet yeniden gönderildi.`);
+      toast.success(t('resent_title'), t('resent_desc', { email: inv.email }));
       load();
     } catch {
-      toast.error('Hata', 'Davet yeniden gönderilemedi.');
+      toast.error(t('error'), t('resend_error'));
     }
   };
 
   const handleRevoke = async (inv: TeamInvitation) => {
     try {
       await teamApi.revokeInvitation(inv.id);
-      toast.success('İptal edildi', 'Davet iptal edildi.');
+      toast.success(t('revoked_title'), t('revoked_desc'));
       load();
     } catch {
-      toast.error('Hata', 'Davet iptal edilemedi.');
+      toast.error(t('error'), t('revoke_error'));
     }
   };
 
@@ -111,8 +113,8 @@ export default function TeamPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <ShieldAlert className="w-12 h-12 text-red-400 mb-4" />
-        <h2 className="text-lg font-semibold text-primary-text">Erişim Yok</h2>
-        <p className="text-sm text-secondary-text mt-1">Bu sayfayı görüntüleme yetkiniz yok.</p>
+        <h2 className="text-lg font-semibold text-primary-text">{t('access_denied_title')}</h2>
+        <p className="text-sm text-secondary-text mt-1">{t('access_denied_desc')}</p>
       </div>
     );
   }
@@ -134,8 +136,8 @@ export default function TeamPage() {
             <Users className="w-5 h-5 text-accent-blue" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-primary-text">Ekip Yönetimi</h1>
-            <p className="text-sm text-secondary-text">Üyeleri davet edin ve izinleri yönetin</p>
+            <h1 className="text-xl font-bold text-primary-text">{t('title')}</h1>
+            <p className="text-sm text-secondary-text">{t('subtitle')}</p>
           </div>
         </div>
         <button
@@ -143,7 +145,7 @@ export default function TeamPage() {
           className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 transition-colors"
         >
           <UserPlus className="w-4 h-4" />
-          Üye Davet Et
+          {t('invite_btn')}
         </button>
       </div>
 
@@ -180,13 +182,13 @@ export default function TeamPage() {
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-border-strong rounded-xl shadow-[var(--shadow-elevated)]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle sticky top-0 bg-surface">
               <div>
-                <h2 className="text-lg font-semibold text-primary-text">İzinleri Düzenle</h2>
+                <h2 className="text-lg font-semibold text-primary-text">{t('edit_permissions_title')}</h2>
                 <p className="text-xs text-secondary-text">{editing.name} · {editing.email}</p>
               </div>
               <button
                 onClick={() => setEditing(null)}
                 className="text-secondary-text hover:text-primary-text"
-                aria-label="Kapat"
+                aria-label={t('close')}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -203,7 +205,7 @@ export default function TeamPage() {
                   onClick={() => setEditing(null)}
                   className="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text"
                 >
-                  İptal
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={handleSavePerms}
@@ -211,7 +213,7 @@ export default function TeamPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
                 >
                   {savingPerms ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Kaydet
+                  {t('save')}
                 </button>
               </div>
             </div>
