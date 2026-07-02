@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-02  
-> **Mevcut Faz:** Aşama 7 — Ekip Yönetimi & İzin Sistemi ✅ TAMAMLANDI (A–K; E2E 5/5 yeşil; feature/team-management dalı, henüz develop'a PR açılmadı)  
-> **Sıradaki (PLANLANDI):** Skill'lerle TAM SİSTEM İNCELEMESİ — UI/UX (impeccable, design-review, emil-design-eng) + genel sistem/kod kalitesi (security-audit, react-patterns, simplify): açıkları/kötü yanları bul ve düzelt. Sonrasında `feature/team-management` → develop PR.  
+> **Mevcut Faz:** TAM SİSTEM İNCELEMESİ yapıldı ✅ (3 rapor: canlı UI/UX + frontend kod kalitesi + backend güvenlik) — backend blokerleri DÜZELTİLDİ, frontend düzeltmeleri (P0/P1/P2) SIRADAKİ chat'te.  
+> **Sıradaki (İLK İŞ):** Aşağıdaki "Son Oturum (inceleme)" bloğundaki P0→P1→P2 frontend düzeltme listesini uygula (kararlar kilitli: tour=data-tour ekle, ConfirmModal=yap). Bitince testler+E2E, sonra `feature/team-management` → develop PR.  
 > **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -699,3 +699,48 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 2. **CLAUDE.md/doküman:** `NEXT_PUBLIC_API_URL=http://localhost:8001/api` kararını yansıt (aksi halde temiz kurulumda tarayıcı login 419 olur).
 3. **Opsiyonel:** manager-subset(403) & expired-token için backend Feature testleri (`tests/Feature/TeamTest.php`) — F bloğu kanıtı.
 4. İnceleme + düzeltmeler bitince: `feature/team-management` → `develop` PR.
+
+---
+
+## 📌 Son Oturum (2026-07-02 · devam 2 — TAM SİSTEM İNCELEMESİ)
+
+**Yapılanlar:**
+- **3 bağımsız inceleme tamamlandı:** (1) canlı UI/UX tasarım incelemesi (design-review ajanı, tüm sayfalar), (2) frontend kod kalitesi (react-patterns/simplify perspektifi), (3) backend güvenlik/doğruluk incelemesi. Ayrıca deterministik AI-slop taraması (`npx impeccable`).
+- **PRODUCT.md yazıldı** (impeccable skill gate'i — register=product, kullanıcı onaylı: lüks saat bayisi / premium-sakin-güvenilir / anti-ref: jenerik SaaS + eski ERP + lüks kitsch). DESIGN.md zaten vardı.
+- **CLAUDE.md güncellendi:** `NEXT_PUBLIC_API_URL=http://localhost:8001/api` (localhost zorunlu, 127.0.0.1 → 419 CSRF).
+- **Backend blokerleri DÜZELTİLDİ (test edildi):**
+  - `PlatformController.toggleSync` — watch dealer sahiplik kontrolü eklendi (cross-tenant sync/kaldırma açığı kapandı); bulk publish cache anahtarı dealer'a bağlandı (`bulk_publish_{dealerId}_{batchId}`).
+  - `TeamController.assertGrantableBy(inviter, granted, role)` — `permissions=null` davet/rol değişiminde artık ROL PRESET'İ davet edenin izinleriyle karşılaştırılıyor (privilege escalation kapandı). `[]` = gerçekten izinsiz, serbest.
+  - `updateMemberRole`: self-check + grantable kontrolü; owner hedefli işlemler (rol/disable/delete) yalnız owner'a (`assertOwnerActionAllowed`).
+  - **Yeni:** `app/Http/Middleware/EnsureUserIsActive.php` — api grubuna append (bootstrap/app.php); disabled kullanıcı permission'sız rotalara da (notifications, profile...) erişemez.
+  - `EbayIntegrationTest` gizli kırığı: factory user'a `role=owner` eklendi (Blok D'de permission middleware gelince kırılmış, fark edilmemişti).
+  - `backend/testing` (SQLite) git izleminden çıkarıldı + `.gitignore`'a `backend/testing`, `frontend/test-results/` eklendi.
+- **Test durumu:** Feature suite 111 passed / 4 fail — 4'ü baseline'daki bilinen hatalar (AuthTest register/login x2 + InvoiceTest x2, bu daldan önce de vardı).
+
+**SONRAKİ CHAT'İN İŞİ — FRONTEND DÜZELTME LİSTESİ (kararlar kilitli):**
+
+🔴 **P0 (kırık işlev):**
+1. `dashboard/team/page.tsx:39-42` sonsuz fetch döngüsü — `usePermission()` her render'da yeni `canManageTeam` closure döndürüyor (hooks/usePermission.ts). Fix: effect dep'ini `user?.id`'ye bağla veya hook'tan memoize boolean döndür.
+2. `OnboardingTour` hiç çalışmıyor — `[data-tour="..."]` selector'ları hiçbir bileşende yok. KARAR: data-tour attribute'ları EKLENECEK (Sidebar, dashboard KPI, TopBar bildirim).
+3. `messages/tr.json` 10 eksik anahtar: `CRM.quick_actions, CRM.whatsapp_action, CRM.wa_template_{birthday,followup,offer,custom}, CRM.wa_text_{birthday,followup,offer,custom}` (en/de'den çevir).
+4. Invoices form: kalemler bölüm başlığı yanlışlıkla `t("new_invoice")` — `line_items` anahtarı ekle (3 dilde) ve kullan.
+
+🟠 **P1 (güven/marka):**
+5. CRM sayfası 20+ hardcoded ALMANCA string ("Geburtstagsmail generieren", "EIGENES INVENTAR", "Kunden pitchen"...) → `useTranslations('CRM')`'e taşı (3 dil).
+6. KARAR: tek tip `ConfirmModal` bileşeni YAPILACAK — `window.confirm` kullanan yerler (WatchTable, team/page, crm, invoices) değiştirilecek; onaysız yıkıcı işlemlere (CRM not silme, PendingInvitations davet iptali) onay eklenecek.
+7. CRM anti-pattern'ler: `getAvatarGradient` renk döngüsü + stats kartlarındaki hover alt-kenar gradient şeridi (`h-1 bg-gradient-to-r`) → sistem paletine çek. `CustomerAiInsights.tsx:42` indigo gradient, `crm/page.tsx:230` purple gradient.
+8. Ölü kod sil: `components/inventory/WatchFormModal.tsx` (842 satır, import edilmiyor), `components/auth/Can.tsx`, `teamApi.getPermissions/updateMemberRole/updateDefaults` (team-api.ts).
+9. `AuthGuard.tsx` locale bug: `router.replace('/login')` next/navigation'dan — locale düşüyor; `@/i18n/routing` router'ı kullan. Ayrıca `api.ts:39` 401 interceptor'da `window.location.href` locale'i düşürüyor; regex'i `routing.locales`'ten türet.
+
+🟡 **P2 (kalite):**
+10. `lib/invoice-api.ts:92` — `URL.revokeObjectURL` ekle. `BulkActions.tsx:41` — selectedIds boşalınca polling'i durdur + setTimeout cleanup. `ActivityFeed.tsx:99` setTimeout cleanup.
+11. Zustand selector'ları: `TopBar.tsx:18-19`, `WatchTable.tsx:59-60`, `inventory/page.tsx:17-19` — store'un tamamı yerine alan seç. Çift `fetchPlatforms` (inventory/page + WatchTable) tekile indir.
+12. Mobil: BottomNav'a CRM+Invoices erişimi (öğe değişimi veya "Daha Fazla"); TopBar ikon butonları 36px→44px; WatchTable mobil kartta label-değer gap.
+13. Görsel: landing `page.tsx:141` + auth `layout.tsx:36` gradient-text kaldır; `globals.css:104` + `EmptyState.tsx:18` bounce easing → ease-out; Settings şifre butonu `amber-600` → token; Sidebar aktif öğe `border-l-2` sol şerit → farklı aktif gösterim; landing "Fiyatlandırma" → gerçek hedef.
+14. Market Scanner bilgi mimarisi: 6 eşit bölüme hiyerarşi (başlık ölçeği/divider), iki trend grafiğini toggle'a indir (opsiyonel, büyük iş — gerekirse ayrı oturum).
+15. `invite/[token]/page.tsx:61-70` Zod şemasını useMemo'la, MobileLogo'yu modül seviyesine.
+16. i18n kalanlar: `AuthGuard` "Yükleniyor...", layout "İçeriğe geç", aria-label'lar, "Şifreyi göster/gizle", CRM `favorite_color` placeholder. (Admin bölümü ayrı sistem — bilinçli TR, dokunma.)
+
+**Backend opsiyonel (sonraki):** TeamTest.php (manager-subset 403 + expired token + yeni owner-guard'lar için Feature testleri); AuthController.me → dealer alan kısıtlaması; health rotalarına throttle.
+
+**Bitiş kriteri:** düzeltmeler → `tsc --noEmit` + vitest + `e2e/team.spec.ts` (5/5) + backend Feature suite (4 bilinen hata dışında yeşil) → activecontext/progress güncelle → `feature/team-management` → develop PR.

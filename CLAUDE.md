@@ -12,7 +12,7 @@ AI destekli, çok platformlu lüks saat envanter & satış yönetimi SaaS'ı. Mo
 - **PHP 8.3** `C:\php83` (sistemdeki varsayılan `php` 7.3'tür — PATH'e `C:\php83`'ü öne al).
 - **Composer**: `php C:\ProgramData\ComposerSetup\bin\composer.phar` (8.3 üstünde çalıştır). Horizon için `--ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix` (Windows'ta pcntl/posix yok).
 - **Backend** `php artisan serve --port=8001` → http://127.0.0.1:8001 (8000'de kullanıcının başka projesi "İkra Vakfı" var — dokunma).
-- **Frontend** `npm run dev` → http://localhost:3000. `NEXT_PUBLIC_API_URL=http://127.0.0.1:8001/api`.
+- **Frontend** `npm run dev` → http://localhost:3000. `NEXT_PUBLIC_API_URL=http://localhost:8001/api` (⚠️ **localhost olmalı, 127.0.0.1 DEĞİL** — sayfa ve API aynı host olmazsa Sanctum SPA login 419 CSRF hatası verir; JS `XSRF-TOKEN` cookie'sini okuyamaz).
 - **DB**: XAMPP **MariaDB :3307** (root / boş şifre), veritabanı `watchsync`. (3306'da kullanıcının Oracle MySQL 8'i var.)
 - **Mail = log**, **Queue = sync**, **Redis yok** → e-postalar `backend/storage/logs/laravel.log`'a düşer; health "degraded" görünür (normal).
 - Kolay başlatma: proje kökünde `start-dev.bat` (iki pencere açar, PATH'i kendi içinde ayarlar).

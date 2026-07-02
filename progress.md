@@ -1299,3 +1299,30 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 | J. i18n | 2 | ✅ Team+Invite namespace (backend lang opsiyonel atlandı) |
 | K. Playwright E2E | 3 | ✅ 5/5 test geçiyor (manager-subset & expired → backend Feature) |
 | **TOPLAM** | **49** | **✅ Aşama 7 tamam · E2E yeşil · 2 gerçek bug fix** |
+
+---
+
+## 🔍 TAM SİSTEM İNCELEMESİ (2026-07-02) — İnceleme ✅ / Düzeltmeler 🔄
+
+### İnceleme (tamamlandı)
+- [x] Canlı UI/UX tasarım incelemesi (design-review ajanı — tüm sayfalar, Nielsen 22/40)
+- [x] Frontend kod kalitesi incelemesi (react-patterns/simplify — 13 ana bulgu)
+- [x] Backend güvenlik/doğruluk incelemesi (2 PR bloker + iyileştirmeler)
+- [x] Deterministik AI-slop taraması (`npx impeccable` — 7 bulgu)
+- [x] PRODUCT.md yazıldı (impeccable context); CLAUDE.md API URL düzeltildi
+
+### Backend düzeltmeleri (tamamlandı, test edildi)
+- [x] toggleSync cross-tenant açığı (watch dealer sahiplik kontrolü)
+- [x] bulk publish cache anahtarı dealer-scoped
+- [x] assertGrantableBy: null-permissions → rol preset'i subset kontrolü (privilege escalation)
+- [x] updateMemberRole: self-check + grantable + owner-guard; disable/destroy owner-guard
+- [x] EnsureUserIsActive global middleware (disabled → tüm API 403)
+- [x] EbayIntegrationTest role=owner düzeltmesi
+- [x] backend/testing git izleminden çıkarıldı + .gitignore
+
+### Frontend düzeltmeleri (SONRAKİ CHAT — detay: activecontext.md "Son Oturum · devam 2")
+- [ ] P0: team sonsuz fetch döngüsü · OnboardingTour data-tour · tr.json 10 anahtar · invoice line_items başlığı
+- [ ] P1: CRM Almanca stringler → i18n · ConfirmModal (window.confirm değişimi + onaysız silmelere onay) · CRM gradient anti-pattern'leri · ölü kod (WatchFormModal, Can.tsx, teamApi metodları) · AuthGuard/api.ts locale bug
+- [ ] P2: objectURL leak · BulkActions/ActivityFeed cleanup · Zustand selector'lar · çift fetchPlatforms · mobil (BottomNav CRM+Invoices, 44px hedefler) · gradient-text/bounce easing/amber buton/sidebar sol şerit · Market Scanner hiyerarşi · invite sayfası memo · kalan i18n string'leri
+- [ ] Doğrulama: tsc + vitest + e2e/team.spec (5/5) + backend Feature suite
+- [ ] `feature/team-management` → develop PR

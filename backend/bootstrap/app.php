@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
+        // Disabled kullanıcı hiçbir API rotasına erişemez (oturumu olsa bile)
+        $middleware->api(append: [
+            \App\Http\Middleware\EnsureUserIsActive::class,
+        ]);
+
         $middleware->alias([
             'ip.whitelist'     => \App\Http\Middleware\IpWhitelist::class,
             'cache.headers'    => \App\Http\Middleware\CacheHeaders::class,

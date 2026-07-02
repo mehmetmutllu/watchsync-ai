@@ -51,3 +51,7 @@ ai-service/models/*.bin
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# === TEST ARTIFACT ===
+backend/testing
+frontend/test-results/

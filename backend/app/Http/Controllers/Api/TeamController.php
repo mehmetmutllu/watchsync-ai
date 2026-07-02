@@ -77,7 +77,7 @@ class TeamController extends Controller
         }
 
         // Privilege escalation koruması: davet eden sahip olmadığı izni veremez
-        $this->assertGrantableBy($inviter, $granted);
+        $this->assertGrantableBy($inviter, $granted, $role);
 
         $expiresInDays = $request->input('expires_in_days')
             ?? $inviter->dealer->invitation_expiry_days
@@ -186,7 +186,7 @@ class TeamController extends Controller
         }
 
         $granted = $request->input('permissions', []);
-        $this->assertGrantableBy($request->user(), $granted);
+        $this->assertGrantableBy($request->user(), $granted, $user->role);
 
         $user->update(['permissions' => $granted]);
 
@@ -203,14 +203,25 @@ class TeamController extends Controller
     {
         $this->assertSameDealer($request, $user->dealer_id);
 
+        if ($user->id === $request->user()->id) {
+            throw ValidationException::withMessages([
+                'user' => 'Kendi rolünüzü değiştiremezsiniz.',
+            ]);
+        }
+
         $validated = $request->validate([
             'role' => ['required', Rule::in(config('permissions.invitable_roles'))],
         ]);
 
-        // Son owner'ın rolü düşürülemez
+        // Son owner'ın rolü düşürülemez; owner üzerinde yalnız owner işlem yapabilir
         if ($user->isOwner()) {
+            $this->assertOwnerActionAllowed($request);
             $this->assertNotLastOwner($user);
         }
+
+        // permissions=null üyede etkin izinler yeni rolün preset'ine kayar —
+        // preset de rolü değiştirenin izin alt kümesi olmalı
+        $this->assertGrantableBy($request->user(), $user->permissions, $validated['role']);
 
         $user->update(['role' => $validated['role']]);
 
@@ -234,6 +245,7 @@ class TeamController extends Controller
         }
 
         if ($user->isOwner()) {
+            $this->assertOwnerActionAllowed($request);
             $this->assertNotLastOwner($user);
         }
 
@@ -268,6 +280,7 @@ class TeamController extends Controller
         }
 
         if ($user->isOwner()) {
+            $this->assertOwnerActionAllowed($request);
             $this->assertNotLastOwner($user);
         }
 
@@ -317,12 +330,22 @@ class TeamController extends Controller
 
     /**
      * Davet eden yalnızca kendi sahip olduğu izinleri verebilir (owner hariç).
+     * permissions=null → etkin izinler rol preset'inden gelir; preset de
+     * davet edenin izin alt kümesi olmalı (privilege escalation engeli).
      *
      * @param array<int, string>|null $granted
      */
-    private function assertGrantableBy(User $inviter, ?array $granted): void
+    private function assertGrantableBy(User $inviter, ?array $granted, ?string $role = null): void
     {
-        if ($inviter->isOwner() || empty($granted)) {
+        if ($inviter->isOwner()) {
+            return;
+        }
+
+        if ($granted === null) {
+            $granted = $role !== null ? config("permissions.presets.{$role}", []) : [];
+        }
+
+        if ($granted === []) {
             return;
         }
 
@@ -333,6 +356,13 @@ class TeamController extends Controller
             throw ValidationException::withMessages([
                 'permissions' => 'Sahip olmadığınız izinleri veremezsiniz: ' . implode(', ', $excess),
             ]);
+        }
+    }
+
+    private function assertOwnerActionAllowed(Request $request): void
+    {
+        if (! $request->user()->isOwner()) {
+            abort(403, 'Sahip kullanıcı üzerinde yalnızca sahipler işlem yapabilir.');
         }
     }
 
