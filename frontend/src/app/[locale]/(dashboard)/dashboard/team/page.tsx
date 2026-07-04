@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Users, UserPlus, Loader2, ShieldAlert, X, Save } from 'lucide-react';
 import { teamApi } from '@/lib/team-api';
 import { toast } from '@/stores/toastStore';
+import { confirmDialog } from '@/stores/confirmStore';
 import { usePermission } from '@/hooks/usePermission';
 import MemberList from '@/components/team/MemberList';
 import PendingInvitations from '@/components/team/PendingInvitations';
@@ -77,7 +78,7 @@ export default function TeamPage() {
   };
 
   const handleDelete = async (member: TeamMember) => {
-    if (!window.confirm(t('delete_confirm', { name: member.name }))) return;
+    if (!(await confirmDialog({ title: t('delete_confirm', { name: member.name }), danger: true }))) return;
     try {
       await teamApi.removeMember(member.id);
       toast.success(t('deleted_title'), t('deleted_desc', { name: member.name }));
@@ -100,6 +101,7 @@ export default function TeamPage() {
   };
 
   const handleRevoke = async (inv: TeamInvitation) => {
+    if (!(await confirmDialog({ title: t('revoke_confirm', { email: inv.email }), danger: true }))) return;
     try {
       await teamApi.revokeInvitation(inv.id);
       toast.success(t('revoked_title'), t('revoked_desc'));

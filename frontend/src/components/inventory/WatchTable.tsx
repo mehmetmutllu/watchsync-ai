@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
 import { usePermission } from '@/hooks/usePermission';
+import { confirmDialog } from '@/stores/confirmStore';
 import {
   ChevronUp,
   ChevronDown,
@@ -145,11 +146,11 @@ export default function WatchTable({
     return (symbols[currency] || currency + ' ') + num.toLocaleString('en-US', { minimumFractionDigits: 0 });
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm(t('delete_confirm'))) {
+  const handleDelete = async (id: number) => {
+    setMenuOpenId(null);
+    if (await confirmDialog({ title: t('delete_confirm'), danger: true })) {
       onDelete(id);
     }
-    setMenuOpenId(null);
   };
 
   return (

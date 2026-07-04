@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
       {/* KPI Cards Grid */}
       {stats && !loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+        <div data-tour="sync-status" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
           {kpiCards.map((card) => {
             const Icon = iconMap[card.key];
             return (

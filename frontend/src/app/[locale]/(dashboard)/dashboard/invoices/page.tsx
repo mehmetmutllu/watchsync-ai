@@ -24,6 +24,7 @@ import {
   type CreateInvoiceParams,
 } from "@/lib/invoice-api";
 import { getCustomers, type Customer } from "@/lib/crm-api";
+import { confirmDialog } from "@/stores/confirmStore";
 
 export default function InvoicesPage() {
   const t = useTranslations("Invoices");
@@ -71,7 +72,7 @@ export default function InvoicesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm(t("delete_confirm"))) return;
+    if (!(await confirmDialog({ title: t("delete_confirm"), danger: true }))) return;
     await deleteInvoice(id);
     setSelectedInvoice(null);
     fetchInvoices();
@@ -636,7 +637,7 @@ function InvoiceFormModal({
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-medium text-secondary-text">
-                {t("new_invoice")}
+                {t("line_items")}
               </label>
               <button
                 type="button"

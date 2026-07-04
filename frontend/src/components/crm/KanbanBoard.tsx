@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Clock, Tag, MapPin, Building, GripVertical } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { CustomerQuickActions } from "./CustomerQuickActions";
 
@@ -35,13 +36,14 @@ interface KanbanBoardProps {
 }
 
 const STAGES = [
-  { id: "lead", title: "Lead", color: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
-  { id: "sourcing", title: "Sucht Uhr", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  { id: "negotiating", title: "In Verhandlung", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  { id: "sold", title: "Abgeschlossen", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+  { id: "lead", titleKey: "kanban_lead", color: "bg-gray-500/10 text-gray-400 border-gray-500/20" },
+  { id: "sourcing", titleKey: "kanban_sourcing", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+  { id: "negotiating", titleKey: "kanban_negotiating", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+  { id: "sold", titleKey: "kanban_sold", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
 ];
 
 function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { customer: Customer, isOverlay?: boolean, listeners?: any, attributes?: any }) {
+  const t = useTranslations("CRM");
   return (
     <div
       className={`bg-[#0f0f11] border rounded-xl p-4 shadow-lg group relative ${
@@ -63,7 +65,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
         <h4 className="font-semibold text-white/90 truncate flex items-center gap-2">
           {customer.first_name} {customer.last_name}
           {customer.needs_follow_up && (
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title="Follow-up fällig!"></span>
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title={t("follow_up_due")}></span>
           )}
         </h4>
       </div>
@@ -142,6 +144,7 @@ function SortableCustomerCard({ customer, onClick }: { customer: Customer; onCli
 }
 
 function DroppableColumn({ stage, customers, onCustomerClick }: { stage: typeof STAGES[0]; customers: Customer[]; onCustomerClick: (c: Customer) => void }) {
+  const t = useTranslations("CRM");
   const { setNodeRef } = useDroppable({
     id: stage.id,
   });
@@ -149,7 +152,7 @@ function DroppableColumn({ stage, customers, onCustomerClick }: { stage: typeof 
   return (
     <div ref={setNodeRef} className="flex flex-col flex-1 min-w-[300px] bg-white/5 rounded-2xl border border-white/5 overflow-hidden">
       <div className={`px-4 py-3 border-b flex justify-between items-center ${stage.color}`}>
-        <h3 className="font-medium text-sm">{stage.title}</h3>
+        <h3 className="font-medium text-sm">{t(stage.titleKey)}</h3>
         <span className="text-xs bg-black/20 px-2 py-0.5 rounded-full">{customers.length}</span>
       </div>
       

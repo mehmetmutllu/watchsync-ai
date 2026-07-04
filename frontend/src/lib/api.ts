@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { routing } from '@/i18n/routing';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
@@ -35,14 +36,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Locale önekini soy (/tr/login → /login) ki yönlendirme kararı doğru olsun.
-      const path = window.location.pathname.replace(/^\/(en|tr|de)(?=\/|$)/, '') || '/';
+      // Locale önekini soy (/tr/login → /login) ki yönlendirme kararı doğru olsun,
+      // ama mevcut locale'i koru ki yönlendirmede dil düşmesin.
+      const localeRegex = new RegExp(`^/(${routing.locales.join('|')})(?=/|$)`);
+      const localeMatch = window.location.pathname.match(localeRegex);
+      const localePrefix = localeMatch ? `/${localeMatch[1]}` : '';
+      const path = window.location.pathname.replace(localeRegex, '') || '/';
       // Admin sayfalarında admin login'e, diğerlerinde normal login'e yönlendir.
       // Zaten login sayfasındaysak yönlendirme yapma — hata mesajı gösterilebilsin.
       if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
-        window.location.href = '/admin/login';
+        window.location.href = `${localePrefix}/admin/login`;
       } else if (!path.startsWith('/login') && !path.startsWith('/admin')) {
-        window.location.href = '/login';
+        window.location.href = `${localePrefix}/login`;
       }
     }
     return Promise.reject(error);

@@ -53,6 +53,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
+        data-tour="sidebar"
         role="navigation"
         aria-label="Ana menü"
         className={`
@@ -96,6 +97,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                data-tour={item.href === "/dashboard/inventory" ? "inventory" : undefined}
                 aria-current={isActive ? "page" : undefined}
                 onMouseEnter={() => setHoveredItem(item.href)}
                 onMouseLeave={() => setHoveredItem(null)}

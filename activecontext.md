@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-07-02  
-> **Mevcut Faz:** TAM SİSTEM İNCELEMESİ yapıldı ✅ (3 rapor: canlı UI/UX + frontend kod kalitesi + backend güvenlik) — backend blokerleri DÜZELTİLDİ, frontend düzeltmeleri (P0/P1/P2) SIRADAKİ chat'te.  
-> **Sıradaki (İLK İŞ):** Aşağıdaki "Son Oturum (inceleme)" bloğundaki P0→P1→P2 frontend düzeltme listesini uygula (kararlar kilitli: tour=data-tour ekle, ConfirmModal=yap). Bitince testler+E2E, sonra `feature/team-management` → develop PR.  
+> **Son Güncelleme:** 2026-07-04  
+> **Mevcut Faz:** Frontend düzeltmeleri **P0 (4/4) + P1 (5/5) TAMAM** ve Playwright ile doğrulandı ✅. Sırada **P2 (kalite)**.  
+> **Sıradaki (İLK İŞ):** Aşağıdaki "Son Oturum (2026-07-04)" bloğundaki **P2** listesini uygula (memory leak cleanup, Zustand selector'ları, mobil erişilebilirlik, görsel token'lar, i18n kalanları). Bitince testler+E2E, sonra `feature/team-management` → develop PR.  
 > **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -744,3 +744,38 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 **Backend opsiyonel (sonraki):** TeamTest.php (manager-subset 403 + expired token + yeni owner-guard'lar için Feature testleri); AuthController.me → dealer alan kısıtlaması; health rotalarına throttle.
 
 **Bitiş kriteri:** düzeltmeler → `tsc --noEmit` + vitest + `e2e/team.spec.ts` (5/5) + backend Feature suite (4 bilinen hata dışında yeşil) → activecontext/progress güncelle → `feature/team-management` → develop PR.
+
+---
+
+## 📌 Son Oturum (2026-07-04 — Frontend P0 + P1 tamam + Playwright doğrulama)
+
+**Yapılanlar (dal `feature/team-management`):**
+- **P0 (4/4):**
+  1. `hooks/usePermission.ts` — dönüş `useMemo([user])` ile sabitlendi; team page (ve Sidebar) sonsuz fetch döngüsü kırıldı.
+  2. OnboardingTour — 4 `data-tour` hedefi eklendi: `sidebar` (Sidebar aside), `inventory` (envanter nav linki), `sync-status` (dashboard KPI grid), `notifications` (TopBar zil).
+  3. `messages/tr.json` — 10 eksik CRM anahtarı (quick_actions, whatsapp_action, wa_template_*, wa_text_*).
+  4. Invoices kalem başlığı `t("new_invoice")` → yeni `line_items` anahtarı (3 dil).
+- **P1 (5/5):**
+  5. **CRM i18n:** crm/page.tsx'teki ~30 hardcoded Almanca + alt bileşenler (CustomerPortfolio, CustomerAiInsights, CustomerTimeline, KanbanBoard) `useTranslations('CRM')`'e taşındı; 3 dile ~70 yeni anahtar. KanbanBoard STAGES `title`→`titleKey`.
+  6. **ConfirmModal:** yeni `stores/confirmStore.ts` (promise tabanlı `confirmDialog()`) + `components/ui/ConfirmDialog.tsx` (layout'a mount). `window.confirm` yerleri dönüştürüldü: WatchTable, team, crm (müşteri), invoices, CustomerPortfolio, PlatformCard. Onaysız yıkıcılara onay eklendi: CRM not silme, davet iptali (`revoke_confirm`). Common'a `confirm` anahtarı. Admin sayfaları (ayrı sistem) dokunulmadı.
+  7. **Anti-pattern renkler:** `getAvatarGradient` gökkuşağı döngüsü silindi (avatarlar `bg-accent-blue/15 text-accent-blue`); stats hover gradient şeritleri + CustomerAiInsights indigo/fuchsia gradient'i accent-blue'ya çekildi.
+  8. **Ölü kod:** `WatchFormModal.tsx` (842 satır) + `components/auth/Can.tsx` silindi; `teamApi.getPermissions/updateMemberRole/updateDefaults` + gereksiz `PermissionCatalog` importu kaldırıldı.
+  9. **Locale bug:** AuthGuard → `@/i18n/routing` router (locale-aware); testi de güncellendi. api.ts 401 interceptor regex'i `routing.locales`'ten türetiliyor + yönlendirmede mevcut locale korunuyor.
+
+**Mevcut durum (doğrulama):**
+- `tsc --noEmit` temiz (kalan 2 hata test dosyalarında — baseline, dokunulmadı).
+- `vitest`: AuthGuard testi (güncellendi) geçiyor. 3 test dosyası (EmptyState/StatusBadge/WatchFilters) **baseline** olarak kırık — bunlar NextIntlClientProvider ile sarılmadan render ediyor (setup.tsx next-intl mock'lamıyor); dokunmadığım bileşenler, benim değişikliğimle ilgisiz.
+- **Playwright:** `e2e/team.spec.ts` **5/5** (ilk çalıştırmadaki login timeout dev soğuk-derleme yarışıydı; tanı script'i login'in çalıştığını gösterdi — csrf 204, login 200). Ek geçici smoke/visual spec'lerle görsel doğrulandı (sonra silindi): ConfirmDialog aç/iptal, CRM Türkçe (Almanca sızıntı yok), OnboardingTour 4 hedefe konumlanıyor, P1.9 locale-korumalı redirect (/tr/dashboard→/tr/login, /de→/de), avatar+AiInsights accent-blue (ekran görüntüleriyle teyit).
+
+**Sonraki adımlar (P2 — kalite, sıralı):**
+10. Memory leak cleanup: `lib/invoice-api.ts:92` `URL.revokeObjectURL`; `BulkActions.tsx:41` selectedIds boşalınca polling durdur + setTimeout cleanup; `ActivityFeed.tsx:99` setTimeout cleanup.
+11. Zustand selector'ları: `TopBar.tsx:18-19`, `WatchTable.tsx:59-60`, `inventory/page.tsx:17-19` — tüm store yerine alan seç. Çift `fetchPlatforms` (inventory/page + WatchTable) tekile indir.
+12. Mobil: BottomNav'a CRM+Invoices; TopBar ikon butonları 36px→44px; WatchTable mobil kart label-değer gap.
+13. Görsel: landing `page.tsx:141` + auth `layout.tsx:36` gradient-text kaldır; `globals.css:104` + `EmptyState.tsx:18` bounce → ease-out; Settings şifre butonu `amber-600` → token; Sidebar aktif öğe `border-l-2` şeridi → farklı gösterim; landing "Fiyatlandırma" → gerçek hedef.
+14. Market Scanner bilgi mimarisi (opsiyonel, büyük — gerekirse ayrı oturum).
+15. `invite/[token]/page.tsx:61-70` Zod şemasını useMemo; MobileLogo modül seviyesine.
+16. i18n kalanları: `AuthGuard` "Yükleniyor...", layout "İçeriğe geç", aria-label'lar, "Şifreyi göster/gizle", CRM `favorite_color` placeholder. (Admin bölümü bilinçli TR — dokunma.)
+
+**Not (P1 sırasında bulunan, kapsam dışı):** CRM AiInsights içeriğindeki "No notes available yet." backend `/customers/{id}/sentiment` yanıtından geliyor (frontend i18n değil) — backend tarafında lokalize edilmeli.
+
+**Bitiş kriteri (P2 sonrası):** `tsc` + vitest + `e2e/team.spec.ts` (5/5) → activecontext/progress güncelle → `feature/team-management` → develop PR.

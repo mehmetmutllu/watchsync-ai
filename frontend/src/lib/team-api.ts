@@ -1,5 +1,5 @@
 import api from './api';
-import type { TeamResponse, PermissionCatalog, TeamInvitation, TeamMember } from '@/types';
+import type { TeamResponse, TeamInvitation, TeamMember } from '@/types';
 
 export interface InviteParams {
   email: string;
@@ -23,11 +23,6 @@ export const teamApi = {
     return data;
   },
 
-  getPermissions: async (): Promise<PermissionCatalog> => {
-    const { data } = await api.get('/team/permissions');
-    return data;
-  },
-
   invite: async (params: InviteParams): Promise<InvitationResult> => {
     const { data } = await api.post('/team/invitations', params);
     return data.invitation;
@@ -47,11 +42,6 @@ export const teamApi = {
     return data.member;
   },
 
-  updateMemberRole: async (userId: number, role: 'manager' | 'staff'): Promise<TeamMember> => {
-    const { data } = await api.put(`/team/members/${userId}/role`, { role });
-    return data.member;
-  },
-
   disableMember: async (userId: number): Promise<void> => {
     await api.post(`/team/members/${userId}/disable`);
   },
@@ -67,10 +57,6 @@ export const teamApi = {
   getDefaults: async (): Promise<{ invitation_expiry_days: number }> => {
     const { data } = await api.get('/settings/team-defaults');
     return data;
-  },
-
-  updateDefaults: async (invitation_expiry_days: number): Promise<void> => {
-    await api.put('/settings/team-defaults', { invitation_expiry_days });
   },
 };
 

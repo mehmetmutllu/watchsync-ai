@@ -74,6 +74,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
       <div className="flex items-center gap-3">
         {/* Notification Bell */}
         <button
+          data-tour="notifications"
           onClick={toggleDrawer}
           className="relative flex items-center justify-center w-9 h-9 rounded-lg
             text-secondary-text hover:text-primary-text hover:bg-surface-elevated

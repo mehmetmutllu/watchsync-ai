@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import ToastContainer from "@/components/ui/ToastContainer";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {routing} from '@/i18n/routing';
@@ -90,6 +91,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
           <ToastContainer />
+          <ConfirmDialog />
         </NextIntlClientProvider>
       </body>
     </html>
