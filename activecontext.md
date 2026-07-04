@@ -823,3 +823,34 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 2. Merge sonrası Aşama 7 kapanır → Aşama 8'e geç.
 3. (Opsiyonel) prod build alıp yeni CSP ile konsol/CSP ihlali kontrolü.
 4. eBay Developer hesabı açılınca gerçek `EBAY_WEBHOOK_VERIFICATION_TOKEN`/`EBAY_WEBHOOK_ENDPOINT` ile canlı challenge + imza doğrulama testi.
+
+---
+
+## 📌 Son Oturum (2026-07-04 · devam 4 — Aşama 7 kapanışı + güvenlik turu + UI/UX pro max turu)
+
+**1) Aşama 7 kapanışı:**
+- eBay güvenlik commit'i (`29ec43a`) için PR #2 açıldı → **merge edildi** (develop merge commit `ea1cd2b`). Aşama 7 tümüyle develop'ta.
+- Prod build alınıp **CSP doğrulandı**: `unsafe-eval` prod'da yok (dev'de var), `object-src/base-uri/form-action/frame-src` sertleştirmesi header+manifest'te doğru; public+dashboard sayfalarında CSP/eval ihlali yok. (Not: port 3000'i eski dev sunucusu tuttuğu için prod 3100'de test edildi.)
+
+**2) Güvenlik/kod turu (security-audit skill) — yeni dal `feature/security-ui-polish`, commit `d724d38`:**
+- **F1** WebhookController eBay/Shopify **fail-closed** (production'da token boşsa reddet + kritik log; dev/test bypass korunur). Sahte order → cross-tenant stok kilidi açığını kapatır (`processEbayOrder` dealer-scope'suz `Watch::find`).
+- **F2** `InvitationController::accept` transaction'ında `lockForUpdate` + accepted/revoked yeniden kontrol (çift kabul 500→404).
+- **F3** Şifre politikası: Register+AcceptInvitation+SettingsController changePassword → `min 8 + büyük/küçük + rakam` (regex, TR mesaj). Settings/AuthTest fixture'ları uyumlandı. Frontend Zod (register+invite) + i18n `password_requirements` (3 dil).
+- Backend suite: **132 passed** (4 bilinen baseline: AuthTest register/login 500 ortamsal + InvoiceTest×2).
+
+**3) UI/UX pro max turu (design-review ajanı 7-aşama + impeccable statik) — commit `4b497b8`:**
+- Ortam: frontend **3001** (SANCTUM_STATEFUL_DOMAINS'te var), backend 8001; login teyit (csrf 204/login 200).
+- **P0:** (a) 3 **TANIMSIZ TOKEN** bug'ı — `accent-primary`(9)→accent-blue, `surface-base`(5)→surface, `hover:border-default`(13)→border-strong (globals.css'te yok → kırık renk render'ı, CRM AI-pitch+inputlar). (b) **Mobil sidebar blocker** — tek `collapsed` state hem masaüstü hem mobili sürüyordu; ayrı `mobileOpen` (default kapalı) + nav-tıkla-kapat + mobilde collapse gizli. (c) CRM 6 tab focus baskılaması (`!outline-none`) kaldırıldı (WCAG).
+- **P1:** alert()→toast (crm×2, invoices×1); auth İngilizce hero → `getTranslations("Landing")` + privacy/terms; CRM neon-glow/purple kümesi → sessiz lüks (CustomerTimeline, follow-up neon pulse, VIP tier metal metaforu, favorite-color, team ham palet→semantic+aria-label); market-scanner ilk-paint kırmızı alarm→nötr; dashboard KPI skeleton + glow token + group-hover no-op.
+- Doğrulama: tsc **0 kaynak hatası**, i18n **861/861/861**, **e2e/team 5/5**, Playwright görsel (mobil sidebar off-screen x=-256 + drawer x=0, auth TR hero, CRM 0 console hatası).
+
+**Commit & PR:** `feature/security-ui-polish` (develop'tan) → 2 commit (`d724d38` güvenlik + `4b497b8` UI) → **PR #3 açıldı**. Design-review ajanının review spec/report/config artefaktları silindi (commit'e girmedi).
+
+**MEVCUT DURUM:** PR #3 merge/inceleme bekliyor. Backend 8001 ayakta, frontend dev kapalı. Demo DB'ye e2e'den "E2E Staff" pasif üyeler eklendi (kozmetik).
+
+**SONRAKİ ADIMLAR (bir sonraki chat — ertelenen UI bulguları):**
+1. **Medium:** Settings mobil tab etiket kırpılması (responsive tab); izin matrisi grup "tümünü seç" + preset-farkı göstergesi; invoice vade tarihi `type="date"`.
+2. **Nit:** ConfirmDialog focus geri-verme; invite modal native `<select>`; CRM tab flex-1 layout-shift; Settings `role=tablist`; landing "Demo İzle" anchor; inventory satır aria-label + 44px.
+3. **Ayrı sistem:** admin sidebar side-stripe. **Veri:** demo DB E2E Staff temizliği.
+4. **Backlog:** F4 CSP nonce-tabanlı (script-src unsafe-inline düşür).
+5. PR #3 merge sonrası bu iş kapanır.

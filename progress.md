@@ -1326,4 +1326,20 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [x] P2: objectURL leak · BulkActions/ActivityFeed cleanup · Zustand selector'lar · çift fetchPlatforms · mobil (BottomNav CRM+Invoices, 44px hedefler) · gradient-text/bounce easing/amber buton/sidebar sol şerit · invite sayfası memo+MobileLogo · kalan i18n string'leri (Common/TopBar/Sidebar/CRM 10 anahtar × 3 dil). (Market Scanner hiyerarşi/P2.14 opsiyonel — ertelendi)
 - [x] Doğrulama (P0+P1): tsc temiz · vitest (AuthGuard geçti; 3 baseline-kırık dosya dokunulmadı) · e2e/team.spec **5/5** · Playwright görsel smoke (ConfirmDialog/CRM i18n/tour/locale-redirect/renkler)
 - [x] P2 doğrulama: tsc temiz · vitest baseline'a döndü (AuthGuard testi NextIntlClientProvider ile sarılıp düzeltildi; 3 baseline-kırık dosya dokunulmadı) · e2e/team.spec **5/5** · i18n parite 857/857/857 → `feature/team-management` → develop **PR açıldı**
-- [ ] `feature/team-management` → develop PR
+- [x] `feature/team-management` → develop PR #1 **merge edildi** (+ eBay güvenlik PR #2 merge → Aşama 7 tümüyle develop'ta)
+
+---
+
+## 🔒 Güvenlik Turu + 🎨 UI/UX Pro Max Turu (2026-07-04 · devam 4) — `feature/security-ui-polish` → PR #3
+
+### Güvenlik/kod turu (security-audit) — commit d724d38
+- [x] F1 Webhook prod fail-closed (eBay/Shopify token boşsa production'da reddet; cross-tenant stok kilidi açığı kapandı)
+- [x] F2 Davet kabul TOCTOU kilidi (lockForUpdate; çift kabul 500→404)
+- [x] F3 Şifre politikası (min 8 + büyük/küçük + rakam; back+front+i18n) · backend suite 132 passed
+
+### UI/UX pro max turu (design-review ajanı 7-aşama + impeccable) — commit 4b497b8
+- [x] P0: 3 tanımsız token bug'ı (accent-primary/surface-base/hover:border-default) · mobil sidebar blocker (ayrı mobileOpen state) · CRM tab focus baskılaması (WCAG)
+- [x] P1: alert()→toast · auth İngilizce hero→i18n · CRM neon-glow/purple kümesi→sessiz lüks · market-scanner alarm tonu · dashboard KPI skeleton
+- [x] Doğrulama: tsc 0 kaynak hatası · i18n 861/861/861 · e2e/team 5/5 · Playwright görsel teyit
+- [ ] **Ertelendi (sonraki chat):** Settings mobil tab · izin matrisi "tümünü seç" · invoice type=date · ConfirmDialog focus · birkaç a11y nit · admin side-stripe (ayrı sistem) · F4 CSP nonce
+- [ ] PR #3 → develop merge/inceleme
