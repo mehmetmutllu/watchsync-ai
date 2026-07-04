@@ -1,9 +1,9 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-04  
-> **Mevcut Faz:** Frontend **P0+P1+P2 TAMAM** + ek **backend güvenlik sertleştirmesi** (eBay webhook kripto imza doğrulama + CSP prod sertleştirme) TAMAM ✅. `feature/team-management` → develop PR açık.  
-> **Sıradaki (İLK İŞ):** PR'ın develop'a merge'ini bekle/incele (artık güvenlik commit'i de dahil). Merge sonrası Aşama 7 kapanır → Aşama 8'e geç (aşağıdaki roadmap'e bak). Opsiyonel P2.14 (Market Scanner bilgi mimarisi) büyük iş, ayrı oturuma bırakıldı.  
-> **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. `feature/security-ui-polish` dalında **güvenlik turu + UI/UX pro-max turu + ertelenen UI/a11y maddeleri** TAMAM → **PR #3 açık** (develop'a, MERGEABLE).  
+> **Sıradaki (İLK İŞ):** PR #3'ü incele/merge et. Merge sonrası bu iş kapanır → canlıya-alma hazırlığına geç (aşağıdaki "CANLIYA ALMA" özeti + en alttaki Son Oturum'a bak).  
+> **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env/deploy (docker-compose/backend Dockerfile yok).  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -854,3 +854,35 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 3. **Ayrı sistem:** admin sidebar side-stripe. **Veri:** demo DB E2E Staff temizliği.
 4. **Backlog:** F4 CSP nonce-tabanlı (script-src unsafe-inline düşür).
 5. PR #3 merge sonrası bu iş kapanır.
+
+---
+
+## 📌 Son Oturum (2026-07-04 · devam 5 — ertelenen UI/a11y maddeleri + Playwright doğrulama + canlıya-alma taraması)
+
+**Ortam notu:** frontend :3000'de bozuk `.next` cache tüm localize rotaları (`/de` kökü dahil) 404 yapıyordu → `.next` silinip yeniden başlatılınca düzeldi. Playwright MCP bu oturuma bağlı DEĞİL (yalnız Canva/Vercel MCP var) → repo'nun kendi Playwright CLI'ı (`@playwright/test`) kullanıldı. Backend :8001 ayakta.
+
+**Yapılanlar (feature/security-ui-polish dalında, commit'siz → bu kayıtla commit edilecek):**
+- **Settings mobil tab** (`settings/page.tsx`): mobilde etiketler artık görünüyor (`hidden sm:inline` kaldırıldı, yatay scroll taşmayı yönetiyor) + tam `role=tablist/tab/tabpanel` + `aria-selected`.
+- **İzin matrisi grup "Tümünü seç / Temizle"** (`PermissionMatrix.tsx`): grup başına toggle; `grantable`/`disabled`'a saygılı; gruplar bağımsız.
+- **Preset-farkı göstergesi** (`InviteMemberModal.tsx`): "Rol varsayılanıyla aynı" ↔ "Özelleştirildi +N −M" + **"Varsayılana dön"**.
+- **BULUNAN + DÜZELTİLEN pre-existing bug** (`InviteMemberModal.tsx`): davet modalının preset `useEffect`'i `[role, catalog.presets]`'e bağlıydı; arka planda team refetch (usePermission `user` ref değişimi → TeamPage `load()` → yeni catalog kimliği) kullanıcının seçtiği izinleri **siliyordu**. Etki yalnız `[role]`'e bağlandı.
+- **ConfirmDialog odak geri-verme** (`ConfirmDialog.tsx`): açılışta odak onay butonuna, kapanışta tetikleyen öğeye geri veriliyor (`autoFocus` yerine yakala/geri-ver + ref).
+- **Envanter satır a11y** (`WatchTable.tsx`): satır `aria-label` (marka/model/ref); ikon-only aksiyon butonuna erişilebilir ad ("İşlemler") + `aria-haspopup` + **44px** dokunma hedefi.
+- **Yeni test dosyası** `frontend/e2e/ui-polish.spec.ts`: **5/5 geçiyor** (settings mobil tab+a11y, grup seç/temizle+bağımsızlık, preset göstergesi+reset, ConfirmDialog odak, envanter 44px+aria).
+- **Dokunulmayanlar (gerekçeli):** landing "Demo İzle" zaten `#features` anchor'ına sahip; CRM tab'ları zaten `flex-1`+sabit `font-semibold` (kayma yok); invite modal zaten native `<select>`.
+
+**Kalite:** tsc kaynak hatası **0** (yalnız bilinen baseline `__tests__`) · i18n **866/866/866** (+5 anahtar: select_all, clear_group, preset_matches/customized/reset) · `e2e/team.spec.ts` **5/5** (regresyon yok) · `e2e/ui-polish.spec.ts` **5/5**.
+
+**CANLIYA ALMA taraması (bu oturumda yapıldı — doğrulanmış):**
+- **API'ler:** backend'de stub/TODO/FIXME/abort(501) **YOK** → controller'lar gerçek, placeholder değil. 34 migration. Yeni uç yazmaya gerek yok; mevcutlar gerçek anahtarlarla test edilmeli.
+- **AI service:** `ai-service/` gerçek FastAPI (SAM2 segment/enhance) + Dockerfile var; ama **SAM2 checkpoint repo'da yok** (indirilecek) ve uçtan uca test edilmedi.
+- **Entegrasyonlar (anahtar bekliyor):** eBay (sandbox, kod ~%80), Shopify (~%70), Chrono24 XML feed (~%90, IP whitelist gerek), Gemini LLM (~%95, fallback var). `.env.example`'da tüm anahtarlar boş, `EBAY_ENVIRONMENT=sandbox`.
+- **Prod-config değişmeli:** `.env.example` → `APP_ENV=local`, `APP_DEBUG=true`, `SESSION_DRIVER=database`, `QUEUE/CACHE=redis`, `MAIL=log`, `SANCTUM_STATEFUL_DOMAINS=localhost:3000,3001`. Prod'da: DEBUG=false, ENV=production, gerçek mail (SES/SendGrid), şifreli/persistent Redis, gerçek DB+yedek, gerçek domain'e Sanctum/CORS, frontend `NEXT_PUBLIC_API_URL`.
+- **Deploy tooling EKSİK:** `.github/workflows/ci.yml` var (test/lint) ama **deploy adımı yok**; **kök docker-compose ve backend Dockerfile YOK** (yalnız ai-service Dockerfile var); DEPLOYMENT.md/runbook yok.
+
+**SONRAKİ ADIMLAR (bir sonraki chat):**
+1. PR #3'ü incele → develop'a merge et (UI polish + güvenlik). Sonra bu dal işi kapanır.
+2. **Canlıya alma faz-1 (kod/altyapı):** backend `Dockerfile` + kök `docker-compose.prod.yml` yaz; CI'ye build+deploy adımı ekle; `DEPLOYMENT.md` yaz.
+3. **Canlıya alma faz-2 (secrets/servis):** eBay/Shopify/Gemini gerçek anahtarları al ve OAuth/listing akışını sandbox'ta uçtan uca test et; SAM2 checkpoint indir + AI enhance uçtan uca doğrula.
+4. **Prod env:** DEBUG=false/ENV=production, gerçek mail, persistent Redis, prod DB+yedek, gerçek domain'e Sanctum/CORS/`NEXT_PUBLIC_API_URL`.
+5. **Backlog:** F4 CSP nonce; demo DB "E2E Staff" + "focus-*" davet kalıntıları temizliği.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { X, Loader2, Send } from 'lucide-react';
 import { teamApi } from '@/lib/team-api';
@@ -31,14 +31,29 @@ export default function InviteMemberModal({
   const [expiryDays, setExpiryDays] = useState<number>(defaultExpiryDays);
   const [submitting, setSubmitting] = useState(false);
 
-  // Rol değişince preset'i başlangıç olarak uygula
+  // Rol değişince (ve ilk açılışta) preset'i başlangıç olarak uygula.
+  // catalog.presets kasıtlı olarak dep dışı: arka plan team refetch'i catalog
+  // nesnesinin kimliğini değiştirdiğinde kullanıcının seçtiği izinleri sıfırlamamalı.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setPermissions(catalog.presets[role] ?? []);
-  }, [role, catalog.presets]);
+  }, [role]);
 
   // owner değilse yalnızca kendi sahip olduğu izinleri verebilir
   const grantable =
     user && user.role === 'owner' ? null : user?.effective_permissions ?? [];
+
+  // Seçili izinlerin rol varsayılanından (preset) sapmasını göster
+  const presetDiff = useMemo(() => {
+    const preset = catalog.presets[role] ?? [];
+    const presetSet = new Set(preset);
+    const selectedSet = new Set(permissions);
+    const added = permissions.filter((p) => !presetSet.has(p)).length;
+    const removed = preset.filter((p) => !selectedSet.has(p)).length;
+    return { added, removed, customized: added > 0 || removed > 0 };
+  }, [catalog.presets, role, permissions]);
+
+  const resetToPreset = () => setPermissions(catalog.presets[role] ?? []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +134,27 @@ export default function InviteMemberModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-secondary-text mb-2">{t('permissions')}</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-secondary-text">{t('permissions')}</label>
+              {presetDiff.customized ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-accent-blue">
+                    {t('preset_customized')}
+                    {presetDiff.added > 0 && <span className="ml-1 tabular-nums">+{presetDiff.added}</span>}
+                    {presetDiff.removed > 0 && <span className="ml-1 tabular-nums">−{presetDiff.removed}</span>}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={resetToPreset}
+                    className="text-xs font-medium text-secondary-text hover:text-primary-text underline underline-offset-2 focus:outline-none focus:ring-2 focus:ring-accent-blue/40 rounded"
+                  >
+                    {t('preset_reset')}
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs text-disabled-text">{t('preset_matches')}</span>
+              )}
+            </div>
             <PermissionMatrix
               catalog={catalog.permissions}
               selected={permissions}

@@ -910,6 +910,11 @@
     "group_platforms": "Platforms",
     "group_ai": "AI",
     "group_settings": "Settings",
-    "group_team": "Team"
+    "group_team": "Team",
+    "select_all": "Select all",
+    "clear_group": "Clear",
+    "preset_matches": "Matches role default",
+    "preset_customized": "Customized",
+    "preset_reset": "Reset to default"
   }
 }

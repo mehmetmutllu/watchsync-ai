@@ -514,10 +514,14 @@ export default function SettingsPage() {
       </div>
 
       {/* Tabs — horizontal scroll on mobile */}
-      <div className="flex gap-1 border-b border-border-subtle overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div role="tablist" aria-label={t('title')} className="flex gap-1 border-b border-border-subtle overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
         {TABS.map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            id={`settings-tab-${tab.key}`}
+            aria-selected={activeTab === tab.key}
+            aria-controls={`settings-panel-${tab.key}`}
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab.key
@@ -526,16 +530,18 @@ export default function SettingsPage() {
             }`}
           >
             {tab.icon}
-            <span className="hidden sm:inline">{t(tab.labelKey)}</span>
+            <span>{t(tab.labelKey)}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'profile' && <ProfileTab />}
-      {activeTab === 'company' && <CompanyTab />}
-      {activeTab === 'notifications' && <NotificationsTab />}
-      {activeTab === 'platforms' && <PlatformsTab />}
+      <div role="tabpanel" id={`settings-panel-${activeTab}`} aria-labelledby={`settings-tab-${activeTab}`}>
+        {activeTab === 'profile' && <ProfileTab />}
+        {activeTab === 'company' && <CompanyTab />}
+        {activeTab === 'notifications' && <NotificationsTab />}
+        {activeTab === 'platforms' && <PlatformsTab />}
+      </div>
     </div>
   );
 }

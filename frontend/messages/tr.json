@@ -910,6 +910,11 @@
     "group_platforms": "Platformlar",
     "group_ai": "AI",
     "group_settings": "Ayarlar",
-    "group_team": "Ekip"
+    "group_team": "Ekip",
+    "select_all": "Tümünü seç",
+    "clear_group": "Temizle",
+    "preset_matches": "Rol varsayılanıyla aynı",
+    "preset_customized": "Özelleştirildi",
+    "preset_reset": "Varsayılana dön"
   }
 }

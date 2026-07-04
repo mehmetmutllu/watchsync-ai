@@ -910,6 +910,11 @@
     "group_platforms": "Plattformen",
     "group_ai": "KI",
     "group_settings": "Einstellungen",
-    "group_team": "Team"
+    "group_team": "Team",
+    "select_all": "Alle auswählen",
+    "clear_group": "Zurücksetzen",
+    "preset_matches": "Entspricht Rollenvorgabe",
+    "preset_customized": "Angepasst",
+    "preset_reset": "Auf Standard zurücksetzen"
   }
 }

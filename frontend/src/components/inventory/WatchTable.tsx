@@ -285,6 +285,7 @@ export default function WatchTable({
             {watches.map((watch) => (
               <tr
                 key={watch.id}
+                aria-label={`${watch.brand} ${watch.model}${watch.reference_number ? ` · ${watch.reference_number}` : ''}`}
                 className="border-b border-white/5 hover:bg-white/10 transition-colors"
               >
                 {/* Checkbox */}
@@ -387,7 +388,9 @@ export default function WatchTable({
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={(e) => openMenu(watch.id, e.currentTarget)}
-                    className="p-1.5 rounded-md hover:bg-surface-elevated transition-colors text-secondary-text hover:text-primary-text"
+                    aria-label={t("th_actions")}
+                    aria-haspopup="menu"
+                    className="inline-flex items-center justify-center w-11 h-11 rounded-md hover:bg-surface-elevated transition-colors text-secondary-text hover:text-primary-text"
                   >
                     <MoreHorizontal className="w-4 h-4" />
                   </button>

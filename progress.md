@@ -1341,5 +1341,24 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [x] P0: 3 tanımsız token bug'ı (accent-primary/surface-base/hover:border-default) · mobil sidebar blocker (ayrı mobileOpen state) · CRM tab focus baskılaması (WCAG)
 - [x] P1: alert()→toast · auth İngilizce hero→i18n · CRM neon-glow/purple kümesi→sessiz lüks · market-scanner alarm tonu · dashboard KPI skeleton
 - [x] Doğrulama: tsc 0 kaynak hatası · i18n 861/861/861 · e2e/team 5/5 · Playwright görsel teyit
-- [ ] **Ertelendi (sonraki chat):** Settings mobil tab · izin matrisi "tümünü seç" · invoice type=date · ConfirmDialog focus · birkaç a11y nit · admin side-stripe (ayrı sistem) · F4 CSP nonce
+### Ertelenen UI/a11y maddeleri (2026-07-04 · devam 5) — `feature/security-ui-polish`
+- [x] Settings mobil tab etiketleri görünür + `role=tablist/tab/tabpanel` + `aria-selected`
+- [x] İzin matrisi grup "Tümünü seç / Temizle" (grantable/disabled'a saygılı, gruplar bağımsız)
+- [x] İzin preset-farkı göstergesi + "Varsayılana dön" (InviteMemberModal)
+- [x] Invoice vade `type="date"` (zaten mevcuttu — teyit edildi)
+- [x] ConfirmDialog odak geri-verme (aç→onay butonu, kapan→tetikleyen öğe)
+- [x] Envanter satır `aria-label` + ikon aksiyon butonuna erişilebilir ad + 44px hedef
+- [x] BULUNAN+DÜZELTİLEN bug: davet modalı preset useEffect'i arka plan refetch'te seçimi siliyordu → `[role]`'e bağlandı
+- [x] Yeni `frontend/e2e/ui-polish.spec.ts` **5/5** · tsc 0 kaynak hatası · i18n 866/866/866 · e2e/team 5/5 (regresyon yok)
+- [x] Dokunulmadı (gerekçeli): landing "Demo İzle" zaten `#features` anchor · CRM tab zaten flex-1/sabit font (kayma yok) · invite modal zaten native `<select>`
+- [ ] **Backlog:** F4 CSP nonce · admin side-stripe (ayrı sistem) · demo DB davet kalıntıları temizliği
 - [ ] PR #3 → develop merge/inceleme
+
+---
+
+## 🚀 Canlıya Alma Taraması (2026-07-04 · devam 5) — doğrulanmış durum
+- [x] Tarama yapıldı: backend'de stub/TODO **yok** (API'ler gerçek), 34 migration, CI `ci.yml` var
+- [ ] eBay/Shopify/Gemini gerçek API anahtarları + sandbox uçtan-uca test
+- [ ] SAM2 model checkpoint indir + AI enhance uçtan-uca doğrula
+- [ ] Prod env: `APP_DEBUG=false`/`APP_ENV=production`, gerçek mail, persistent+şifreli Redis, prod DB+yedek, gerçek domain'e Sanctum/CORS/`NEXT_PUBLIC_API_URL`
+- [ ] Deploy tooling: backend `Dockerfile` + kök `docker-compose.prod.yml` (yok) + CI deploy adımı + `DEPLOYMENT.md`

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useConfirmStore } from "@/stores/confirmStore";
@@ -10,6 +10,8 @@ export default function ConfirmDialog() {
   const open = useConfirmStore((s) => s.open);
   const options = useConfirmStore((s) => s.options);
   const respond = useConfirmStore((s) => s.respond);
+  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -20,6 +22,17 @@ export default function ConfirmDialog() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, respond]);
+
+  // Odağı diyaloğa taşı; kapanınca tetikleyen öğeye geri ver (a11y)
+  useEffect(() => {
+    if (!open) return;
+    triggerRef.current = document.activeElement as HTMLElement | null;
+    confirmBtnRef.current?.focus();
+    return () => {
+      triggerRef.current?.focus();
+      triggerRef.current = null;
+    };
+  }, [open]);
 
   if (!open || !options) return null;
 
@@ -59,8 +72,8 @@ export default function ConfirmDialog() {
             {cancelLabel ?? t("cancel")}
           </button>
           <button
+            ref={confirmBtnRef}
             onClick={() => respond(true)}
-            autoFocus
             className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${
               danger ? "bg-semantic-error hover:bg-semantic-error/90" : "bg-accent-blue hover:bg-accent-blue/90"
             }`}
