@@ -175,7 +175,7 @@
 
 ### Bekleyen Güvenlik / Production Hazırlık Görevleri
 - [ ] Auth token: `localStorage` → `httpOnly cookie` geçişi (production güvenliği)
-- [ ] `Content-Security-Policy` header (production domain belirlendikten sonra)
+- [x] `Content-Security-Policy` header — sertleştirildi (2026-07-04): `unsafe-eval` yalnız dev; prod'da `object-src/base-uri/form-action/frame-src` kısıtları eklendi (`frontend/next.config.ts`)
 - [x] `favicon.ico` ve `apple-touch-icon` tasarımı ve eklenmesi
 - [ ] FormRequest `authorize()` → role-based yetkilendirme (owner/manager/staff)
 - [x] ProcessWebhookJob: platform/dealer ownership doğrulaması
@@ -285,7 +285,7 @@
 - [x] Webhook dinleyicileri
   - [x] eBay sipariş bildirimi → stok kilitleme
   - [x] Shopify sipariş bildirimi → stok kilitleme
-  - [x] Webhook imza doğrulaması
+  - [x] Webhook imza doğrulaması — eBay için gerçek kripto doğrulama (fail-closed) tamamlandı (2026-07-04): `EbayNotificationVerifier` (`openssl_verify` + Notification API public key) + endpoint challenge yanıtı + Unit/Feature testleri
 
 #### Hafta 6 Tamamlama Görevleri (İyileştirme)
 - [x] Platform referans ID'leri migration (`platform_connections.settings` veya `watches` tablosuna `ebay_listing_id`, `ebay_offer_id`, `shopify_product_id`, `shopify_variant_id`)

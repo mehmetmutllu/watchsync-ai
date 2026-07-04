@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-04  
-> **Mevcut Faz:** Frontend düzeltmeleri **P0 (4/4) + P1 (5/5) + P2 (6/6) TAMAM** ve doğrulandı ✅ (tsc temiz, vitest baseline, team E2E 5/5). `feature/team-management` → develop **PR açıldı**.  
-> **Sıradaki (İLK İŞ):** PR'ın develop'a merge'ini bekle/incele. Merge sonrası Aşama 7 kapanır → Aşama 8'e geç (aşağıdaki roadmap'e bak). Ayrıca opsiyonel P2.14 (Market Scanner bilgi mimarisi) büyük iş, ayrı oturuma bırakıldı.  
+> **Mevcut Faz:** Frontend **P0+P1+P2 TAMAM** + ek **backend güvenlik sertleştirmesi** (eBay webhook kripto imza doğrulama + CSP prod sertleştirme) TAMAM ✅. `feature/team-management` → develop PR açık.  
+> **Sıradaki (İLK İŞ):** PR'ın develop'a merge'ini bekle/incele (artık güvenlik commit'i de dahil). Merge sonrası Aşama 7 kapanır → Aşama 8'e geç (aşağıdaki roadmap'e bak). Opsiyonel P2.14 (Market Scanner bilgi mimarisi) büyük iş, ayrı oturuma bırakıldı.  
 > **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -797,3 +797,29 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 **Doğrulama:** `tsc --noEmit` temiz (kalan 2 hata test dosyalarında — bilinen baseline). `vitest`: baseline'a döndü — 3 kırık dosya (EmptyState/StatusBadge/WatchFilters, NextIntlClientProvider ile sarılmıyor; benim değişikliğimle ilgisiz, dokunulmadı). `e2e/team.spec.ts` **5/5**. i18n parite: en/de/tr = **857/857/857**.
 
 **Sonraki adım:** PR `feature/team-management` → develop açıldı; merge/inceleme bekleniyor. Merge sonrası Aşama 7 kapanır → Aşama 8. P2.14 (Market Scanner IA) opsiyonel/büyük, ertelendi.
+
+---
+
+## 📌 Son Oturum (2026-07-04 · devam 3 — eBay webhook güvenlik sertleştirmesi + CSP)
+
+> Bu iş bir önceki oturumda **başlanmış ama commit edilmeden** kalmıştı (terminal beklenmedik kapandı). Bu oturumda tamamlanıp doğrulanıp commit edildi. Bir önceki `8cb76da backend güvenlik blokerleri` işinin devamı.
+
+**Yapılanlar (dal `feature/team-management`):**
+- **eBay webhook imza doğrulama (fail-closed):** yeni `backend/app/Services/EbayNotificationVerifier.php`. `X-EBAY-SIGNATURE` header'ı (base64 JSON: `kid/signature/digest`) eBay'in public key'i ile `openssl_verify` üzerinden kriptografik doğrulanır. Public key Notification API'den `kid` ile çekilir (client_credentials app token), 6 saat cache'lenir. Header/anahtar/imza çözülemezse `false` — sahte/şüpheli webhook reddedilir.
+- **`WebhookController.php`:** eski "imza sadece var mı" kontrolü gerçek kripto doğrulamayla değiştirildi (`verifyEbaySignature` → `EbayNotificationVerifier` DI). eBay endpoint verification challenge handler'ı eklendi (`handleEbayChallenge`): `challenge_code` gelirse `SHA256(challengeCode+verificationToken+endpoint)` hex döner.
+- **`routes/api.php`:** challenge için `GET /webhooks/ebay` route'u eklendi (POST'un yanına).
+- **`config/services.php`:** `ebay.webhook_endpoint` config (`EBAY_WEBHOOK_ENDPOINT`) eklendi.
+- **`backend/.env.example`:** `EBAY_WEBHOOK_VERIFICATION_TOKEN` + `EBAY_WEBHOOK_ENDPOINT` anahtarları eklendi (boşsa dev/test'te bypass).
+- **CSP sertleştirme (`frontend/next.config.ts`):** `unsafe-eval` artık **yalnız dev'de** (Turbopack/HMR); production'da kaldırıldı. CSP'ye `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-src 'none'` eklendi.
+- **Testler:** yeni `backend/tests/Unit/EbayNotificationVerifierTest.php` (5 test: geçerli imza, SHA256, kurcalanmış gövde, bozuk imza, bozuk header — gömülü prime256v1 EC anahtar çiftiyle, ağa ihtiyaç yok). `WebhookTest.php`'ye 2 test: sahte imza reddi (403), challenge yanıtı (200 + doğru hash).
+
+**Mevcut durum (doğrulama):**
+- Backend: webhook testleri **6/6** + verifier **5/5** geçiyor. Tam suite: **132 passed**, 4 fail + 1 skip — 4 fail memory'de yazılı **bilinen baseline** (AuthTest×2, InvoiceTest×2), bizim işimizle ilgisiz.
+- Frontend: tek değişiklik `next.config.ts` (config, TS kaynak değil). `.next` çökme artefaktı silinip tsc tekrar koşuldu — kaynak temiz; kalan 2 tsc hatası dokunulmayan test dosyalarında (`__tests__/setup.tsx`, `stores/inventoryStore.test.ts`) — bilinen baseline.
+- ⚠️ CSP prod sertleştirmesi dev'de anlamlı doğrulanamaz (dev `unsafe-eval`'ı korur); prod build ile ileride teyit edilmeli.
+
+**Sonraki adımlar (bir sonraki chat, sıralı):**
+1. PR `feature/team-management` → develop merge/inceleme (güvenlik commit'i dahil).
+2. Merge sonrası Aşama 7 kapanır → Aşama 8'e geç.
+3. (Opsiyonel) prod build alıp yeni CSP ile konsol/CSP ihlali kontrolü.
+4. eBay Developer hesabı açılınca gerçek `EBAY_WEBHOOK_VERIFICATION_TOKEN`/`EBAY_WEBHOOK_ENDPOINT` ile canlı challenge + imza doğrulama testi.

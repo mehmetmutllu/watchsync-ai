@@ -47,6 +47,7 @@ return [
         'sandbox'       => env('EBAY_ENVIRONMENT', 'sandbox') === 'sandbox',
         'ru_name'       => env('EBAY_RU_NAME'),
         'webhook_verification_token' => env('EBAY_WEBHOOK_VERIFICATION_TOKEN', ''),
+        'webhook_endpoint'           => env('EBAY_WEBHOOK_ENDPOINT', ''),
         'scopes'        => [
             'https://api.ebay.com/oauth/api_scope',
             'https://api.ebay.com/oauth/api_scope/sell.inventory',
