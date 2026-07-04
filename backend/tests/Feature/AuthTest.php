@@ -17,8 +17,8 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/register', [
             'name'                  => 'Test Owner',
             'email'                 => 'owner@watchsync.ai',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
+            'password'              => 'Password123',
+            'password_confirmation' => 'Password123',
             'company_name'          => 'Test Watch Co.',
         ]);
 

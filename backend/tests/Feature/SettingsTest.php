@@ -67,8 +67,8 @@ class SettingsTest extends TestCase
         $response = $this->withHeaders($this->authHeader())
             ->putJson('/api/settings/password', [
                 'current_password' => 'password', // default factory password
-                'password' => 'newpassword123',
-                'password_confirmation' => 'newpassword123',
+                'password' => 'NewPassword123',
+                'password_confirmation' => 'NewPassword123',
             ]);
 
         $response->assertStatus(200);
@@ -79,8 +79,8 @@ class SettingsTest extends TestCase
         $this->withHeaders($this->authHeader())
             ->putJson('/api/settings/password', [
                 'current_password' => 'wrongpassword',
-                'password' => 'newpassword123',
-                'password_confirmation' => 'newpassword123',
+                'password' => 'NewPassword123',
+                'password_confirmation' => 'NewPassword123',
             ])
             ->assertStatus(422);
     }
