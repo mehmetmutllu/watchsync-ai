@@ -1356,7 +1356,15 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 
 ---
 
-## 🚀 Canlıya Alma Taraması (2026-07-04 · devam 5) — doğrulanmış durum
+## ✅ KALAN KOD İŞİ — OTURUM A (sıradaki chat'te bitirilecek) — "local kusursuz" hedefi
+> Çekirdek ürün kodu bitti (TODO/stub yok). Kalan neredeyse tümüyle test temizliği + 1 sertleştirme + 1 kozmetik. Sıra: K1→K2→K3→K4.
+- [ ] **K1** Frontend kırık testler (3 dosya/12 test) — `next-intl` provider sarılmamış (ürün bug'ı değil, test-setup). `render`'ı `NextIntlClientProvider`(messages) ile sar / mock'la. `src/__tests__/setup.tsx` displayName tsc uyarısı dahil
+- [ ] **K2** Backend kırık testler (4) — `InvoiceTest`×2: test payload'ı `customer_id`+`items.0.quantity` göndermiyor → test verisi düzeltmesi. `AuthTest`×2: register/login 500 → local-ortam diagnozu (CI'de geçebilir)
+- [ ] **K3** Admin sidebar side-stripe (kozmetik, ~15dk)
+- [ ] **K4** F4 CSP nonce — `next.config.ts` `script-src` `unsafe-inline` → per-request nonce (Next middleware). Orta risk; prod'da `unsafe-eval` zaten yok. Dikkatli test
+- [ ] Doğrulama: frontend vitest tam yeşil · backend suite tam yeşil · e2e/team + e2e/ui-polish · tsc temiz → watch-kaydet
+
+## 🚀 Canlıya Alma — OTURUM B (kullanıcı isteğine göre) — doğrulanmış envanter
 - [x] Tarama yapıldı: backend'de stub/TODO **yok** (API'ler gerçek), 34 migration, CI `ci.yml` var
 - [ ] eBay/Shopify/Gemini gerçek API anahtarları + sandbox uçtan-uca test
 - [ ] SAM2 model checkpoint indir + AI enhance uçtan-uca doğrula

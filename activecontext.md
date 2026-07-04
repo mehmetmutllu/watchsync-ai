@@ -880,9 +880,14 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 - **Prod-config değişmeli:** `.env.example` → `APP_ENV=local`, `APP_DEBUG=true`, `SESSION_DRIVER=database`, `QUEUE/CACHE=redis`, `MAIL=log`, `SANCTUM_STATEFUL_DOMAINS=localhost:3000,3001`. Prod'da: DEBUG=false, ENV=production, gerçek mail (SES/SendGrid), şifreli/persistent Redis, gerçek DB+yedek, gerçek domain'e Sanctum/CORS, frontend `NEXT_PUBLIC_API_URL`.
 - **Deploy tooling EKSİK:** `.github/workflows/ci.yml` var (test/lint) ama **deploy adımı yok**; **kök docker-compose ve backend Dockerfile YOK** (yalnız ai-service Dockerfile var); DEPLOYMENT.md/runbook yok.
 
-**SONRAKİ ADIMLAR (bir sonraki chat):**
-1. PR #3'ü incele → develop'a merge et (UI polish + güvenlik). Sonra bu dal işi kapanır.
-2. **Canlıya alma faz-1 (kod/altyapı):** backend `Dockerfile` + kök `docker-compose.prod.yml` yaz; CI'ye build+deploy adımı ekle; `DEPLOYMENT.md` yaz.
-3. **Canlıya alma faz-2 (secrets/servis):** eBay/Shopify/Gemini gerçek anahtarları al ve OAuth/listing akışını sandbox'ta uçtan uca test et; SAM2 checkpoint indir + AI enhance uçtan uca doğrula.
-4. **Prod env:** DEBUG=false/ENV=production, gerçek mail, persistent Redis, prod DB+yedek, gerçek domain'e Sanctum/CORS/`NEXT_PUBLIC_API_URL`.
-5. **Backlog:** F4 CSP nonce; demo DB "E2E Staff" + "focus-*" davet kalıntıları temizliği.
+**KALAN KOD İŞİ ENVANTERİ (doğrulanmış — canlıya-alma altyapısı HARİÇ):** Frontend+backend'de gerçek TODO/stub/eksik uç YOK. Kalan neredeyse tümüyle test temizliği + 1 güvenlik sertleştirme + 1 kozmetik:
+- **(K1) Frontend kırık testler** (3 dosya / 12 test): hepsi `next-intl` provider'ı sarılmadığından patlıyor — ÜRÜN BUG'I DEĞİL, test-setup. Fix: `render`'ı `NextIntlClientProvider` (messages ile) sar veya next-intl mock'la. Düşük risk. (`WatchFilters.test.tsx` + 2 dosya; `src/__tests__/setup.tsx` displayName tsc uyarısı da dahil.)
+- **(K2) Backend kırık testler** (4): `InvoiceTest`×2 → test payload'ı `customer_id` + `items.0.quantity` GÖNDERMİYOR → 422 (test verisi düzeltmesi; API sözleşmesi doğru). `AuthTest`×2 register/login → 500 (local-ortamsal; CI'de geçebilir — önce diagnoz: local DB/env mi gerçek mi).
+- **(K3) Admin sidebar side-stripe** — kozmetik hizalama, ~15dk.
+- **(K4) F4 CSP nonce** — `next.config.ts` `script-src`'deki `unsafe-inline`'ı per-request nonce'a çevir (Next middleware/proxy nonce üretimi + Next script'lerine propagasyon). ORTA risk (script yükleme kırılabilir, dikkatli test). Bloklamıyor: prod'da `unsafe-eval` zaten yok (`isDev` guard). Efor ~2-4s.
+
+**PLAN — 2 oturum (kullanıcı ile kararlaştırıldı 2026-07-04):**
+- **OTURUM A (SIRADAKİ / watch-devam ilk işi):** Yukarıdaki **K1→K2→K3→K4**'ü bitir. Hedef: local KUSURSUZ — tüm testler yeşil (frontend vitest + backend suite + e2e), CSP sertleştirmesi tamam. Her adımdan sonra doğrula (vitest/artisan test/Playwright). Sonunda watch-kaydet.
+- **OTURUM B (ondan sonraki chat):** Kullanıcı ne isteyeceğini söyleyecek (muhtemelen CANLIYA ALMA) → ona göre hareket. Canlıya-alma envanteri progress.md "🚀 Canlıya Alma Taraması" + yukarıdaki taramada hazır (deploy tooling, secrets, prod env).
+
+**Bu chat'te YAPILMADI (yalnız tarama/karar):** kod değişikliği yok; PR #3 hâlâ açık (merge bekliyor). PR #3 merge'i K1-K4 ile aynı dalda (`feature/security-ui-polish`) devam edebilir ya da merge sonrası yeni dal — Oturum A başında karar ver.
