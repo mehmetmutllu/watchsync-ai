@@ -55,6 +55,8 @@ Route::get('/ebay/callback', [EbayController::class, 'callback']);
 
 // Webhook endpoints — platform imza doğrulaması ile korunur
 Route::prefix('webhooks')->middleware('throttle:30,1')->group(function () {
+    // eBay endpoint verification challenge (account deletion onboarding) — GET
+    Route::get('/ebay', [WebhookController::class, 'ebay']);
     Route::post('/ebay', [WebhookController::class, 'ebay']);
     Route::post('/shopify', [WebhookController::class, 'shopify']);
 });

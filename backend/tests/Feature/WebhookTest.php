@@ -26,6 +26,37 @@ class WebhookTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_ebay_webhook_rejects_forged_signature(): void
+    {
+        // Verification token ayarlı iken doğrulanamayan (sahte) imza reddedilmeli.
+        // Test ortamında eBay creds yok → public key çözülemez → fail-closed 403.
+        config(['services.ebay.webhook_verification_token' => 'valid-token']);
+
+        $response = $this->postJson('/api/webhooks/ebay', [
+            'metadata' => ['topic' => 'order.created'],
+            'resource' => ['legacyItemId' => 'WS-00000001'],
+        ], [
+            'X-EBAY-SIGNATURE' => base64_encode(json_encode([
+                'alg' => 'ecdsa', 'kid' => 'x', 'signature' => base64_encode('forged'), 'digest' => 'SHA1',
+            ])),
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_ebay_webhook_answers_verification_challenge(): void
+    {
+        config([
+            'services.ebay.webhook_verification_token' => 'my-token',
+            'services.ebay.webhook_endpoint' => 'https://example.test/api/webhooks/ebay',
+        ]);
+
+        $response = $this->getJson('/api/webhooks/ebay?challenge_code=abc123');
+
+        $expected = hash('sha256', 'abc123' . 'my-token' . 'https://example.test/api/webhooks/ebay');
+        $response->assertStatus(200)->assertJson(['challengeResponse' => $expected]);
+    }
+
     public function test_ebay_webhook_accepts_in_dev_mode(): void
     {
         // Dev mode: boş verification token = bypass

@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessWebhookJob;
 use App\Models\Platform;
 use App\Models\Watch;
+use App\Services\EbayNotificationVerifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
 {
+    public function __construct(
+        private readonly EbayNotificationVerifier $ebayVerifier,
+    ) {}
+
     /**
      * eBay Marketplace Account Notification webhook.
      *
@@ -19,6 +24,11 @@ class WebhookController extends Controller
      */
     public function ebay(Request $request): JsonResponse
     {
+        // Endpoint doğrulama challenge'ı (eBay onboarding — account deletion)
+        if ($request->has('challenge_code')) {
+            return $this->handleEbayChallenge($request);
+        }
+
         // eBay webhook imza doğrulaması
         if (!$this->verifyEbaySignature($request)) {
             Log::warning('eBay webhook: Invalid signature', [
@@ -162,34 +172,42 @@ class WebhookController extends Controller
     // ─── Signature Verification ────────────────────────────────
 
     /**
-     * eBay notification imza doğrulaması.
-     * eBay X-EBAY-SIGNATURE header'ı ve endpoint verification token kullanır.
+     * eBay notification imza doğrulaması (fail-closed).
+     *
+     * Verification token ayarlıysa `X-EBAY-SIGNATURE` header'ı, eBay'in
+     * public key'i ile kriptografik olarak doğrulanır. Doğrulanamayan
+     * (imzasız, ayrıştırılamayan, geçersiz) istekler reddedilir.
      */
     private function verifyEbaySignature(Request $request): bool
     {
         $verificationToken = config('services.ebay.webhook_verification_token', '');
 
-        // Verification token yapılandırılmamışsa (development), geç
+        // Verification token yapılandırılmamışsa (development/test), geç
         if (empty($verificationToken)) {
             return true;
         }
 
-        // eBay challenge code (endpoint verification)
-        $challengeCode = $request->input('challenge_code');
-        if ($challengeCode) {
-            // Bu bir verification isteği, doğru hash döndürülmeli
-            return true;
-        }
-
         $signature = $request->header('X-EBAY-SIGNATURE');
-        if (!$signature) {
+        if (empty($signature)) {
             return false;
         }
 
-        // eBay signature formatı: kid=<key_id>;signature=<base64_signature>
-        // Basit doğrulama: signature header'ının varlığını kontrol et
-        // Production'da eBay Key Vault'tan public key ile doğrulama yapılacak
-        return !empty($signature);
+        return $this->ebayVerifier->verify($signature, $request->getContent());
+    }
+
+    /**
+     * eBay endpoint verification challenge yanıtı.
+     * challengeResponse = SHA256(challengeCode + verificationToken + endpoint) (hex).
+     */
+    private function handleEbayChallenge(Request $request): JsonResponse
+    {
+        $challengeCode     = (string) $request->input('challenge_code');
+        $verificationToken = (string) config('services.ebay.webhook_verification_token', '');
+        $endpoint          = (string) config('services.ebay.webhook_endpoint', $request->url());
+
+        $hash = hash('sha256', $challengeCode . $verificationToken . $endpoint);
+
+        return response()->json(['challengeResponse' => $hash]);
     }
 
     /**
