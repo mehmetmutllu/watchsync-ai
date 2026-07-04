@@ -1323,7 +1323,7 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 ### Frontend düzeltmeleri (detay: activecontext.md "Son Oturum · 2026-07-04")
 - [x] P0: team sonsuz fetch döngüsü (usePermission memoize) · OnboardingTour data-tour (4 hedef) · tr.json 10 anahtar · invoice line_items başlığı
 - [x] P1: CRM Almanca stringler → i18n (page + alt bileşenler, ~70 anahtar) · ConfirmModal (confirmStore + ConfirmDialog; window.confirm değişimi + onaysız silmelere onay) · CRM gradient anti-pattern'leri (avatar/AiInsights/stats → accent-blue) · ölü kod (WatchFormModal, Can.tsx, teamApi metodları) · AuthGuard/api.ts locale bug
-- [ ] P2: objectURL leak · BulkActions/ActivityFeed cleanup · Zustand selector'lar · çift fetchPlatforms · mobil (BottomNav CRM+Invoices, 44px hedefler) · gradient-text/bounce easing/amber buton/sidebar sol şerit · Market Scanner hiyerarşi · invite sayfası memo · kalan i18n string'leri
+- [x] P2: objectURL leak · BulkActions/ActivityFeed cleanup · Zustand selector'lar · çift fetchPlatforms · mobil (BottomNav CRM+Invoices, 44px hedefler) · gradient-text/bounce easing/amber buton/sidebar sol şerit · invite sayfası memo+MobileLogo · kalan i18n string'leri (Common/TopBar/Sidebar/CRM 10 anahtar × 3 dil). (Market Scanner hiyerarşi/P2.14 opsiyonel — ertelendi)
 - [x] Doğrulama (P0+P1): tsc temiz · vitest (AuthGuard geçti; 3 baseline-kırık dosya dokunulmadı) · e2e/team.spec **5/5** · Playwright görsel smoke (ConfirmDialog/CRM i18n/tour/locale-redirect/renkler)
-- [ ] P2 doğrulama: tsc + vitest + e2e/team.spec (5/5)
+- [x] P2 doğrulama: tsc temiz · vitest baseline'a döndü (AuthGuard testi NextIntlClientProvider ile sarılıp düzeltildi; 3 baseline-kırık dosya dokunulmadı) · e2e/team.spec **5/5** · i18n parite 857/857/857 → `feature/team-management` → develop **PR açıldı**
 - [ ] `feature/team-management` → develop PR

@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { NextIntlClientProvider } from 'next-intl'
+import type { ReactNode } from 'react'
 import AuthGuard from '@/components/auth/AuthGuard'
+import messages from '../../../messages/tr.json'
+
+const renderWithIntl = (ui: ReactNode) =>
+  render(
+    <NextIntlClientProvider locale="tr" messages={messages}>
+      {ui}
+    </NextIntlClientProvider>
+  )
 
 const mockReplace = vi.fn()
 
@@ -36,7 +46,7 @@ describe('AuthGuard', () => {
   it('shows loading spinner when isLoading is true', () => {
     mockAuthStore.isLoading = true
 
-    render(
+    renderWithIntl(
       <AuthGuard>
         <div>Protected Content</div>
       </AuthGuard>
@@ -50,7 +60,7 @@ describe('AuthGuard', () => {
     mockAuthStore.isLoading = false
     mockAuthStore.isAuthenticated = true
 
-    render(
+    renderWithIntl(
       <AuthGuard>
         <div>Protected Content</div>
       </AuthGuard>
@@ -63,7 +73,7 @@ describe('AuthGuard', () => {
     mockAuthStore.isLoading = false
     mockAuthStore.isAuthenticated = false
 
-    render(
+    renderWithIntl(
       <AuthGuard>
         <div>Protected Content</div>
       </AuthGuard>
@@ -75,7 +85,7 @@ describe('AuthGuard', () => {
   })
 
   it('calls hydrate on mount', () => {
-    render(
+    renderWithIntl(
       <AuthGuard>
         <div>Content</div>
       </AuthGuard>

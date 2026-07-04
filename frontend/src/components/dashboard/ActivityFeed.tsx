@@ -42,6 +42,7 @@ export default function ActivityFeed() {
   const [polling, setPolling] = useState(false);
   const [newIds, setNewIds] = useState<Set<number>>(new Set());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const newFlagTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestTimestampRef = useRef<string | null>(null);
 
   const fetchActivities = useCallback(async (since?: string) => {
@@ -96,7 +97,8 @@ export default function ActivityFeed() {
         }
 
         // Animasyon sonrası new flag'i kaldır
-        setTimeout(() => setNewIds(new Set()), 1500);
+        if (newFlagTimeoutRef.current) clearTimeout(newFlagTimeoutRef.current);
+        newFlagTimeoutRef.current = setTimeout(() => setNewIds(new Set()), 1500);
       }
 
       setPolling(false);
@@ -106,6 +108,7 @@ export default function ActivityFeed() {
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (newFlagTimeoutRef.current) clearTimeout(newFlagTimeoutRef.current);
     };
   }, [fetchActivities]);
 

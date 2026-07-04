@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useMemo, useState, use } from "react";
 import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
@@ -24,6 +24,19 @@ type LoadState =
   | { status: "invalid" }
   | { status: "expired" };
 
+function MobileLogo() {
+  return (
+    <div className="lg:hidden flex items-center gap-3 justify-center mb-4">
+      <div className="w-9 h-9 rounded-lg bg-accent-blue/20 flex items-center justify-center">
+        <Watch className="w-5 h-5 text-accent-blue" strokeWidth={1.5} />
+      </div>
+      <span className="text-lg font-bold tracking-tight">
+        WatchSync<span className="text-accent-blue"> AI</span>
+      </span>
+    </div>
+  );
+}
+
 export default function InviteAcceptPage({
   params,
 }: {
@@ -31,6 +44,7 @@ export default function InviteAcceptPage({
 }) {
   const { token } = use(params);
   const t = useTranslations("Invite");
+  const tc = useTranslations("Common");
   const router = useRouter();
   const fetchUser = useAuthStore((s) => s.fetchUser);
 
@@ -58,16 +72,20 @@ export default function InviteAcceptPage({
     };
   }, [token]);
 
-  const schema = z
-    .object({
-      name: z.string().min(2, t("name_too_short")),
-      password: z.string().min(8, t("password_too_short")),
-      password_confirmation: z.string(),
-    })
-    .refine((d) => d.password === d.password_confirmation, {
-      message: t("passwords_mismatch"),
-      path: ["password_confirmation"],
-    });
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          name: z.string().min(2, t("name_too_short")),
+          password: z.string().min(8, t("password_too_short")),
+          password_confirmation: z.string(),
+        })
+        .refine((d) => d.password === d.password_confirmation, {
+          message: t("passwords_mismatch"),
+          path: ["password_confirmation"],
+        }),
+    [t],
+  );
 
   const {
     register,
@@ -116,17 +134,6 @@ export default function InviteAcceptPage({
       : role === "manager"
         ? t("role_manager")
         : t("role_staff");
-
-  const MobileLogo = () => (
-    <div className="lg:hidden flex items-center gap-3 justify-center mb-4">
-      <div className="w-9 h-9 rounded-lg bg-accent-blue/20 flex items-center justify-center">
-        <Watch className="w-5 h-5 text-accent-blue" strokeWidth={1.5} />
-      </div>
-      <span className="text-lg font-bold tracking-tight">
-        WatchSync<span className="text-accent-blue"> AI</span>
-      </span>
-    </div>
-  );
 
   if (state.status === "loading") {
     return (
@@ -260,7 +267,7 @@ export default function InviteAcceptPage({
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
               tabIndex={-1}
-              aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+              aria-label={showPassword ? tc("hide_password") : tc("show_password")}
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" strokeWidth={1.5} />

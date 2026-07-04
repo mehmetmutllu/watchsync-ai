@@ -55,7 +55,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       <aside
         data-tour="sidebar"
         role="navigation"
-        aria-label="Ana menü"
+        aria-label={t("nav_main")}
         className={`
           fixed top-0 left-0 z-50 h-full
           glass-strong
@@ -85,7 +85,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav aria-label="Sayfa navigasyonu" className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav aria-label={t("nav_pages")} className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -106,11 +106,17 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   transition-all duration-150
                   ${
                     isActive
-                      ? "bg-accent-blue/10 text-accent-blue border-l-2 border-accent-blue"
+                      ? "bg-accent-blue/10 text-accent-blue"
                       : "text-secondary-text hover:bg-surface-elevated hover:text-primary-text"
                   }
                 `}
               >
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-accent-blue"
+                  />
+                )}
                 <Icon
                   className={`flex-shrink-0 w-5 h-5 transition-colors duration-150 ${
                     isActive
@@ -150,7 +156,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             className="w-full flex items-center justify-center gap-2 px-3 py-3
               text-secondary-text hover:text-primary-text hover:bg-surface-elevated
               transition-all duration-150"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? t("expand") : t("collapse")}
           >
             {collapsed ? (
               <ChevronRight className="w-4 h-4" strokeWidth={1.5} />

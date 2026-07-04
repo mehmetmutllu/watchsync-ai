@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
@@ -57,8 +57,11 @@ export default function WatchTable({
 }: WatchTableProps) {
   const t = useTranslations("Inventory");
   const locale = useLocale();
-  const { filters, setFilters, fetchWatches, isLoading } = useInventoryStore();
-  const { platforms, fetchPlatforms } = usePlatformStore();
+  const filters = useInventoryStore((s) => s.filters);
+  const setFilters = useInventoryStore((s) => s.setFilters);
+  const fetchWatches = useInventoryStore((s) => s.fetchWatches);
+  const isLoading = useInventoryStore((s) => s.isLoading);
+  const platforms = usePlatformStore((s) => s.platforms);
   const { can } = usePermission();
   const showCost = can('inventory.view_cost');
   const showPrice = can('inventory.view_price');
@@ -100,10 +103,6 @@ export default function WatchTable({
     setMenuPos({ top, left });
     setMenuOpenId(id);
   }, [menuOpenId]);
-
-  useEffect(() => {
-    fetchPlatforms();
-  }, [fetchPlatforms]);
 
   const handleSort = (column: string) => {
     const newDir =
@@ -216,7 +215,7 @@ export default function WatchTable({
             {(showCost || showPrice) && (
               <div className="flex items-center justify-between text-sm">
                 {showCost && (
-                  <div>
+                  <div className="flex items-baseline gap-1.5">
                     <span className="text-xs text-secondary-text">{t("label_cost")}</span>
                     <span className="font-mono text-secondary-text">
                       {formatPrice(watch.cost_price, watch.currency)}
@@ -224,7 +223,7 @@ export default function WatchTable({
                   </div>
                 )}
                 {showPrice && (
-                  <div>
+                  <div className="flex items-baseline gap-1.5">
                     <span className="text-xs text-secondary-text">{t("label_sale")}</span>
                     <span className="font-mono text-primary-text font-medium">
                       {formatPrice(watch.sale_price, watch.currency)}

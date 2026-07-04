@@ -19,6 +19,7 @@ type LoginFormData = z.infer<typeof loginSchemaBase>;
 
 export default function LoginPage() {
   const t = useTranslations("Auth");
+  const tc = useTranslations("Common");
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
   const [showPassword, setShowPassword] = useState(false);
@@ -135,7 +136,7 @@ export default function LoginPage() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
               tabIndex={-1}
-              aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+              aria-label={showPassword ? tc("hide_password") : tc("show_password")}
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" strokeWidth={1.5} />

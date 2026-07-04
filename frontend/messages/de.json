@@ -3,6 +3,10 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
+    "loading": "Wird geladen...",
+    "skip_to_content": "Zum Inhalt springen",
+    "show_password": "Passwort anzeigen",
+    "hide_password": "Passwort verbergen",
     "error": "Ein Fehler ist aufgetreten"
   },
   "Auth": {
@@ -42,7 +46,11 @@
     "crm": "CRM",
     "invoices": "Rechnungen",
     "team": "Team",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "nav_main": "Hauptmenü",
+    "nav_pages": "Seitennavigation",
+    "expand": "Seitenleiste ausklappen",
+    "collapse": "Seitenleiste einklappen"
   },
   "TopBar": {
     "search_placeholder": "Uhren, SKUs, Kunden suchen...",
@@ -50,11 +58,14 @@
     "toggle_menu": "Menü umschalten",
     "notifications": "Benachrichtigungen",
     "logout": "Abmelden",
-    "user_fallback": "Benutzer"
+    "user_fallback": "Benutzer",
+    "top_bar": "Obere Leiste"
   },
   "BottomNav": {
     "dashboard": "Startseite",
     "inventory": "Inventar",
+    "crm": "CRM",
+    "invoices": "Rechnungen",
     "ai_studio": "AI Studio",
     "market": "Markt",
     "settings": "Einstellungen",
@@ -278,6 +289,7 @@
     "tab_invoices": "Käufe & Rechnungen",
     "birthday": "Geburtstag",
     "favorite_color": "Lieblingsfarbe",
+    "favorite_color_placeholder": "z. B. #006039, Blau",
     "favorite_brand": "Lieblingsmarke",
     "desired_watch": "Wunsch-Uhr",
     "owned_watches": "Besessene Uhren",

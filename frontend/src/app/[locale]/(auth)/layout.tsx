@@ -33,7 +33,7 @@ export default function AuthLayout({
         <div className="relative z-10 max-w-md">
           <h1 className="text-4xl font-bold leading-tight">
             Manage Your Luxury Watch{" "}
-            <span className="bg-gradient-to-r from-accent-blue to-accent-gold bg-clip-text text-transparent">
+            <span className="text-accent-blue">
               Inventory with AI
             </span>
           </h1>

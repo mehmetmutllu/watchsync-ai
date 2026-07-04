@@ -15,7 +15,7 @@ function WatchIllustration() {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="animate-bounce-in"
+      className="animate-scale-in"
       aria-hidden="true"
     >
       {/* Watch strap top */}

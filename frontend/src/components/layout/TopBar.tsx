@@ -15,8 +15,11 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) {
-  const { user, logout } = useAuthStore();
-  const { unreadCount, fetchNotifications, toggleDrawer } = useNotificationStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const fetchNotifications = useNotificationStore((s) => s.fetchNotifications);
+  const toggleDrawer = useNotificationStore((s) => s.toggleDrawer);
   const router = useRouter();
   const t = useTranslations("TopBar");
 
@@ -44,7 +47,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
   return (
     <header
       role="banner"
-      aria-label="Üst menü"
+      aria-label={t("top_bar")}
       className={`
         sticky top-0 z-30 h-16
         glass
@@ -58,7 +61,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
         {/* Mobile menu button */}
         <button
           onClick={onMenuToggle}
-          className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg
+          className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg
             text-secondary-text hover:text-primary-text hover:bg-surface-elevated
             transition-colors duration-150"
           aria-label={t("toggle_menu")}
@@ -76,7 +79,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
         <button
           data-tour="notifications"
           onClick={toggleDrawer}
-          className="relative flex items-center justify-center w-9 h-9 rounded-lg
+          className="relative flex items-center justify-center w-11 h-11 rounded-lg
             text-secondary-text hover:text-primary-text hover:bg-surface-elevated
             transition-colors duration-150"
           aria-label={t("notifications")}
@@ -95,7 +98,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center w-9 h-9 rounded-lg
+          className="flex items-center justify-center w-11 h-11 rounded-lg
             text-secondary-text hover:text-semantic-error hover:bg-surface-elevated
             transition-colors duration-150"
           aria-label={t("logout")}

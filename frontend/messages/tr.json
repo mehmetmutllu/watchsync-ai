@@ -3,6 +3,10 @@
     "save": "Kaydet",
     "cancel": "İptal",
     "confirm": "Onayla",
+    "loading": "Yükleniyor...",
+    "skip_to_content": "İçeriğe geç",
+    "show_password": "Şifreyi göster",
+    "hide_password": "Şifreyi gizle",
     "error": "Bir hata oluştu"
   },
   "Auth": {
@@ -42,7 +46,11 @@
     "crm": "CRM",
     "invoices": "Faturalar",
     "team": "Ekip",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "nav_main": "Ana menü",
+    "nav_pages": "Sayfa navigasyonu",
+    "expand": "Kenar çubuğunu genişlet",
+    "collapse": "Kenar çubuğunu daralt"
   },
   "TopBar": {
     "search_placeholder": "Saat, SKU veya müşteri ara...",
@@ -50,11 +58,14 @@
     "toggle_menu": "Menüyü aç/kapat",
     "notifications": "Bildirimler",
     "logout": "Çıkış yap",
-    "user_fallback": "Kullanıcı"
+    "user_fallback": "Kullanıcı",
+    "top_bar": "Üst menü"
   },
   "BottomNav": {
     "dashboard": "Ana Sayfa",
     "inventory": "Envanter",
+    "crm": "CRM",
+    "invoices": "Faturalar",
     "ai_studio": "AI Studio",
     "market": "Pazar",
     "settings": "Ayarlar",
@@ -278,6 +289,7 @@
     "tab_invoices": "Satın Alımlar & Faturalar",
     "birthday": "Doğum Günü",
     "favorite_color": "En Sevdiği Renk",
+    "favorite_color_placeholder": "örn. #006039, Mavi",
     "favorite_brand": "En Sevdiği Marka",
     "desired_watch": "İstediği Saat",
     "owned_watches": "Sahip Olduğu Saatler",

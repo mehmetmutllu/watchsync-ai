@@ -3,6 +3,10 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "loading": "Loading...",
+    "skip_to_content": "Skip to content",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
     "error": "An error occurred"
   },
   "Auth": {
@@ -42,7 +46,11 @@
     "crm": "CRM",
     "invoices": "Invoices",
     "team": "Team",
-    "settings": "Settings"
+    "settings": "Settings",
+    "nav_main": "Main menu",
+    "nav_pages": "Page navigation",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
   },
   "TopBar": {
     "search_placeholder": "Search watches, SKUs, customers...",
@@ -50,11 +58,14 @@
     "toggle_menu": "Toggle menu",
     "notifications": "Notifications",
     "logout": "Logout",
-    "user_fallback": "User"
+    "user_fallback": "User",
+    "top_bar": "Top bar"
   },
   "BottomNav": {
     "dashboard": "Home",
     "inventory": "Inventory",
+    "crm": "CRM",
+    "invoices": "Invoices",
     "ai_studio": "AI Studio",
     "market": "Market",
     "settings": "Settings",
@@ -278,6 +289,7 @@
     "tab_invoices": "Purchases & Invoices",
     "birthday": "Birthday",
     "favorite_color": "Favorite Color",
+    "favorite_color_placeholder": "e.g. #006039, Blue",
     "favorite_brand": "Favorite Brand",
     "desired_watch": "Desired Watch",
     "owned_watches": "Owned Watches",

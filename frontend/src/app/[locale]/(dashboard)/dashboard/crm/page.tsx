@@ -1378,7 +1378,7 @@ function CustomerFormModal({
                   label={t("favorite_color")}
                   value={form.favorite_color}
                   onChange={(v) => setForm((f) => ({ ...f, favorite_color: v }))}
-                  placeholder="e.g. #006039, Blue"
+                  placeholder={t("favorite_color_placeholder")}
                 />
                 <FormField
                   label={t("desired_watch")}

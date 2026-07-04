@@ -26,6 +26,7 @@ type RegisterFormData = z.infer<typeof registerSchemaBase>;
 
 export default function RegisterPage() {
   const t = useTranslations("Auth");
+  const tc = useTranslations("Common");
   const router = useRouter();
   const registerUser = useAuthStore((s) => s.register);
   const [showPassword, setShowPassword] = useState(false);
@@ -209,7 +210,7 @@ export default function RegisterPage() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
               tabIndex={-1}
-              aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+              aria-label={showPassword ? tc("hide_password") : tc("show_password")}
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" strokeWidth={1.5} />

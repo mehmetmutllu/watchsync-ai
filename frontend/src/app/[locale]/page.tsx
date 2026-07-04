@@ -105,12 +105,6 @@ export default function LandingPage() {
             {t("nav_features")}
           </Link>
           <Link
-            href="/register"
-            className="text-sm text-secondary-text hover:text-primary-text transition-colors duration-150 hidden sm:block"
-          >
-            {t("nav_pricing")}
-          </Link>
-          <Link
             href="/login"
             className="inline-flex items-center h-9 px-4 rounded-lg bg-accent-blue text-white text-sm font-medium
               hover:bg-accent-blue-hover transition-colors duration-150"
@@ -138,7 +132,7 @@ export default function LandingPage() {
           <h1 className="text-display sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
             {t("hero_title_1")}
             <br />
-            <span className="bg-gradient-to-r from-accent-blue to-accent-gold bg-clip-text text-transparent">
+            <span className="text-accent-blue">
               {t("hero_title_2")}
             </span>
           </h1>

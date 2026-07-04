@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-04  
-> **Mevcut Faz:** Frontend düzeltmeleri **P0 (4/4) + P1 (5/5) TAMAM** ve Playwright ile doğrulandı ✅. Sırada **P2 (kalite)**.  
-> **Sıradaki (İLK İŞ):** Aşağıdaki "Son Oturum (2026-07-04)" bloğundaki **P2** listesini uygula (memory leak cleanup, Zustand selector'ları, mobil erişilebilirlik, görsel token'lar, i18n kalanları). Bitince testler+E2E, sonra `feature/team-management` → develop PR.  
+> **Mevcut Faz:** Frontend düzeltmeleri **P0 (4/4) + P1 (5/5) + P2 (6/6) TAMAM** ve doğrulandı ✅ (tsc temiz, vitest baseline, team E2E 5/5). `feature/team-management` → develop **PR açıldı**.  
+> **Sıradaki (İLK İŞ):** PR'ın develop'a merge'ini bekle/incele. Merge sonrası Aşama 7 kapanır → Aşama 8'e geç (aşağıdaki roadmap'e bak). Ayrıca opsiyonel P2.14 (Market Scanner bilgi mimarisi) büyük iş, ayrı oturuma bırakıldı.  
 > **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -779,3 +779,21 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 **Not (P1 sırasında bulunan, kapsam dışı):** CRM AiInsights içeriğindeki "No notes available yet." backend `/customers/{id}/sentiment` yanıtından geliyor (frontend i18n değil) — backend tarafında lokalize edilmeli.
 
 **Bitiş kriteri (P2 sonrası):** `tsc` + vitest + `e2e/team.spec.ts` (5/5) → activecontext/progress güncelle → `feature/team-management` → develop PR.
+
+---
+
+## 📌 Son Oturum (2026-07-04 · devam 2 — Frontend P2 kalite tamamlandı + PR)
+
+**Yapılanlar (dal `feature/team-management`, 6/6):**
+- **P2.10 Memory leak cleanup:** `lib/invoice-api.ts` PDF indirmede `window.URL.revokeObjectURL(url)` eklendi. `BulkActions.tsx`: idle-reset `setTimeout`'ları `resetTimeoutRef`+`scheduleIdleReset` ile tek referansa alındı ve unmount'ta temizleniyor; ayrıca `selectedIds.size===0` olunca polling durduran effect eklendi. `ActivityFeed.tsx`: "new flag" `setTimeout`'u `newFlagTimeoutRef` ile takip edilip unmount'ta clear ediliyor.
+- **P2.11 Zustand selector'ları:** `TopBar`, `WatchTable`, `inventory/page` artık tüm store yerine alan-bazlı selector (`useStore((s)=>s.x)`) kullanıyor. Çift `fetchPlatforms` tekile indirildi: WatchTable'daki `useEffect`+`fetchPlatforms` kaldırıldı (platformları sadece store'dan okuyor; sayfa zaten fetch ediyor).
+- **P2.12 Mobil erişilebilirlik:** `BottomNav`'a CRM (Users) + Invoices (FileText) eklendi (7 sekme; 3 dile `crm`/`invoices` anahtarı). `TopBar` ikon butonları (menu/bell/logout) `w-9 h-9`→`w-11 h-11` (44px dokunma hedefi). `WatchTable` mobil kart fiyat satırındaki label-değer çiftlerine `flex items-baseline gap-1.5`.
+- **P2.13 Görsel token'lar:** landing `page.tsx` + auth `layout.tsx` `bg-clip-text` gradient metin → solid `text-accent-blue`. `EmptyState` `animate-bounce-in`→`animate-scale-in`; `globals.css`'te artık kullanılmayan `--animate-bounce-in` + `bounceIn` keyframe silindi. Settings şifre butonu `bg-amber-600`→`bg-accent-blue`/`accent-blue-hover`. Sidebar aktif öğe `border-l-2` (layout-shift yapıyordu) → absolute konumlu, kaydırmayan sol pill göstergesi. Landing yanıltıcı "Fiyatlandırma" linki (`/register`'a gidiyordu, gerçek fiyatlandırma bölümü yok) kaldırıldı.
+- **P2.15:** `invite/[token]/page.tsx` Zod şeması `useMemo([t])`'ye alındı; `MobileLogo` component'i her render'da yeniden yaratılmasın diye modül seviyesine (fonksiyon bildirimi) taşındı.
+- **P2.16 i18n kalanları:** 3 dile 10 yeni anahtar. `Common`: `loading`, `skip_to_content`, `show_password`, `hide_password`. `TopBar`: `top_bar`. `Sidebar`: `nav_main`, `nav_pages`, `expand`, `collapse`. `CRM`: `favorite_color_placeholder`. Bağlanan yerler: AuthGuard "Yükleniyor..." → `t("loading")`; root `layout.tsx` skip-link (server component, `getTranslations`) → `skip_to_content`; TopBar/Sidebar aria-label'ları; login/register/invite şifre göster-gizle aria'ları (`useTranslations("Common")` ikinci hook ile); CRM favorite_color placeholder. Admin bölümü bilinçli TR — dokunulmadı.
+
+**Regresyon & düzeltme:** P2.16'da AuthGuard'a `useTranslations` eklenince `AuthGuard.test.tsx` "context bulunamadı" ile kırıldı → test `NextIntlClientProvider` (`messages/tr.json`, locale `tr`) ile saran `renderWithIntl` helper'ına geçirildi → 4/4 geçiyor.
+
+**Doğrulama:** `tsc --noEmit` temiz (kalan 2 hata test dosyalarında — bilinen baseline). `vitest`: baseline'a döndü — 3 kırık dosya (EmptyState/StatusBadge/WatchFilters, NextIntlClientProvider ile sarılmıyor; benim değişikliğimle ilgisiz, dokunulmadı). `e2e/team.spec.ts` **5/5**. i18n parite: en/de/tr = **857/857/857**.
+
+**Sonraki adım:** PR `feature/team-management` → develop açıldı; merge/inceleme bekleniyor. Merge sonrası Aşama 7 kapanır → Aşama 8. P2.14 (Market Scanner IA) opsiyonel/büyük, ertelendi.
