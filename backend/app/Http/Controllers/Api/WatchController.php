@@ -9,6 +9,7 @@ use App\Http\Requests\Watch\UpdateWatchStatusRequest;
 use App\Http\Requests\Watch\UploadWatchImageRequest;
 use App\Jobs\ProcessAiPipelineJob;
 use App\Jobs\SyncInventoryJob;
+use App\Http\Resources\WatchResource;
 use App\Models\Watch;
 use App\Models\WatchImage;
 use App\Services\InventoryLockService;
@@ -99,7 +100,7 @@ class WatchController extends Controller
             ->groupBy('watch_id');
 
         // Thumbnail URL'lerini ve sync status ekle
-        $watches->getCollection()->transform(function ($watch) use ($platforms, $connections, $latestSyncLogs) {
+        $watches->getCollection()->transform(function ($watch) use ($request, $platforms, $connections, $latestSyncLogs) {
             $primaryImage = $watch->images->first();
             $watch->thumbnail_url = $primaryImage
                 ? $this->imageService->url(
@@ -131,7 +132,8 @@ class WatchController extends Controller
                 ];
             });
 
-            return $watch;
+            // İzne göre fiyat alanlarını gizle (şema aynı kalır)
+            return (new WatchResource($watch))->resolve($request);
         });
 
         return response()->json($watches);
@@ -180,7 +182,7 @@ class WatchController extends Controller
         // İzin verilen geçişleri ekle
         $watch->allowed_transitions = $this->stateMachine->allowedTransitions($watch->status);
 
-        return response()->json(['watch' => $watch]);
+        return response()->json(['watch' => (new WatchResource($watch))->resolve($request)]);
     }
 
     /**

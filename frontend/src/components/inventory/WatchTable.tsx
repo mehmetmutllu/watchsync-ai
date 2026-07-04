@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
+import { usePermission } from '@/hooks/usePermission';
+import { confirmDialog } from '@/stores/confirmStore';
 import {
   ChevronUp,
   ChevronDown,
@@ -55,8 +57,19 @@ export default function WatchTable({
 }: WatchTableProps) {
   const t = useTranslations("Inventory");
   const locale = useLocale();
-  const { filters, setFilters, fetchWatches, isLoading } = useInventoryStore();
-  const { platforms, fetchPlatforms } = usePlatformStore();
+  const filters = useInventoryStore((s) => s.filters);
+  const setFilters = useInventoryStore((s) => s.setFilters);
+  const fetchWatches = useInventoryStore((s) => s.fetchWatches);
+  const isLoading = useInventoryStore((s) => s.isLoading);
+  const platforms = usePlatformStore((s) => s.platforms);
+  const { can } = usePermission();
+  const showCost = can('inventory.view_cost');
+  const showPrice = can('inventory.view_price');
+  const visibleColumns = SORT_COLUMNS.filter(
+    (col) =>
+      (col.key !== 'cost_price' || showCost) &&
+      (col.key !== 'sale_price' || showPrice),
+  );
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
@@ -90,10 +103,6 @@ export default function WatchTable({
     setMenuPos({ top, left });
     setMenuOpenId(id);
   }, [menuOpenId]);
-
-  useEffect(() => {
-    fetchPlatforms();
-  }, [fetchPlatforms]);
 
   const handleSort = (column: string) => {
     const newDir =
@@ -136,11 +145,11 @@ export default function WatchTable({
     return (symbols[currency] || currency + ' ') + num.toLocaleString('en-US', { minimumFractionDigits: 0 });
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm(t('delete_confirm'))) {
+  const handleDelete = async (id: number) => {
+    setMenuOpenId(null);
+    if (await confirmDialog({ title: t('delete_confirm'), danger: true })) {
       onDelete(id);
     }
-    setMenuOpenId(null);
   };
 
   return (
@@ -203,20 +212,26 @@ export default function WatchTable({
             </div>
 
             {/* Price Row */}
-            <div className="flex items-center justify-between text-sm">
-              <div>
-                <span className="text-xs text-secondary-text">{t("label_cost")}</span>
-                <span className="font-mono text-secondary-text">
-                  {formatPrice(watch.cost_price, watch.currency)}
-                </span>
+            {(showCost || showPrice) && (
+              <div className="flex items-center justify-between text-sm">
+                {showCost && (
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xs text-secondary-text">{t("label_cost")}</span>
+                    <span className="font-mono text-secondary-text">
+                      {formatPrice(watch.cost_price, watch.currency)}
+                    </span>
+                  </div>
+                )}
+                {showPrice && (
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xs text-secondary-text">{t("label_sale")}</span>
+                    <span className="font-mono text-primary-text font-medium">
+                      {formatPrice(watch.sale_price, watch.currency)}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div>
-                <span className="text-xs text-secondary-text">{t("label_sale")}</span>
-                <span className="font-mono text-primary-text font-medium">
-                  {formatPrice(watch.sale_price, watch.currency)}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
@@ -237,7 +252,7 @@ export default function WatchTable({
               <th className="w-14 px-2 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
                 {t("th_image")}
               </th>
-              {SORT_COLUMNS.map((col) => (
+              {visibleColumns.map((col) => (
                 <th
                   key={col.key}
                   className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium cursor-pointer hover:text-primary-text transition-colors"
@@ -326,18 +341,22 @@ export default function WatchTable({
                 </td>
 
                 {/* Cost */}
-                <td className="px-4 py-3">
-                  <span className="text-sm font-mono text-secondary-text">
-                    {formatPrice(watch.cost_price, watch.currency)}
-                  </span>
-                </td>
+                {showCost && (
+                  <td className="px-4 py-3">
+                    <span className="text-sm font-mono text-secondary-text">
+                      {formatPrice(watch.cost_price, watch.currency)}
+                    </span>
+                  </td>
+                )}
 
                 {/* Sale Price */}
-                <td className="px-4 py-3">
-                  <span className="text-sm font-mono text-primary-text font-medium">
-                    {formatPrice(watch.sale_price, watch.currency)}
-                  </span>
-                </td>
+                {showPrice && (
+                  <td className="px-4 py-3">
+                    <span className="text-sm font-mono text-primary-text font-medium">
+                      {formatPrice(watch.sale_price, watch.currency)}
+                    </span>
+                  </td>
+                )}
 
                 {/* Created */}
                 <td className="px-4 py-3">

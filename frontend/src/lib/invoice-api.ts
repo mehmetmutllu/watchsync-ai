@@ -96,6 +96,7 @@ export async function downloadInvoicePdf(id: number, filename: string): Promise<
   document.body.appendChild(link);
   link.click();
   link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
 }
 
 export async function sendInvoice(id: number): Promise<{ message: string }> {

@@ -8,7 +8,7 @@ class UploadWatchImageRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasPermission('inventory.edit') ?? false;
     }
 
     public function rules(): array

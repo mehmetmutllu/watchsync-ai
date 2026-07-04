@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { usePermission } from "@/hooks/usePermission";
 import {
   LayoutDashboard,
   Package,
   BarChart3,
   Users,
+  UsersRound,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +29,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const t = useTranslations("Sidebar");
+  const { canManageTeam } = usePermission();
 
   const navItems = [
     { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
@@ -34,6 +37,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { href: "/dashboard/market-scanner", label: t("market_scanner"), icon: BarChart3 },
     { href: "/dashboard/crm", label: t("crm"), icon: Users },
     { href: "/dashboard/invoices", label: t("invoices"), icon: FileText },
+    ...(canManageTeam() ? [{ href: "/dashboard/team", label: t("team"), icon: UsersRound }] : []),
     { href: "/dashboard/settings", label: t("settings"), icon: Settings },
   ];
 
@@ -49,8 +53,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
+        data-tour="sidebar"
         role="navigation"
-        aria-label="Ana menü"
+        aria-label={t("nav_main")}
         className={`
           fixed top-0 left-0 z-50 h-full
           glass-strong
@@ -80,7 +85,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav aria-label="Sayfa navigasyonu" className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav aria-label={t("nav_pages")} className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive =
               item.href === "/dashboard"
@@ -92,6 +97,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
+                data-tour={item.href === "/dashboard/inventory" ? "inventory" : undefined}
                 aria-current={isActive ? "page" : undefined}
                 onMouseEnter={() => setHoveredItem(item.href)}
                 onMouseLeave={() => setHoveredItem(null)}
@@ -100,11 +106,17 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   transition-all duration-150
                   ${
                     isActive
-                      ? "bg-accent-blue/10 text-accent-blue border-l-2 border-accent-blue"
+                      ? "bg-accent-blue/10 text-accent-blue"
                       : "text-secondary-text hover:bg-surface-elevated hover:text-primary-text"
                   }
                 `}
               >
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-accent-blue"
+                  />
+                )}
                 <Icon
                   className={`flex-shrink-0 w-5 h-5 transition-colors duration-150 ${
                     isActive
@@ -144,7 +156,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             className="w-full flex items-center justify-center gap-2 px-3 py-3
               text-secondary-text hover:text-primary-text hover:bg-surface-elevated
               transition-all duration-150"
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? t("expand") : t("collapse")}
           >
             {collapsed ? (
               <ChevronRight className="w-4 h-4" strokeWidth={1.5} />

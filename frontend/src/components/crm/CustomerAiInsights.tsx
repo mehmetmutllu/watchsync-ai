@@ -12,6 +12,7 @@ interface CustomerAiInsightsProps {
 }
 
 export function CustomerAiInsights({ customer, language = "de" }: CustomerAiInsightsProps) {
+  const t = useTranslations("CRM");
   const [loading, setLoading] = useState(false);
   const [sentiment, setSentiment] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export function CustomerAiInsights({ customer, language = "de" }: CustomerAiInsi
       const { data } = await api.post(`/customers/${customer.id}/sentiment`, { language });
       setSentiment(data.data.sentiment);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Fehler bei der KI-Analyse.");
+      setError(err.response?.data?.message || t("ai_error"));
       console.error(err);
     } finally {
       setLoading(false);
@@ -39,19 +40,19 @@ export function CustomerAiInsights({ customer, language = "de" }: CustomerAiInsi
   }, [customer.id]);
 
   return (
-    <div className="bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-fuchsia-500/10 border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group shadow-lg">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 opacity-70" />
+    <div className="bg-accent-blue/5 border border-accent-blue/20 rounded-2xl p-5 relative overflow-hidden group shadow-lg">
+      <div className="absolute top-0 left-0 w-full h-1 bg-accent-blue/60" />
       
       <div className="flex justify-between items-start mb-3">
         <h3 className="font-bold text-primary-text flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-400" />
-          KI-Stimmungsanalyse
+          <Sparkles className="w-5 h-5 text-accent-blue" />
+          {t("ai_sentiment_title")}
         </h3>
         <button 
           onClick={() => fetchSentiment(true)} 
           disabled={loading}
           className="p-1.5 rounded-lg bg-surface hover:bg-background border border-border-subtle transition-all disabled:opacity-50"
-          title="Neu analysieren"
+          title={t("ai_reanalyze")}
         >
           <RefreshCw className={`w-4 h-4 text-secondary-text ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -60,8 +61,8 @@ export function CustomerAiInsights({ customer, language = "de" }: CustomerAiInsi
       <div className="min-h-[80px] flex items-center">
         {loading ? (
           <div className="flex flex-col items-center justify-center w-full py-4 space-y-2">
-            <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-secondary-text animate-pulse">KI analysiert Notizen...</p>
+            <div className="w-5 h-5 border-2 border-accent-blue border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-secondary-text animate-pulse">{t("ai_analyzing")}</p>
           </div>
         ) : error ? (
           <div className="flex items-start gap-2 text-red-400 text-sm py-2">
@@ -74,7 +75,7 @@ export function CustomerAiInsights({ customer, language = "de" }: CustomerAiInsi
           </p>
         ) : (
           <p className="text-sm text-secondary-text italic py-2">
-            Konnte keine Insights generieren. Fügen Sie Notizen hinzu, um die Analyse zu verbessern.
+            {t("ai_no_insights")}
           </p>
         )}
       </div>

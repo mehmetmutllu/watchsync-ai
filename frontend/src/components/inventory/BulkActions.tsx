@@ -26,6 +26,7 @@ export default function BulkActions({
   const [publishState, setPublishState] = useState<PublishState>('idle');
   const [progress, setProgress] = useState({ queued: 0, skipped: 0, total: 0, percent: 0, success: 0, failed: 0 });
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -34,9 +35,22 @@ export default function BulkActions({
     }
   }, []);
 
+  const scheduleIdleReset = useCallback((cb: () => void) => {
+    if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+    resetTimeoutRef.current = setTimeout(cb, 3000);
+  }, []);
+
   useEffect(() => {
-    return () => stopPolling();
+    return () => {
+      stopPolling();
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+    };
   }, [stopPolling]);
+
+  // Seçim boşalınca devam eden polling'i durdur
+  useEffect(() => {
+    if (selectedIds.size === 0) stopPolling();
+  }, [selectedIds.size, stopPolling]);
 
   if (selectedIds.size === 0) return null;
 
@@ -83,10 +97,10 @@ export default function BulkActions({
               // Envanter tablosunu yenile
               onPublishComplete?.();
 
-              setTimeout(() => {
+              scheduleIdleReset(() => {
                 setPublishState('idle');
                 onClearSelection();
-              }, 3000);
+              });
             }
           } catch {
             // Polling hatası — sessiz devam
@@ -99,10 +113,10 @@ export default function BulkActions({
           t('bulk_publish_no_watches')
         );
 
-        setTimeout(() => {
+        scheduleIdleReset(() => {
           setPublishState('idle');
           onClearSelection();
-        }, 3000);
+        });
       }
     } catch {
       setPublishState('error');
@@ -111,7 +125,7 @@ export default function BulkActions({
         t('bulk_publish_failed')
       );
 
-      setTimeout(() => setPublishState('idle'), 3000);
+      scheduleIdleReset(() => setPublishState('idle'));
     }
   };
 

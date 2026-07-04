@@ -4,9 +4,50 @@ export interface User {
   name: string;
   email: string;
   role: 'owner' | 'manager' | 'staff';
+  status?: 'active' | 'invited' | 'disabled';
+  permissions?: string[] | null;
+  effective_permissions?: string[];
+  last_login_at?: string | null;
   created_at: string;
   updated_at: string;
   dealer: Dealer;
+}
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  email: string;
+  role: 'owner' | 'manager' | 'staff';
+  status: 'active' | 'invited' | 'disabled';
+  permissions: string[] | null;
+  effective_permissions: string[];
+  last_login_at: string | null;
+}
+
+export interface TeamInvitation {
+  id: number;
+  email: string;
+  role: 'manager' | 'staff';
+  permissions: string[] | null;
+  expires_at: string;
+  invited_by: string | null;
+}
+
+export interface PermissionCatalogItem {
+  key: string;
+  group: string;
+  label: string;
+}
+
+export interface PermissionCatalog {
+  permissions: PermissionCatalogItem[];
+  presets: Record<'owner' | 'manager' | 'staff', string[]>;
+}
+
+export interface TeamResponse {
+  members: TeamMember[];
+  invitations: TeamInvitation[];
+  catalog: PermissionCatalog;
 }
 
 export interface Dealer {
@@ -29,7 +70,7 @@ export interface Dealer {
 }
 
 export interface DashboardStats {
-  total_inventory_value: number;
+  total_inventory_value?: number;
   active_watches: number;
   sold_this_month: number;
   pending_syncs: number;

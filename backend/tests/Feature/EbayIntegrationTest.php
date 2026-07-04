@@ -30,7 +30,7 @@ class EbayIntegrationTest extends TestCase
         parent::setUp();
 
         $this->dealer = Dealer::factory()->create();
-        $this->user = User::factory()->create(['dealer_id' => $this->dealer->id]);
+        $this->user = User::factory()->create(['dealer_id' => $this->dealer->id, 'role' => 'owner']);
         $this->watch = Watch::factory()->active()->create([
             'dealer_id'        => $this->dealer->id,
             'brand'            => 'Rolex',

@@ -5,12 +5,14 @@ import { getCustomerTimeline, TimelineEvent } from "@/lib/crm-api";
 import { FileText, Receipt, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { useTranslations } from "next-intl";
 
 interface CustomerTimelineProps {
   customerId: number;
 }
 
 export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
+  const t = useTranslations("CRM");
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,8 +42,8 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
         <Clock className="w-12 h-12 text-white/20 mb-4" />
-        <h3 className="text-lg font-medium text-white/80 mb-2">Keine Aktivitäten</h3>
-        <p className="text-sm text-white/50">Es gibt noch keine Aktivitäten für diesen Kunden.</p>
+        <h3 className="text-lg font-medium text-white/80 mb-2">{t("timeline_empty_title")}</h3>
+        <p className="text-sm text-white/50">{t("timeline_empty_desc")}</p>
       </div>
     );
   }

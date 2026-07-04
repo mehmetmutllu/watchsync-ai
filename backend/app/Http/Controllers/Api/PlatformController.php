@@ -131,6 +131,9 @@ class PlatformController extends Controller
         $dealerId = $request->user()->dealer_id;
         $platform = Platform::findOrFail($platformId);
 
+        // Saat bu dealer'a ait olmalı (cross-tenant sync/kaldırma engeli)
+        Watch::where('dealer_id', $dealerId)->findOrFail($watchId);
+
         // Dealer bağlantısını kontrol et
         $connection = PlatformConnection::where('dealer_id', $dealerId)
             ->where('platform_id', $platform->id)
@@ -216,9 +219,9 @@ class PlatformController extends Controller
             $queued++;
         }
 
-        // Batch bilgisini cache'e kaydet (5 dk TTL)
+        // Batch bilgisini cache'e kaydet (5 dk TTL) — anahtar dealer'a bağlı
         if ($queued > 0) {
-            cache()->put("bulk_publish_{$batchId}", [
+            cache()->put("bulk_publish_{$dealerId}_{$batchId}", [
                 'watch_ids'   => $watches->toArray(),
                 'platform_id' => $platformId,
                 'total'       => $queued,
@@ -242,7 +245,8 @@ class PlatformController extends Controller
      */
     public function bulkPublishStatus(Request $request, string $batchId): JsonResponse
     {
-        $batch = cache()->get("bulk_publish_{$batchId}");
+        $dealerId = $request->user()->dealer_id;
+        $batch = cache()->get("bulk_publish_{$dealerId}_{$batchId}");
 
         if (!$batch) {
             return response()->json([

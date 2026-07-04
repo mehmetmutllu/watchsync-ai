@@ -14,9 +14,15 @@ import { useTranslations } from 'next-intl';
 
 export default function InventoryPage() {
   const router = useRouter();
-  const { watches, pagination, isLoading, error, fetchWatches, deleteWatch, updateWatchStatus } =
-    useInventoryStore();
-  const { platforms, fetchPlatforms } = usePlatformStore();
+  const watches = useInventoryStore((s) => s.watches);
+  const pagination = useInventoryStore((s) => s.pagination);
+  const isLoading = useInventoryStore((s) => s.isLoading);
+  const error = useInventoryStore((s) => s.error);
+  const fetchWatches = useInventoryStore((s) => s.fetchWatches);
+  const deleteWatch = useInventoryStore((s) => s.deleteWatch);
+  const updateWatchStatus = useInventoryStore((s) => s.updateWatchStatus);
+  const platforms = usePlatformStore((s) => s.platforms);
+  const fetchPlatforms = usePlatformStore((s) => s.fetchPlatforms);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const t = useTranslations("Inventory");
 

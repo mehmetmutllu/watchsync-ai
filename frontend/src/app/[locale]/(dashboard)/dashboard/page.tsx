@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/auth";
+import { usePermission } from "@/hooks/usePermission";
 import ActivityFeed from "@/components/dashboard/ActivityFeed";
 import type { DashboardStats } from "@/types";
 import { useTranslations } from "next-intl";
@@ -36,6 +37,7 @@ function formatCurrency(value: number): string {
 export default function DashboardPage() {
   const t = useTranslations("Dashboard");
   const user = useAuthStore((s) => s.user);
+  const { can } = usePermission();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +58,15 @@ export default function DashboardPage() {
 
       const kpiCards = stats
     ? [
-        {
-          key: "total_inventory_value" as const,
-          label: t("total_inventory_value"),
-          value: formatCurrency(stats.total_inventory_value),
-        },
+        ...(can('inventory.view_price') && stats.total_inventory_value !== undefined
+          ? [
+              {
+                key: "total_inventory_value" as const,
+                label: t("total_inventory_value"),
+                value: formatCurrency(stats.total_inventory_value),
+              },
+            ]
+          : []),
         {
           key: "active_watches" as const,
           label: t("active_watches"),
@@ -112,7 +118,7 @@ export default function DashboardPage() {
 
       {/* KPI Cards Grid */}
       {stats && !loading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+        <div data-tour="sync-status" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
           {kpiCards.map((card) => {
             const Icon = iconMap[card.key];
             return (

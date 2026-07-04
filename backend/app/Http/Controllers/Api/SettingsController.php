@@ -128,4 +128,36 @@ class SettingsController extends Controller
             'preferences' => $preferences,
         ]);
     }
+
+    /**
+     * Ekip davet varsayılanlarını getir.
+     */
+    public function getTeamDefaults(Request $request): JsonResponse
+    {
+        $dealer = $request->user()->dealer;
+
+        return response()->json([
+            'invitation_expiry_days' => $dealer->invitation_expiry_days
+                ?? config('permissions.default_invitation_expiry_days'),
+        ]);
+    }
+
+    /**
+     * Ekip davet varsayılanlarını güncelle.
+     */
+    public function updateTeamDefaults(Request $request): JsonResponse
+    {
+        $dealer = $request->user()->dealer;
+
+        $validated = $request->validate([
+            'invitation_expiry_days' => ['required', 'integer', 'min:1', 'max:365'],
+        ]);
+
+        $dealer->update($validated);
+
+        return response()->json([
+            'message'                => 'Ekip ayarları güncellendi.',
+            'invitation_expiry_days' => $dealer->invitation_expiry_days,
+        ]);
+    }
 }

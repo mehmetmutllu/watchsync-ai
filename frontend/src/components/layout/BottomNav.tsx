@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
+  Users,
+  FileText,
   Sparkles,
   BarChart3,
   Settings,
@@ -18,6 +20,8 @@ export default function BottomNav() {
   const navItems = [
     { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
     { href: "/dashboard/inventory", label: t("inventory"), icon: Package },
+    { href: "/dashboard/crm", label: t("crm"), icon: Users },
+    { href: "/dashboard/invoices", label: t("invoices"), icon: FileText },
     { href: "/dashboard/ai-studio", label: t("ai_studio"), icon: Sparkles },
     { href: "/dashboard/market-scanner", label: t("market"), icon: BarChart3 },
     { href: "/dashboard/settings", label: t("settings"), icon: Settings },

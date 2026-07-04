@@ -58,14 +58,20 @@ class DashboardController extends Controller
                 'time'    => $log->created_at->diffForHumans(),
             ]);
 
+        $stats = [
+            'active_watches'    => (int) ($watchStats->active_count ?? 0),
+            'sold_this_month'   => (int) ($watchStats->sold_month ?? 0),
+            'pending_syncs'     => $pendingSyncs,
+            'sync_success_rate' => $syncSuccessRate,
+        ];
+
+        // Envanter değeri yalnızca satış fiyatını görme izni olanlara gösterilir
+        if ($request->user()->hasPermission('inventory.view_price')) {
+            $stats['total_inventory_value'] = (float) ($watchStats->total_value ?? 0);
+        }
+
         return response()->json([
-            'stats' => [
-                'total_inventory_value' => (float) ($watchStats->total_value ?? 0),
-                'active_watches'        => (int) ($watchStats->active_count ?? 0),
-                'sold_this_month'       => (int) ($watchStats->sold_month ?? 0),
-                'pending_syncs'         => $pendingSyncs,
-                'sync_success_rate'     => $syncSuccessRate,
-            ],
+            'stats'             => $stats,
             'recent_activities' => $recentActivities,
         ]);
     }

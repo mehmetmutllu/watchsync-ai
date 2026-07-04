@@ -5,6 +5,7 @@ import { Customer } from "@/lib/crm-api";
 import api from "@/lib/api";
 import { Plus, Trash2, Watch, TrendingUp, TrendingDown, Clock, Euro } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { confirmDialog } from "@/stores/confirmStore";
 
 interface CustomerPortfolioProps {
   customer: Customer;
@@ -80,7 +81,7 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
   };
 
   const handleDeleteWatch = async (watchId: string) => {
-    if (!confirm("Uhr aus Portfolio entfernen?")) return;
+    if (!(await confirmDialog({ title: t("portfolio_remove_confirm"), danger: true }))) return;
     
     try {
       const updatedMetadata = { ...customer.metadata };
@@ -113,7 +114,7 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
             <div className="p-2 bg-accent-blue/10 rounded-lg text-accent-blue">
               <Watch className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-semibold text-secondary-text uppercase tracking-wider">Uhren im Portfolio</h3>
+            <h3 className="text-sm font-semibold text-secondary-text uppercase tracking-wider">{t("portfolio_watches_count_label")}</h3>
           </div>
           <p className="text-2xl font-bold text-primary-text">{Array.isArray(ownedWatches) ? ownedWatches.length : 0}</p>
         </div>
@@ -123,7 +124,7 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
             <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
               <Euro className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-semibold text-secondary-text uppercase tracking-wider">Gesamtwert</h3>
+            <h3 className="text-sm font-semibold text-secondary-text uppercase tracking-wider">{t("portfolio_total_value")}</h3>
           </div>
           <p className="text-2xl font-bold text-primary-text">
             {metrics.totalValue.toLocaleString("de-DE", { minimumFractionDigits: 2 })} €
@@ -135,7 +136,7 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
             <div className={`p-2 rounded-lg ${metrics.totalProfit >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
               {metrics.totalProfit >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
             </div>
-            <h3 className="text-sm font-semibold text-secondary-text uppercase tracking-wider">Rendite (Est.)</h3>
+            <h3 className="text-sm font-semibold text-secondary-text uppercase tracking-wider">{t("portfolio_yield")}</h3>
           </div>
           <div className="flex items-baseline gap-2">
             <p className={`text-2xl font-bold ${metrics.totalProfit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -149,13 +150,13 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
       </div>
 
       <div className="flex justify-between items-center border-b border-border-subtle pb-3">
-        <h3 className="text-lg font-bold text-primary-text">Portfolio Uhren</h3>
+        <h3 className="text-lg font-bold text-primary-text">{t("portfolio_title")}</h3>
         <button
           onClick={() => setIsAdding(!isAdding)}
           className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent-blue text-white rounded-lg text-sm font-semibold hover:bg-accent-blue/90 transition-all shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Uhr hinzufügen
+          {t("portfolio_add_watch")}
         </button>
       </div>
 
@@ -163,29 +164,29 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
         <form onSubmit={handleAddWatch} className="bg-background border border-border-subtle p-5 rounded-xl animate-fade-in shadow-sm space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">Marke</label>
+              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">{t("field_brand")}</label>
               <input required value={newWatch.brand} onChange={e => setNewWatch({ ...newWatch, brand: e.target.value })} className="w-full px-3 py-2 text-sm bg-surface border border-border-subtle rounded-lg focus:outline-none focus:border-accent-blue" placeholder="Rolex" />
             </div>
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">Modell</label>
+              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">{t("field_model")}</label>
               <input required value={newWatch.model} onChange={e => setNewWatch({ ...newWatch, model: e.target.value })} className="w-full px-3 py-2 text-sm bg-surface border border-border-subtle rounded-lg focus:outline-none focus:border-accent-blue" placeholder="Submariner" />
             </div>
             <div className="col-span-1">
-              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">Kaufpreis (€)</label>
+              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">{t("field_purchase_price")}</label>
               <input required type="number" step="0.01" value={newWatch.purchase_price} onChange={e => setNewWatch({ ...newWatch, purchase_price: e.target.value })} className="w-full px-3 py-2 text-sm bg-surface border border-border-subtle rounded-lg focus:outline-none focus:border-accent-blue" />
             </div>
             <div className="col-span-1">
-              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">Schätzwert (€)</label>
-              <input type="number" step="0.01" placeholder="Optional" value={newWatch.current_value} onChange={e => setNewWatch({ ...newWatch, current_value: e.target.value })} className="w-full px-3 py-2 text-sm bg-surface border border-border-subtle rounded-lg focus:outline-none focus:border-accent-blue" />
+              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">{t("field_est_value")}</label>
+              <input type="number" step="0.01" placeholder={t("optional_placeholder")} value={newWatch.current_value} onChange={e => setNewWatch({ ...newWatch, current_value: e.target.value })} className="w-full px-3 py-2 text-sm bg-surface border border-border-subtle rounded-lg focus:outline-none focus:border-accent-blue" />
             </div>
             <div className="col-span-2 md:col-span-1">
-              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">Kaufdatum</label>
+              <label className="block text-xs font-semibold text-secondary-text mb-1 uppercase">{t("field_purchase_date")}</label>
               <input required type="date" value={newWatch.purchase_date} onChange={e => setNewWatch({ ...newWatch, purchase_date: e.target.value })} className="w-full px-3 py-2 text-sm bg-surface border border-border-subtle rounded-lg focus:outline-none focus:border-accent-blue" />
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border-subtle">
-            <button type="button" onClick={() => setIsAdding(false)} className="px-4 py-2 text-sm font-semibold border border-border-subtle rounded-lg hover:bg-surface">Abbrechen</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 text-sm font-semibold bg-accent-blue text-white rounded-lg hover:bg-accent-blue/90 disabled:opacity-50">Speichern</button>
+            <button type="button" onClick={() => setIsAdding(false)} className="px-4 py-2 text-sm font-semibold border border-border-subtle rounded-lg hover:bg-surface">{t("cancel")}</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 text-sm font-semibold bg-accent-blue text-white rounded-lg hover:bg-accent-blue/90 disabled:opacity-50">{t("save")}</button>
           </div>
         </form>
       )}
@@ -211,18 +212,18 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
 
                 {isDue && (
                   <div className="bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs px-2.5 py-1.5 rounded-md flex items-center gap-1.5 font-medium">
-                    <Clock className="w-3.5 h-3.5" /> Service-Intervall erreicht (5 Jahre)
+                    <Clock className="w-3.5 h-3.5" /> {t("portfolio_service_due")}
                   </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-border-subtle">
                   <div>
-                    <span className="text-xs text-secondary-text uppercase block">Kaufpreis</span>
+                    <span className="text-xs text-secondary-text uppercase block">{t("portfolio_purchase_price")}</span>
                     <span className="font-medium text-primary-text text-sm">{Number(watch.purchase_price).toLocaleString("de-DE")} €</span>
                     <span className="text-[10px] text-secondary-text block mt-0.5">{new Date(watch.purchase_date).toLocaleDateString("de-DE")}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-secondary-text uppercase block">Aktueller Wert</span>
+                    <span className="text-xs text-secondary-text uppercase block">{t("portfolio_current_value")}</span>
                     <span className="font-semibold text-primary-text text-sm">{Number(watch.current_value).toLocaleString("de-DE")} €</span>
                     <span className={`text-xs font-medium flex items-center justify-end gap-1 mt-0.5 ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
                       {isPositive ? '+' : ''}{profit.toLocaleString("de-DE")} €
@@ -237,7 +238,7 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-secondary-text bg-background/30 rounded-xl border border-dashed border-border-subtle">
           <Watch className="w-8 h-8 mb-2 opacity-50" />
-          <p className="text-sm">Noch keine Uhren im Portfolio.</p>
+          <p className="text-sm">{t("portfolio_empty")}</p>
         </div>
       )}
     </div>

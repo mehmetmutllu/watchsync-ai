@@ -45,6 +45,7 @@ import {
   type CustomerMatchesResponse,
 } from "@/lib/crm-api";
 import { getWhatsAppLink } from "@/lib/whatsapp";
+import { confirmDialog } from "@/stores/confirmStore";
 import type { Watch } from "@/types";
 import { KanbanBoard } from "@/components/crm/KanbanBoard";
 import { CustomerTimeline } from "@/components/crm/CustomerTimeline";
@@ -200,7 +201,7 @@ export default function CrmPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm(t("delete_confirm"))) return;
+    if (!(await confirmDialog({ title: t("delete_confirm"), danger: true }))) return;
     await deleteCustomer(id);
     setSelectedCustomer(null);
     fetchCustomers();
@@ -216,23 +217,13 @@ export default function CrmPage() {
 
   const handleDeleteNote = async (noteId: number) => {
     if (!selectedCustomer) return;
+    if (!(await confirmDialog({ title: t("delete_note_confirm"), danger: true }))) return;
     await deleteCustomerNote(selectedCustomer.id, noteId);
     openDetail(selectedCustomer.id);
   };
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
-
-  const getAvatarGradient = (id: number) => {
-    const gradients = [
-      "from-pink-500 to-rose-500",
-      "from-purple-600 to-indigo-600",
-      "from-blue-500 to-teal-500",
-      "from-amber-500 to-orange-500",
-      "from-emerald-500 to-teal-600",
-    ];
-    return gradients[id % gradients.length];
   };
 
   // ─── Detail View ─────────────────────────────────────────
@@ -261,7 +252,7 @@ export default function CrmPage() {
             {/* Left Profile Card */}
             <div className="bg-surface border border-border-subtle rounded-2xl p-6 space-y-6 shadow-sm">
               <div className="flex flex-col items-center text-center space-y-3 pb-4 border-b border-border-subtle">
-                <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${getAvatarGradient(selectedCustomer.id)} flex items-center justify-center text-white text-3xl font-extrabold shadow-md`}>
+                <div className="w-20 h-20 rounded-full bg-accent-blue/15 flex items-center justify-center text-accent-blue text-3xl font-extrabold">
                   {getInitials(selectedCustomer.first_name, selectedCustomer.last_name)}
                 </div>
                 <div>
@@ -379,7 +370,7 @@ export default function CrmPage() {
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
                 >
-                  Timeline
+                  {t("tab_timeline")}
                 </button>
                 <button
                   onClick={() => setActiveTab("portfolio")}
@@ -388,7 +379,7 @@ export default function CrmPage() {
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
                 >
-                  Portfolio
+                  {t("tab_portfolio")}
                 </button>
                 <button
                   onClick={() => setActiveTab("invoices")}
@@ -408,7 +399,7 @@ export default function CrmPage() {
                       }`}
                   >
                     <Sparkles className="w-4 h-4 inline-block mr-1 text-accent-primary" />
-                    Treffer
+                    {t("tab_matches")}
                   </button>
                 )}
               </div>
@@ -442,14 +433,14 @@ export default function CrmPage() {
                                 disabled={birthdayPitchLoading}
                                 className="px-3 py-1.5 text-xs font-semibold bg-accent-blue text-white rounded-lg hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
                               >
-                                {birthdayPitchLoading ? "Wird generiert..." : "Geburtstagsmail generieren"}
+                                {birthdayPitchLoading ? t("birthday_generating") : t("birthday_generate_mail")}
                               </button>
                             )}
                           </div>
                           {selectedCustomer.auto_send_birthday_mail && (
                             <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md inline-flex">
                               <Sparkles className="w-3.5 h-3.5" />
-                              <span>Vollautomatischer Versand aktiviert</span>
+                              <span>{t("auto_send_active")}</span>
                             </div>
                           )}
                         </div>
@@ -625,7 +616,7 @@ export default function CrmPage() {
                 {activeTab === "timeline" && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold text-primary-text border-b border-border-subtle pb-3">
-                      Aktivitäten-Timeline
+                      {t("timeline_title")}
                     </h3>
                     <CustomerTimeline customerId={selectedCustomer.id} />
                   </div>
@@ -637,9 +628,9 @@ export default function CrmPage() {
                     <div className="border-b border-border-subtle pb-3">
                       <h3 className="text-lg font-bold text-primary-text flex items-center">
                         <Sparkles className="w-5 h-5 mr-2 text-accent-primary" />
-                        Radar: "{selectedCustomer.metadata?.desired_watch}"
+                        {t("radar_title", { query: selectedCustomer.metadata?.desired_watch ?? "" })}
                       </h3>
-                      <p className="text-sm text-secondary-text mt-1">Automatisiertes Sourcing aus dem lokalen Inventar & globalen Marktplätzen.</p>
+                      <p className="text-sm text-secondary-text mt-1">{t("radar_subtitle")}</p>
                     </div>
 
                     {matchesLoading ? (
@@ -651,7 +642,7 @@ export default function CrmPage() {
                         {/* 1. Local Inventory */}
                         <div className="space-y-4">
                           <h4 className="text-sm font-bold text-secondary-text uppercase tracking-wider flex items-center">
-                            <Building2 className="w-4 h-4 mr-2" /> EIGENES INVENTAR
+                            <Building2 className="w-4 h-4 mr-2" /> {t("own_inventory")}
                           </h4>
                           {matches?.local_inventory && matches.local_inventory.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -669,7 +660,7 @@ export default function CrmPage() {
 
                                   <div className="flex justify-between items-end mt-2 pt-3 border-t border-border-subtle/30">
                                     <span className="text-sm font-semibold text-emerald-400">
-                                      {watch.sale_price ? `${Number(watch.sale_price).toLocaleString("de-DE")} €` : "Preis a.A."}
+                                      {watch.sale_price ? `${Number(watch.sale_price).toLocaleString("de-DE")} €` : t("price_on_request")}
                                     </span>
                                     <button
                                       onClick={() => handleGeneratePitch(watch.id)}
@@ -681,7 +672,7 @@ export default function CrmPage() {
                                       ) : (
                                         <Mail className="w-3 h-3 mr-1.5" />
                                       )}
-                                      Kunden pitchen
+                                      {t("pitch_customer")}
                                     </button>
                                   </div>
                                 </div>
@@ -690,7 +681,7 @@ export default function CrmPage() {
                           ) : (
                             <div className="flex items-center p-4 text-sm text-secondary-text bg-background/30 rounded-xl border border-dashed border-border-subtle">
                               <Search className="w-4 h-4 mr-2 opacity-50" />
-                              Keine Treffer im eigenen Inventar.
+                              {t("no_local_matches")}
                             </div>
                           )}
                         </div>
@@ -698,7 +689,7 @@ export default function CrmPage() {
                         {/* 2. Arbitrage Deals */}
                         <div className="space-y-4">
                           <h4 className="text-sm font-bold text-secondary-text uppercase tracking-wider flex items-center">
-                            <Sparkles className="w-4 h-4 mr-2" /> ARBITRAGE DEALS (Extern)
+                            <Sparkles className="w-4 h-4 mr-2" /> {t("arbitrage_deals")}
                           </h4>
                           {matches?.arbitrage_deals && matches.arbitrage_deals.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
@@ -710,26 +701,26 @@ export default function CrmPage() {
                                       <span className="text-xs text-secondary-text flex items-center"><Search className="w-3 h-3 mr-1" /> {deal.location}</span>
                                     </div>
                                     <p className="font-bold text-primary-text">{deal.title}</p>
-                                    <p className="text-xs text-secondary-text mt-1">Zustand: {deal.condition}</p>
+                                    <p className="text-xs text-secondary-text mt-1">{t("condition_label")} {deal.condition}</p>
                                     {deal.data_source && (
                                       <div className="mt-2 inline-flex items-center gap-1 text-[10px] bg-accent-blue/10 text-accent-blue px-2 py-0.5 rounded-full border border-accent-blue/20">
                                         <Sparkles className="w-3 h-3" />
-                                        <span>Marktdaten aktualisiert ({deal.data_source})</span>
+                                        <span>{t("market_data_updated", { source: deal.data_source })}</span>
                                       </div>
                                     )}
                                   </div>
 
                                   <div className="flex flex-col md:items-end gap-1">
-                                    <div className="text-sm text-secondary-text">Einkauf: <span className="font-semibold text-primary-text">{deal.price.toLocaleString("de-DE")} €</span></div>
-                                    <div className="text-sm text-secondary-text">Marktwert: <span className="font-semibold text-primary-text">{deal.estimated_market_value.toLocaleString("de-DE")} €</span></div>
+                                    <div className="text-sm text-secondary-text">{t("purchase_label")} <span className="font-semibold text-primary-text">{deal.price.toLocaleString("de-DE")} €</span></div>
+                                    <div className="text-sm text-secondary-text">{t("market_value_label")} <span className="font-semibold text-primary-text">{deal.estimated_market_value.toLocaleString("de-DE")} €</span></div>
                                     <div className="text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded mt-1">
-                                      Marge: +{deal.margin.toLocaleString("de-DE")} €
+                                      {t("margin_label")} +{deal.margin.toLocaleString("de-DE")} €
                                     </div>
                                   </div>
 
                                   <div className="mt-2 md:mt-0 md:ml-4">
                                     <a href={deal.url} target="_blank" rel="noreferrer" className="block text-center w-full md:w-auto px-4 py-2 bg-surface text-primary-text border border-border-subtle rounded-lg text-sm font-medium hover:bg-background/80 transition-colors">
-                                      Deal ansehen
+                                      {t("view_deal")}
                                     </a>
                                   </div>
                                 </div>
@@ -738,7 +729,7 @@ export default function CrmPage() {
                           ) : (
                             <div className="flex items-center p-4 text-sm text-secondary-text bg-background/30 rounded-xl border border-dashed border-border-subtle">
                               <Search className="w-4 h-4 mr-2 opacity-50" />
-                              Keine externen Arbitrage-Möglichkeiten gefunden.
+                              {t("no_arbitrage")}
                             </div>
                           )}
                         </div>
@@ -758,7 +749,7 @@ export default function CrmPage() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold flex items-center">
                   <Sparkles className="w-5 h-5 mr-2 text-accent-primary" />
-                  KI-Nachricht
+                  {t("ai_message")}
                 </h3>
                 <select
                   className="bg-background border border-border-subtle rounded-lg text-sm px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent-blue"
@@ -788,14 +779,14 @@ export default function CrmPage() {
                   onClick={() => setPitchResult(null)}
                   className="flex-1 py-2 rounded-xl text-secondary-text hover:bg-background/80 transition-colors font-medium text-sm border border-border-subtle"
                 >
-                  Schließen
+                  {t("close_btn")}
                 </button>
                 <a
-                  href={`mailto:${selectedCustomer?.email || ''}?subject=${encodeURIComponent(pitchResult.isBirthday ? "Herzlichen Glückwunsch zum Geburtstag!" : "Ihr gewünschtes Modell ist verfügbar!")}&body=${encodeURIComponent(pitchResult.text)}`}
+                  href={`mailto:${selectedCustomer?.email || ''}?subject=${encodeURIComponent(pitchResult.isBirthday ? t("email_subject_birthday") : t("email_subject_watch"))}&body=${encodeURIComponent(pitchResult.text)}`}
                   className="flex-1 py-2 rounded-xl bg-accent-blue text-white flex items-center justify-center font-medium text-sm hover:opacity-90 transition-opacity"
                 >
                   <Mail className="w-4 h-4 mr-2" />
-                  E-Mail
+                  {t("email_btn")}
                 </a>
                 <a
                   href={getWhatsAppLink(selectedCustomer?.phone, pitchResult.text)}
@@ -865,7 +856,7 @@ export default function CrmPage() {
               <Users className="w-6 h-6" />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-accent-blue to-accent-blue/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
         {/* Birthdays This Month */}
@@ -879,7 +870,7 @@ export default function CrmPage() {
               <Gift className="w-6 h-6" />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
         {/* Total Revenue */}
@@ -899,7 +890,7 @@ export default function CrmPage() {
               <Euro className="w-6 h-6" />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
 
@@ -909,7 +900,7 @@ export default function CrmPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-primary-text flex items-center gap-2">
               <Gift className="w-5 h-5 text-pink-500" />
-              Anstehende Geburtstage (nächste 7 Tage)
+              {t("upcoming_birthdays_title")}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -924,12 +915,12 @@ export default function CrmPage() {
                   </div>
                   {customer.metadata?.desired_watch && (
                     <p className="text-xs text-secondary-text mt-2 line-clamp-1">
-                      Wunschuhr: <span className="text-primary-text">{customer.metadata.desired_watch}</span>
+                      {t("wishwatch_label")} <span className="text-primary-text">{customer.metadata.desired_watch}</span>
                     </p>
                   )}
                   {customer.auto_send_birthday_mail && (
                     <p className="text-xs text-emerald-500 font-medium mt-1 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> Auto-Mail aktiviert
+                      <Sparkles className="w-3 h-3" /> {t("auto_mail_active")}
                     </p>
                   )}
                 </div>
@@ -937,7 +928,7 @@ export default function CrmPage() {
                   onClick={() => openDetail(customer.id)}
                   className="mt-4 w-full py-1.5 text-xs font-semibold rounded-lg bg-surface border border-border-subtle hover:bg-accent-blue/5 hover:text-accent-blue hover:border-accent-blue/30 transition-colors"
                 >
-                  Kunde öffnen
+                  {t("open_customer")}
                 </button>
               </div>
             ))}
@@ -971,7 +962,7 @@ export default function CrmPage() {
                 : "text-secondary-text hover:text-primary-text hover:bg-background/40"
               }`}
           >
-            Liste
+            {t("view_list")}
           </button>
           <button
             onClick={() => setViewMode("kanban")}
@@ -980,7 +971,7 @@ export default function CrmPage() {
                 : "text-secondary-text hover:text-primary-text hover:bg-background/40"
               }`}
           >
-            Kanban
+            {t("view_kanban")}
           </button>
         </div>
       </div>
@@ -1032,7 +1023,7 @@ export default function CrmPage() {
                     >
                       <td className="px-6 py-4 font-medium text-primary-text">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarGradient(c.id)} flex items-center justify-center text-white font-bold text-xs shadow-sm`}>
+                          <div className="w-9 h-9 rounded-full bg-accent-blue/15 flex items-center justify-center text-accent-blue font-bold text-xs">
                             {getInitials(c.first_name, c.last_name)}
                           </div>
                           <div>
@@ -1041,7 +1032,7 @@ export default function CrmPage() {
                                 {c.first_name} {c.last_name}
                               </p>
                               {c.needs_follow_up && (
-                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title="Follow-up fällig!"></span>
+                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title={t("follow_up_due")}></span>
                               )}
                               {c.vip_tier && c.vip_tier !== 'Standard' && (
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
@@ -1387,7 +1378,7 @@ function CustomerFormModal({
                   label={t("favorite_color")}
                   value={form.favorite_color}
                   onChange={(v) => setForm((f) => ({ ...f, favorite_color: v }))}
-                  placeholder="e.g. #006039, Blue"
+                  placeholder={t("favorite_color_placeholder")}
                 />
                 <FormField
                   label={t("desired_watch")}
@@ -1399,10 +1390,10 @@ function CustomerFormModal({
               <div className="mt-4 pt-4 border-t border-border-subtle flex items-center justify-between">
                 <div>
                   <span className="block text-sm font-semibold text-primary-text">
-                    Geburtstagsmail automatisch senden
+                    {t("auto_birthday_toggle_label")}
                   </span>
                   <span className="block text-xs text-secondary-text">
-                    Wenn aktiviert, erhält der Kunde an seinem Geburtstag vollautomatisch eine E-Mail.
+                    {t("auto_birthday_toggle_desc")}
                   </span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">

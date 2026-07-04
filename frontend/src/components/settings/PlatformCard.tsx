@@ -16,6 +16,7 @@ import {
 import dynamic from 'next/dynamic';
 import type { PlatformInfo } from '@/types';
 import { platformsApi } from '@/lib/platforms-api';
+import { confirmDialog } from '@/stores/confirmStore';
 import { useTranslations, useLocale } from 'next-intl';
 
 // Lazy load — modal sadece kullanıcı ? butonuna tıklayınca yüklenir
@@ -106,7 +107,7 @@ export default function PlatformCard({
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm(t('confirm_disconnect', { name: platform.name }))) return;
+    if (!(await confirmDialog({ title: t('confirm_disconnect', { name: platform.name }), danger: true }))) return;
     setIsDisconnecting(true);
     try {
       await onDisconnect(platform);

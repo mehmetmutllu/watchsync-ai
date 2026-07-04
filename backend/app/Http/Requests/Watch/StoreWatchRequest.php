@@ -8,7 +8,7 @@ class StoreWatchRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->hasPermission('inventory.create') ?? false;
     }
 
     public function rules(): array
