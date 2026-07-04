@@ -1,16 +1,19 @@
 import { Watch } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = await getTranslations("Landing");
+
   return (
     <div className="min-h-screen bg-midnight flex">
       {/* Left side — Branding */}
@@ -32,23 +35,20 @@ export default function AuthLayout({
 
         <div className="relative z-10 max-w-md">
           <h1 className="text-4xl font-bold leading-tight">
-            Manage Your Luxury Watch{" "}
-            <span className="text-accent-blue">
-              Inventory with AI
-            </span>
+            {t("hero_title_1")}{" "}
+            <span className="text-accent-blue">{t("hero_title_2")}</span>
           </h1>
           <p className="mt-4 text-secondary-text leading-relaxed">
-            Sync inventory across eBay, Chrono24 & Shopify. AI-enhanced photos.
-            Market intelligence. Zero double-sells.
+            {t("hero_desc")}
           </p>
         </div>
 
         <div className="relative z-10 flex items-center gap-6 text-xs text-disabled-text">
-          <span>© 2026 WatchSync AI</span>
+          <span>{t("footer_rights")}</span>
           <span>·</span>
-          <span>Privacy</span>
+          <span>{t("privacy")}</span>
           <span>·</span>
-          <span>Terms</span>
+          <span>{t("terms")}</span>
         </div>
       </div>
 

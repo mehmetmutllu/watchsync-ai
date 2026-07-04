@@ -46,6 +46,7 @@ import {
 } from "@/lib/crm-api";
 import { getWhatsAppLink } from "@/lib/whatsapp";
 import { confirmDialog } from "@/stores/confirmStore";
+import { useToastStore } from "@/stores/toastStore";
 import type { Watch } from "@/types";
 import { KanbanBoard } from "@/components/crm/KanbanBoard";
 import { CustomerTimeline } from "@/components/crm/CustomerTimeline";
@@ -56,6 +57,7 @@ import { CustomerQuickActions } from "@/components/crm/CustomerQuickActions";
 export default function CrmPage() {
   const t = useTranslations("CRM");
   const tCommon = useTranslations("Common");
+  const addToast = useToastStore((s) => s.addToast);
   const locale = useLocale();
   const searchParams = useSearchParams();
 
@@ -143,7 +145,7 @@ export default function CrmPage() {
       const pitch = await generatePitch(selectedCustomer.id, watchId, lang);
       setPitchResult({ watchId, text: pitch });
     } catch {
-      alert(tCommon("error") || "Error generating pitch.");
+      addToast({ type: "error", title: tCommon("error") });
     } finally {
       setPitchLoading(null);
     }
@@ -157,7 +159,7 @@ export default function CrmPage() {
       const res = await generateBirthdayPitch(selectedCustomer.id, lang);
       setPitchResult({ isBirthday: true, text: res.pitch });
     } catch {
-      alert(tCommon("error") || "Error generating birthday pitch.");
+      addToast({ type: "error", title: tCommon("error") });
     } finally {
       setBirthdayPitchLoading(false);
     }
@@ -347,7 +349,7 @@ export default function CrmPage() {
               <div className="flex border-b border-border-subtle bg-background/30 p-1 gap-1">
                 <button
                   onClick={() => setActiveTab("general")}
-                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all !outline-none !ring-0 focus:!outline-none focus:!ring-0 ${activeTab === "general"
+                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all ${activeTab === "general"
                       ? "bg-surface text-primary-text shadow-sm"
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
@@ -356,7 +358,7 @@ export default function CrmPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("notes")}
-                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all !outline-none !ring-0 focus:!outline-none focus:!ring-0 ${activeTab === "notes"
+                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all ${activeTab === "notes"
                       ? "bg-surface text-primary-text shadow-sm"
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
@@ -365,7 +367,7 @@ export default function CrmPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("timeline")}
-                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all !outline-none !ring-0 focus:!outline-none focus:!ring-0 ${activeTab === "timeline"
+                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all ${activeTab === "timeline"
                       ? "bg-surface text-primary-text shadow-sm"
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
@@ -374,7 +376,7 @@ export default function CrmPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("portfolio")}
-                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all !outline-none !ring-0 focus:!outline-none focus:!ring-0 ${activeTab === "portfolio"
+                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all ${activeTab === "portfolio"
                       ? "bg-surface text-primary-text shadow-sm"
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
@@ -383,7 +385,7 @@ export default function CrmPage() {
                 </button>
                 <button
                   onClick={() => setActiveTab("invoices")}
-                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all !outline-none !ring-0 focus:!outline-none focus:!ring-0 ${activeTab === "invoices"
+                  className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all ${activeTab === "invoices"
                       ? "bg-surface text-primary-text shadow-sm"
                       : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                     }`}
@@ -393,12 +395,12 @@ export default function CrmPage() {
                 {selectedCustomer.metadata?.desired_watch && (
                   <button
                     onClick={() => setActiveTab("matches")}
-                    className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all !outline-none !ring-0 focus:!outline-none focus:!ring-0 ${activeTab === "matches"
+                    className={`flex-1 py-3 text-center text-sm font-semibold rounded-xl transition-all ${activeTab === "matches"
                         ? "bg-surface text-primary-text shadow-sm"
                         : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                       }`}
                   >
-                    <Sparkles className="w-4 h-4 inline-block mr-1 text-accent-primary" />
+                    <Sparkles className="w-4 h-4 inline-block mr-1 text-accent-blue" />
                     {t("tab_matches")}
                   </button>
                 )}
@@ -461,7 +463,7 @@ export default function CrmPage() {
 
                       {/* Favorite Color */}
                       <div className="p-4 bg-background/50 border border-border-subtle/50 rounded-xl flex items-center gap-4">
-                        <div className="p-3 bg-purple-500/10 rounded-xl text-purple-500">
+                        <div className="p-3 bg-accent-blue/10 rounded-xl text-accent-blue">
                           <Palette className="w-5 h-5" />
                         </div>
                         <div className="flex-1">
@@ -627,7 +629,7 @@ export default function CrmPage() {
                     {/* Header */}
                     <div className="border-b border-border-subtle pb-3">
                       <h3 className="text-lg font-bold text-primary-text flex items-center">
-                        <Sparkles className="w-5 h-5 mr-2 text-accent-primary" />
+                        <Sparkles className="w-5 h-5 mr-2 text-accent-blue" />
                         {t("radar_title", { query: selectedCustomer.metadata?.desired_watch ?? "" })}
                       </h3>
                       <p className="text-sm text-secondary-text mt-1">{t("radar_subtitle")}</p>
@@ -635,7 +637,7 @@ export default function CrmPage() {
 
                     {matchesLoading ? (
                       <div className="flex justify-center py-8">
-                        <div className="w-6 h-6 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+                        <div className="w-6 h-6 border-2 border-accent-blue border-t-transparent rounded-full animate-spin" />
                       </div>
                     ) : (
                       <>
@@ -665,10 +667,10 @@ export default function CrmPage() {
                                     <button
                                       onClick={() => handleGeneratePitch(watch.id)}
                                       disabled={pitchLoading === watch.id}
-                                      className="text-xs bg-accent-primary/10 text-accent-primary px-3 py-1.5 rounded-lg flex items-center font-medium hover:bg-accent-primary/20 transition-colors"
+                                      className="text-xs bg-accent-blue/10 text-accent-blue px-3 py-1.5 rounded-lg flex items-center font-medium hover:bg-accent-blue/20 transition-colors"
                                     >
                                       {pitchLoading === watch.id ? (
-                                        <div className="w-3 h-3 border-2 border-accent-primary border-t-transparent rounded-full animate-spin mr-1.5" />
+                                        <div className="w-3 h-3 border-2 border-accent-blue border-t-transparent rounded-full animate-spin mr-1.5" />
                                       ) : (
                                         <Mail className="w-3 h-3 mr-1.5" />
                                       )}
@@ -694,10 +696,10 @@ export default function CrmPage() {
                           {matches?.arbitrage_deals && matches.arbitrage_deals.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
                               {matches.arbitrage_deals.map((deal) => (
-                                <div key={deal.id} className="p-4 border border-accent-primary/20 rounded-xl flex flex-col md:flex-row gap-4 glass bg-accent-primary/5 items-start md:items-center">
+                                <div key={deal.id} className="p-4 border border-accent-blue/20 rounded-xl flex flex-col md:flex-row gap-4 glass bg-accent-blue/5 items-start md:items-center">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-accent-primary/20 text-accent-primary uppercase tracking-wider">{deal.platform}</span>
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-accent-blue/20 text-accent-blue uppercase tracking-wider">{deal.platform}</span>
                                       <span className="text-xs text-secondary-text flex items-center"><Search className="w-3 h-3 mr-1" /> {deal.location}</span>
                                     </div>
                                     <p className="font-bold text-primary-text">{deal.title}</p>
@@ -748,7 +750,7 @@ export default function CrmPage() {
             <div className="bg-surface w-full max-w-md rounded-2xl p-6 shadow-2xl border border-border-subtle">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold flex items-center">
-                  <Sparkles className="w-5 h-5 mr-2 text-accent-primary" />
+                  <Sparkles className="w-5 h-5 mr-2 text-accent-blue" />
                   {t("ai_message")}
                 </h3>
                 <select
@@ -770,7 +772,7 @@ export default function CrmPage() {
                 </select>
               </div>
               <textarea
-                className="w-full h-40 bg-background/50 border border-border-subtle rounded-xl p-3 text-sm focus:outline-none focus:border-accent-primary resize-none"
+                className="w-full h-40 bg-background/50 border border-border-subtle rounded-xl p-3 text-sm focus:outline-none focus:border-accent-blue resize-none"
                 value={pitchResult.text}
                 onChange={(e) => setPitchResult({ ...pitchResult, text: e.target.value })}
               />
@@ -1032,13 +1034,13 @@ export default function CrmPage() {
                                 {c.first_name} {c.last_name}
                               </p>
                               {c.needs_follow_up && (
-                                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title={t("follow_up_due")}></span>
+                                <span className="w-2 h-2 rounded-full bg-semantic-error animate-pulse" title={t("follow_up_due")}></span>
                               )}
                               {c.vip_tier && c.vip_tier !== 'Standard' && (
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-                                  c.vip_tier === 'Platinum' ? 'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-900 shadow-[0_0_8px_rgba(226,232,240,0.5)]' :
-                                  c.vip_tier === 'Gold' ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' :
-                                  'bg-gray-400/20 text-gray-300 border border-gray-400/30'
+                                  c.vip_tier === 'Platinum' ? 'bg-surface-elevated text-primary-text border border-border-strong' :
+                                  c.vip_tier === 'Gold' ? 'bg-accent-gold/15 text-accent-gold border border-accent-gold/30' :
+                                  'bg-surface-elevated text-secondary-text border border-border-subtle'
                                 }`}>
                                   {c.vip_tier}
                                 </span>

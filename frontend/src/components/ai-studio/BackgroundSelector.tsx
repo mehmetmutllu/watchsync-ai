@@ -37,7 +37,7 @@ export default function BackgroundSelector({ selected, onSelect, disabled }: Bac
             className={`relative flex items-center gap-3 p-3 rounded-lg border transition-all duration-150 ${
               selected === preset.id
                 ? 'border-accent-blue bg-accent-blue/5'
-                : 'border-border-subtle hover:border-border-default bg-surface-base'
+                : 'border-border-subtle hover:border-border-strong bg-surface'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <div

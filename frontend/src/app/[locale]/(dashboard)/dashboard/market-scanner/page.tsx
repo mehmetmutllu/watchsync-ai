@@ -16,7 +16,6 @@ import {
   Trash2,
   ExternalLink,
   CheckCircle2,
-  XCircle,
   AlertTriangle,
   Wifi,
 } from "lucide-react";
@@ -216,7 +215,7 @@ export default function MarketScannerPage() {
             onChange={(e) => setSearchRef(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder={t("search_placeholder")}
-            className="w-full pl-10 pr-4 py-2.5 bg-surface-base border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-secondary-text focus:outline-none focus:border-accent-blue transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-secondary-text focus:outline-none focus:border-accent-blue transition-colors"
           />
         </div>
         <button
@@ -254,7 +253,9 @@ export default function MarketScannerPage() {
             ) : ebayStatus?.status === 'not_configured' ? (
               <AlertTriangle className="w-3.5 h-3.5 text-semantic-warning" />
             ) : (
-              <XCircle className="w-3.5 h-3.5 text-semantic-error" />
+              // Kullanıcı henüz arama yapmadan kırmızı "hata" alarmı vermek yerine
+              // veri kaynağının hazır olmadığını nötr tonda bildir.
+              <AlertTriangle className="w-3.5 h-3.5 text-secondary-text" />
             )}
             <span className="text-primary-text font-medium">{t("ebay_browse_api")}</span>
             <span className="text-secondary-text">
@@ -567,7 +568,7 @@ export default function MarketScannerPage() {
                       value={alertPrice}
                       onChange={(e) => setAlertPrice(e.target.value)}
                       placeholder="12000"
-                      className="w-full px-3 py-2 bg-surface-base border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue"
+                      className="w-full px-3 py-2 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue"
                     />
                   </div>
                   <div>
@@ -575,7 +576,7 @@ export default function MarketScannerPage() {
                     <select
                       value={alertDirection}
                       onChange={(e) => setAlertDirection(e.target.value as "below" | "above")}
-                      className="px-3 py-2 bg-surface-base border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue"
+                      className="px-3 py-2 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text focus:outline-none focus:border-accent-blue"
                     >
                       <option value="below">{t("below")}</option>
                       <option value="above">{t("above")}</option>

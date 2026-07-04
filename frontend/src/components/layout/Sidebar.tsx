@@ -22,10 +22,12 @@ import {
 
 interface SidebarProps {
   collapsed: boolean;
+  mobileOpen: boolean;
   onToggle: () => void;
+  onMobileClose: () => void;
 }
 
-export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const t = useTranslations("Sidebar");
@@ -46,9 +48,9 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* Mobile overlay */}
       <div
         className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:hidden ${
-          !collapsed ? "opacity-100" : "opacity-0 pointer-events-none"
+          mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
-        onClick={onToggle}
+        onClick={onMobileClose}
       />
 
       {/* Sidebar */}
@@ -61,8 +63,8 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           glass-strong
           flex flex-col
           transition-all duration-200 ease-in-out
-          ${collapsed ? "w-sidebar-collapsed" : "w-sidebar"}
-          max-md:${collapsed ? "-translate-x-full" : "translate-x-0"}
+          w-sidebar ${collapsed ? "md:w-sidebar-collapsed" : "md:w-sidebar"}
+          md:translate-x-0 ${mobileOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full"}
         `}
       >
         {/* Logo Area */}
@@ -99,6 +101,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 href={item.href}
                 data-tour={item.href === "/dashboard/inventory" ? "inventory" : undefined}
                 aria-current={isActive ? "page" : undefined}
+                onClick={onMobileClose}
                 onMouseEnter={() => setHoveredItem(item.href)}
                 onMouseLeave={() => setHoveredItem(null)}
                 className={`
@@ -153,7 +156,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </div>
           <button
             onClick={onToggle}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3
+            className="w-full max-md:hidden flex items-center justify-center gap-2 px-3 py-3
               text-secondary-text hover:text-primary-text hover:bg-surface-elevated
               transition-all duration-150"
             aria-label={collapsed ? t("expand") : t("collapse")}

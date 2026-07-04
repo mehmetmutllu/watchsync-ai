@@ -43,7 +43,7 @@ export default function StepPricing() {
                 px-4 py-2 text-sm font-medium rounded-lg border transition-colors
                 ${selectedCurrency === c.value
                   ? 'border-accent-blue bg-accent-blue/10 text-accent-blue'
-                  : 'border-border-subtle text-secondary-text hover:border-border-default'
+                  : 'border-border-subtle text-secondary-text hover:border-border-strong'
                 }
               `}
             >

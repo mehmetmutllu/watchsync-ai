@@ -211,7 +211,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
             }}
             onInput={autoResizeTextarea}
             rows={6}
-            className="w-full px-3 py-2.5 rounded-lg bg-surface-base border border-border-subtle text-sm text-primary-text resize-none focus:outline-none focus:ring-2 focus:ring-accent-blue/40 transition-colors"
+            className="w-full px-3 py-2.5 rounded-lg bg-surface border border-border-subtle text-sm text-primary-text resize-none focus:outline-none focus:ring-2 focus:ring-accent-blue/40 transition-colors"
             placeholder={t('desc_generator_placeholder')}
             readOnly={isStreaming}
           />

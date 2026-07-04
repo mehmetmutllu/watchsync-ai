@@ -30,7 +30,7 @@ export default function EditWatchPage({ params }: EditWatchPageProps) {
       <div className="flex items-center gap-4">
         <Link
           href="/dashboard/inventory"
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-default transition-colors"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-strong transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
         </Link>

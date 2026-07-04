@@ -77,7 +77,10 @@ export default function InviteAcceptPage({
       z
         .object({
           name: z.string().min(2, t("name_too_short")),
-          password: z.string().min(8, t("password_too_short")),
+          password: z
+            .string()
+            .min(8, t("password_too_short"))
+            .regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, t("password_requirements")),
           password_confirmation: z.string(),
         })
         .refine((d) => d.password === d.password_confirmation, {

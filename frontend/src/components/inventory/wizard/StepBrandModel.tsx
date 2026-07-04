@@ -47,7 +47,7 @@ export default function StepBrandModel() {
                 px-3 py-2 text-xs font-medium rounded-lg border transition-colors
                 ${selectedBrand === brand
                   ? 'border-accent-blue bg-accent-blue/10 text-accent-blue'
-                  : 'border-border-subtle text-secondary-text hover:border-border-default hover:text-primary-text'
+                  : 'border-border-subtle text-secondary-text hover:border-border-strong hover:text-primary-text'
                 }
               `}
             >
@@ -87,7 +87,7 @@ export default function StepBrandModel() {
                 flex flex-col items-start p-3 rounded-lg border transition-colors text-left
                 ${selectedCondition === opt.value
                   ? 'border-accent-blue bg-accent-blue/10'
-                  : 'border-border-subtle hover:border-border-default'
+                  : 'border-border-subtle hover:border-border-strong'
                 }
               `}
             >

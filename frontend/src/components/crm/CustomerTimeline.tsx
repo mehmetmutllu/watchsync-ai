@@ -50,8 +50,8 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
 
   return (
     <div className="relative pl-8 space-y-8 my-4">
-      {/* Glowing Gradient Line */}
-      <div className="absolute left-[11px] top-2 bottom-0 w-[2px] bg-gradient-to-b from-accent-blue/60 via-purple-500/30 to-transparent shadow-[0_0_10px_rgba(59,130,246,0.4)] rounded-full" />
+      {/* Timeline spine */}
+      <div className="absolute left-[11px] top-2 bottom-0 w-[2px] bg-gradient-to-b from-border-strong to-transparent rounded-full" />
       
       {events.map((event, index) => {
         const isNote = event.type === "note";
@@ -63,11 +63,11 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
             {/* Glowing Timeline Dot */}
             <div
               className={`absolute -left-[35.5px] top-1 w-6 h-6 rounded-full flex items-center justify-center border-4 border-midnight transition-transform duration-300 group-hover:scale-110 ${
-                isNote 
-                  ? "bg-accent-blue shadow-[0_0_12px_rgba(59,130,246,0.6)]" 
-                  : isInvoice 
-                    ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.6)]" 
-                    : "bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.6)]"
+                isNote
+                  ? "bg-accent-blue"
+                  : isInvoice
+                    ? "bg-semantic-success"
+                    : "bg-accent-gold"
               }`}
             >
               {isNote && <FileText className="w-3 h-3 text-white" />}
@@ -77,8 +77,8 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
             {/* Premium Glass Event Card */}
             <div className="glass-strong glass-hover rounded-2xl p-5 ml-2 relative overflow-hidden">
               {/* Subtle background glow depending on type */}
-              <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-40 ${
-                isNote ? "bg-accent-blue" : isInvoice ? "bg-emerald-500" : "bg-purple-500"
+              <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-20 ${
+                isNote ? "bg-accent-blue" : isInvoice ? "bg-semantic-success" : "bg-accent-gold"
               }`} />
               
               <div className="flex justify-between items-start mb-3 relative z-10">
@@ -94,7 +94,7 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
               </p>
               <div className="mt-4 flex items-center text-xs text-disabled-text relative z-10">
                 <div className="flex items-center gap-1.5 bg-background/40 px-2.5 py-1.5 rounded-lg border border-white/5">
-                  <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-gray-600 to-gray-400 flex items-center justify-center text-[8px] text-white font-bold">
+                  <div className="w-4 h-4 rounded-full bg-accent-blue/15 flex items-center justify-center text-[8px] text-accent-blue font-bold">
                     {event.user_name.charAt(0).toUpperCase()}
                   </div>
                   <span>{event.user_name}</span>
