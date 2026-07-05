@@ -59,22 +59,31 @@ class InvitationController extends Controller
         $validated = $request->validated();
 
         $user = DB::transaction(function () use ($invitation, $validated) {
+            // Satırı kilitle ve durumu yeniden oku: aynı token ile eşzamanlı iki
+            // kabul isteğinin ikisinin de geçip çift kullanıcı (500) yaratmasını
+            // engeller. Kilit alındıktan sonra biri kabul etmişse diğeri 404 alır.
+            $locked = Invitation::whereKey($invitation->id)->lockForUpdate()->first();
+
+            if (! $locked || $locked->accepted_at || $locked->revoked_at) {
+                abort(response()->json(['message' => 'Geçersiz veya kullanılmış davet.'], 404));
+            }
+
             $user = User::create([
-                'dealer_id'   => $invitation->dealer_id,
+                'dealer_id'   => $locked->dealer_id,
                 'name'        => $validated['name'],
-                'email'       => $invitation->email,
+                'email'       => $locked->email,
                 'password'    => $validated['password'],
-                'role'        => $invitation->role,
+                'role'        => $locked->role,
                 'status'      => 'active',
-                'permissions' => $invitation->permissions,
-                'invited_by'  => $invitation->invited_by,
-                'invited_at'  => $invitation->created_at,
+                'permissions' => $locked->permissions,
+                'invited_by'  => $locked->invited_by,
+                'invited_at'  => $locked->created_at,
             ]);
 
             // email_verified_at fillable değil → forceFill ile ata (davet zaten e-postayı doğrular)
             $user->forceFill(['email_verified_at' => now()])->save();
 
-            $invitation->update(['accepted_at' => now()]);
+            $locked->update(['accepted_at' => now()]);
 
             return $user;
         });

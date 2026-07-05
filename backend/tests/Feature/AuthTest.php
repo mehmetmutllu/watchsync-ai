@@ -14,13 +14,14 @@ class AuthTest extends TestCase
 
     public function test_user_can_register()
     {
-        $response = $this->postJson('/api/auth/register', [
-            'name'                  => 'Test Owner',
-            'email'                 => 'owner@watchsync.ai',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
-            'company_name'          => 'Test Watch Co.',
-        ]);
+        $response = $this->withHeader('Referer', 'http://localhost')
+            ->postJson('/api/auth/register', [
+                'name'                  => 'Test Owner',
+                'email'                 => 'owner@watchsync.ai',
+                'password'              => 'Password123',
+                'password_confirmation' => 'Password123',
+                'company_name'          => 'Test Watch Co.',
+            ]);
 
         $response->assertStatus(201)
                  ->assertJsonStructure([
@@ -37,7 +38,6 @@ class AuthTest extends TestCase
                              'company_name',
                          ],
                      ],
-                     'token',
                  ]);
 
         $this->assertDatabaseHas('dealers', ['company_name' => 'Test Watch Co.']);
@@ -72,13 +72,14 @@ class AuthTest extends TestCase
             'role'      => 'manager',
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
-            'email'    => 'login@test.com',
-            'password' => 'secretpass',
-        ]);
+        $response = $this->withHeader('Referer', 'http://localhost')
+            ->postJson('/api/auth/login', [
+                'email'    => 'login@test.com',
+                'password' => 'secretpass',
+            ]);
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['message', 'user', 'token']);
+                 ->assertJsonStructure(['message', 'user']);
     }
 
     public function test_login_fails_with_wrong_credentials()

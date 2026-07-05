@@ -238,7 +238,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
                 type="button"
                 onClick={() => setSelectedVariant(null)}
                 className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                  !selectedVariant ? 'border-accent-blue' : 'border-border-subtle hover:border-border-default'
+                  !selectedVariant ? 'border-accent-blue' : 'border-border-subtle hover:border-border-strong'
                 }`}
               >
                 <img src={primaryImage.url} alt={t('original_variant')} className="w-full h-full object-cover" />
@@ -253,7 +253,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
                 type="button"
                 onClick={() => setSelectedVariant(variant.preset)}
                 className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                  selectedVariant === variant.preset ? 'border-accent-blue' : 'border-border-subtle hover:border-border-default'
+                  selectedVariant === variant.preset ? 'border-accent-blue' : 'border-border-subtle hover:border-border-strong'
                 }`}
               >
                 {variant.url ? (
@@ -348,7 +348,7 @@ export default function StepAiProcessing({ watchId, existingImages }: StepAiProc
           type="button"
           onClick={handleRegenerate}
           disabled={isProcessing}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text border border-border-subtle rounded-lg hover:border-border-default transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text border border-border-subtle rounded-lg hover:border-border-strong transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${isProcessing ? 'animate-spin' : ''}`} />
           {t('regenerate_btn')}

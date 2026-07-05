@@ -1,5 +1,22 @@
 import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
+import trMessages from '../../messages/tr.json'
+
+// Mock next-intl: resolve useTranslations against the real Turkish messages so
+// component tests get actual strings without wrapping each render in a provider.
+vi.mock('next-intl', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next-intl')>()
+  return {
+    ...actual,
+    useTranslations: ((namespace?: string) =>
+      actual.createTranslator({
+        locale: 'tr',
+        messages: trMessages as never,
+        namespace: namespace as never,
+      })) as typeof actual.useTranslations,
+    useLocale: () => 'tr',
+  }
+})
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -28,7 +45,7 @@ vi.mock('next/image', () => ({
 vi.mock('next/dynamic', () => ({
   default: (loader: () => Promise<{ default: React.ComponentType }>) => {
     const Component = vi.fn(() => null)
-    Component.displayName = 'DynamicComponent'
+    ;(Component as unknown as { displayName: string }).displayName = 'DynamicComponent'
     return Component
   },
 }))

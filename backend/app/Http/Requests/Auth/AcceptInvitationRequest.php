@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class AcceptInvitationRequest extends FormRequest
 {
@@ -16,15 +15,17 @@ class AcceptInvitationRequest extends FormRequest
     {
         return [
             'name'     => ['required', 'string', 'max:255'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'     => 'İsim alanı zorunludur.',
-            'password.required' => 'Şifre alanı zorunludur.',
+            'name.required'      => 'İsim alanı zorunludur.',
+            'password.required'  => 'Şifre alanı zorunludur.',
+            'password.min'       => 'Şifre en az 8 karakter olmalıdır.',
+            'password.regex'     => 'Şifre en az bir büyük harf, bir küçük harf ve bir rakam içermelidir.',
             'password.confirmed' => 'Şifre tekrarı eşleşmiyor.',
         ];
     }

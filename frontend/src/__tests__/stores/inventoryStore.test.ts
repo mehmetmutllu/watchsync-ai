@@ -14,6 +14,7 @@ vi.mock('@/lib/watches-api', () => ({
 }))
 
 import { watchesApi } from '@/lib/watches-api'
+import type { PaginatedResponse, Watch } from '@/types'
 
 const INITIAL_STATE = {
   watches: [],
@@ -41,7 +42,9 @@ describe('inventoryStore', () => {
       per_page: 15,
       total: 42,
     }
-    vi.mocked(watchesApi.list).mockResolvedValue(mockResponse)
+    vi.mocked(watchesApi.list).mockResolvedValue(
+      mockResponse as unknown as PaginatedResponse<Watch>
+    )
 
     await act(async () => {
       await useInventoryStore.getState().fetchWatches()

@@ -1,9 +1,9 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-07-04  
-> **Mevcut Faz:** Frontend **P0+P1+P2 TAMAM** + ek **backend güvenlik sertleştirmesi** (eBay webhook kripto imza doğrulama + CSP prod sertleştirme) TAMAM ✅. `feature/team-management` → develop PR açık.  
-> **Sıradaki (İLK İŞ):** PR'ın develop'a merge'ini bekle/incele (artık güvenlik commit'i de dahil). Merge sonrası Aşama 7 kapanır → Aşama 8'e geç (aşağıdaki roadmap'e bak). Opsiyonel P2.14 (Market Scanner bilgi mimarisi) büyük iş, ayrı oturuma bırakıldı.  
-> **Sıradaki (bekleyen):** eBay Developer hesap açılması ve Rolex 126610LN gerçek veri testi  
+> **Son Güncelleme:** 2026-07-05  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. `feature/security-ui-polish` dalında güvenlik/UI turu **+ Oturum A (K1-K4) TAMAM** (local kusursuz: tüm testler yeşil + CSP nonce sertleştirmesi) → **PR #3 açık** (develop'a, MERGEABLE; artık K1-K4'ü de içeriyor).  
+> **Sıradaki (İLK İŞ):** PR #3'ü incele/merge et. Merge sonrası → Oturum B = CANLIYA ALMA (aşağıdaki "CANLIYA ALMA" özeti + en alttaki Son Oturum'a bak).  
+> **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env/deploy (docker-compose/backend Dockerfile yok).  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -823,3 +823,95 @@ Kapsam: owner davet → bekleyen listede görünür → token ile kabul → giri
 2. Merge sonrası Aşama 7 kapanır → Aşama 8'e geç.
 3. (Opsiyonel) prod build alıp yeni CSP ile konsol/CSP ihlali kontrolü.
 4. eBay Developer hesabı açılınca gerçek `EBAY_WEBHOOK_VERIFICATION_TOKEN`/`EBAY_WEBHOOK_ENDPOINT` ile canlı challenge + imza doğrulama testi.
+
+---
+
+## 📌 Son Oturum (2026-07-04 · devam 4 — Aşama 7 kapanışı + güvenlik turu + UI/UX pro max turu)
+
+**1) Aşama 7 kapanışı:**
+- eBay güvenlik commit'i (`29ec43a`) için PR #2 açıldı → **merge edildi** (develop merge commit `ea1cd2b`). Aşama 7 tümüyle develop'ta.
+- Prod build alınıp **CSP doğrulandı**: `unsafe-eval` prod'da yok (dev'de var), `object-src/base-uri/form-action/frame-src` sertleştirmesi header+manifest'te doğru; public+dashboard sayfalarında CSP/eval ihlali yok. (Not: port 3000'i eski dev sunucusu tuttuğu için prod 3100'de test edildi.)
+
+**2) Güvenlik/kod turu (security-audit skill) — yeni dal `feature/security-ui-polish`, commit `d724d38`:**
+- **F1** WebhookController eBay/Shopify **fail-closed** (production'da token boşsa reddet + kritik log; dev/test bypass korunur). Sahte order → cross-tenant stok kilidi açığını kapatır (`processEbayOrder` dealer-scope'suz `Watch::find`).
+- **F2** `InvitationController::accept` transaction'ında `lockForUpdate` + accepted/revoked yeniden kontrol (çift kabul 500→404).
+- **F3** Şifre politikası: Register+AcceptInvitation+SettingsController changePassword → `min 8 + büyük/küçük + rakam` (regex, TR mesaj). Settings/AuthTest fixture'ları uyumlandı. Frontend Zod (register+invite) + i18n `password_requirements` (3 dil).
+- Backend suite: **132 passed** (4 bilinen baseline: AuthTest register/login 500 ortamsal + InvoiceTest×2).
+
+**3) UI/UX pro max turu (design-review ajanı 7-aşama + impeccable statik) — commit `4b497b8`:**
+- Ortam: frontend **3001** (SANCTUM_STATEFUL_DOMAINS'te var), backend 8001; login teyit (csrf 204/login 200).
+- **P0:** (a) 3 **TANIMSIZ TOKEN** bug'ı — `accent-primary`(9)→accent-blue, `surface-base`(5)→surface, `hover:border-default`(13)→border-strong (globals.css'te yok → kırık renk render'ı, CRM AI-pitch+inputlar). (b) **Mobil sidebar blocker** — tek `collapsed` state hem masaüstü hem mobili sürüyordu; ayrı `mobileOpen` (default kapalı) + nav-tıkla-kapat + mobilde collapse gizli. (c) CRM 6 tab focus baskılaması (`!outline-none`) kaldırıldı (WCAG).
+- **P1:** alert()→toast (crm×2, invoices×1); auth İngilizce hero → `getTranslations("Landing")` + privacy/terms; CRM neon-glow/purple kümesi → sessiz lüks (CustomerTimeline, follow-up neon pulse, VIP tier metal metaforu, favorite-color, team ham palet→semantic+aria-label); market-scanner ilk-paint kırmızı alarm→nötr; dashboard KPI skeleton + glow token + group-hover no-op.
+- Doğrulama: tsc **0 kaynak hatası**, i18n **861/861/861**, **e2e/team 5/5**, Playwright görsel (mobil sidebar off-screen x=-256 + drawer x=0, auth TR hero, CRM 0 console hatası).
+
+**Commit & PR:** `feature/security-ui-polish` (develop'tan) → 2 commit (`d724d38` güvenlik + `4b497b8` UI) → **PR #3 açıldı**. Design-review ajanının review spec/report/config artefaktları silindi (commit'e girmedi).
+
+**MEVCUT DURUM:** PR #3 merge/inceleme bekliyor. Backend 8001 ayakta, frontend dev kapalı. Demo DB'ye e2e'den "E2E Staff" pasif üyeler eklendi (kozmetik).
+
+**SONRAKİ ADIMLAR (bir sonraki chat — ertelenen UI bulguları):**
+1. **Medium:** Settings mobil tab etiket kırpılması (responsive tab); izin matrisi grup "tümünü seç" + preset-farkı göstergesi; invoice vade tarihi `type="date"`.
+2. **Nit:** ConfirmDialog focus geri-verme; invite modal native `<select>`; CRM tab flex-1 layout-shift; Settings `role=tablist`; landing "Demo İzle" anchor; inventory satır aria-label + 44px.
+3. **Ayrı sistem:** admin sidebar side-stripe. **Veri:** demo DB E2E Staff temizliği.
+4. **Backlog:** F4 CSP nonce-tabanlı (script-src unsafe-inline düşür).
+5. PR #3 merge sonrası bu iş kapanır.
+
+---
+
+## 📌 Son Oturum (2026-07-04 · devam 5 — ertelenen UI/a11y maddeleri + Playwright doğrulama + canlıya-alma taraması)
+
+**Ortam notu:** frontend :3000'de bozuk `.next` cache tüm localize rotaları (`/de` kökü dahil) 404 yapıyordu → `.next` silinip yeniden başlatılınca düzeldi. Playwright MCP bu oturuma bağlı DEĞİL (yalnız Canva/Vercel MCP var) → repo'nun kendi Playwright CLI'ı (`@playwright/test`) kullanıldı. Backend :8001 ayakta.
+
+**Yapılanlar (feature/security-ui-polish dalında, commit'siz → bu kayıtla commit edilecek):**
+- **Settings mobil tab** (`settings/page.tsx`): mobilde etiketler artık görünüyor (`hidden sm:inline` kaldırıldı, yatay scroll taşmayı yönetiyor) + tam `role=tablist/tab/tabpanel` + `aria-selected`.
+- **İzin matrisi grup "Tümünü seç / Temizle"** (`PermissionMatrix.tsx`): grup başına toggle; `grantable`/`disabled`'a saygılı; gruplar bağımsız.
+- **Preset-farkı göstergesi** (`InviteMemberModal.tsx`): "Rol varsayılanıyla aynı" ↔ "Özelleştirildi +N −M" + **"Varsayılana dön"**.
+- **BULUNAN + DÜZELTİLEN pre-existing bug** (`InviteMemberModal.tsx`): davet modalının preset `useEffect`'i `[role, catalog.presets]`'e bağlıydı; arka planda team refetch (usePermission `user` ref değişimi → TeamPage `load()` → yeni catalog kimliği) kullanıcının seçtiği izinleri **siliyordu**. Etki yalnız `[role]`'e bağlandı.
+- **ConfirmDialog odak geri-verme** (`ConfirmDialog.tsx`): açılışta odak onay butonuna, kapanışta tetikleyen öğeye geri veriliyor (`autoFocus` yerine yakala/geri-ver + ref).
+- **Envanter satır a11y** (`WatchTable.tsx`): satır `aria-label` (marka/model/ref); ikon-only aksiyon butonuna erişilebilir ad ("İşlemler") + `aria-haspopup` + **44px** dokunma hedefi.
+- **Yeni test dosyası** `frontend/e2e/ui-polish.spec.ts`: **5/5 geçiyor** (settings mobil tab+a11y, grup seç/temizle+bağımsızlık, preset göstergesi+reset, ConfirmDialog odak, envanter 44px+aria).
+- **Dokunulmayanlar (gerekçeli):** landing "Demo İzle" zaten `#features` anchor'ına sahip; CRM tab'ları zaten `flex-1`+sabit `font-semibold` (kayma yok); invite modal zaten native `<select>`.
+
+**Kalite:** tsc kaynak hatası **0** (yalnız bilinen baseline `__tests__`) · i18n **866/866/866** (+5 anahtar: select_all, clear_group, preset_matches/customized/reset) · `e2e/team.spec.ts` **5/5** (regresyon yok) · `e2e/ui-polish.spec.ts` **5/5**.
+
+**CANLIYA ALMA taraması (bu oturumda yapıldı — doğrulanmış):**
+- **API'ler:** backend'de stub/TODO/FIXME/abort(501) **YOK** → controller'lar gerçek, placeholder değil. 34 migration. Yeni uç yazmaya gerek yok; mevcutlar gerçek anahtarlarla test edilmeli.
+- **AI service:** `ai-service/` gerçek FastAPI (SAM2 segment/enhance) + Dockerfile var; ama **SAM2 checkpoint repo'da yok** (indirilecek) ve uçtan uca test edilmedi.
+- **Entegrasyonlar (anahtar bekliyor):** eBay (sandbox, kod ~%80), Shopify (~%70), Chrono24 XML feed (~%90, IP whitelist gerek), Gemini LLM (~%95, fallback var). `.env.example`'da tüm anahtarlar boş, `EBAY_ENVIRONMENT=sandbox`.
+- **Prod-config değişmeli:** `.env.example` → `APP_ENV=local`, `APP_DEBUG=true`, `SESSION_DRIVER=database`, `QUEUE/CACHE=redis`, `MAIL=log`, `SANCTUM_STATEFUL_DOMAINS=localhost:3000,3001`. Prod'da: DEBUG=false, ENV=production, gerçek mail (SES/SendGrid), şifreli/persistent Redis, gerçek DB+yedek, gerçek domain'e Sanctum/CORS, frontend `NEXT_PUBLIC_API_URL`.
+- **Deploy tooling EKSİK:** `.github/workflows/ci.yml` var (test/lint) ama **deploy adımı yok**; **kök docker-compose ve backend Dockerfile YOK** (yalnız ai-service Dockerfile var); DEPLOYMENT.md/runbook yok.
+
+**KALAN KOD İŞİ ENVANTERİ (doğrulanmış — canlıya-alma altyapısı HARİÇ):** Frontend+backend'de gerçek TODO/stub/eksik uç YOK. Kalan neredeyse tümüyle test temizliği + 1 güvenlik sertleştirme + 1 kozmetik:
+- **(K1) Frontend kırık testler** (3 dosya / 12 test): hepsi `next-intl` provider'ı sarılmadığından patlıyor — ÜRÜN BUG'I DEĞİL, test-setup. Fix: `render`'ı `NextIntlClientProvider` (messages ile) sar veya next-intl mock'la. Düşük risk. (`WatchFilters.test.tsx` + 2 dosya; `src/__tests__/setup.tsx` displayName tsc uyarısı da dahil.)
+- **(K2) Backend kırık testler** (4): `InvoiceTest`×2 → test payload'ı `customer_id` + `items.0.quantity` GÖNDERMİYOR → 422 (test verisi düzeltmesi; API sözleşmesi doğru). `AuthTest`×2 register/login → 500 (local-ortamsal; CI'de geçebilir — önce diagnoz: local DB/env mi gerçek mi).
+- **(K3) Admin sidebar side-stripe** — kozmetik hizalama, ~15dk.
+- **(K4) F4 CSP nonce** — `next.config.ts` `script-src`'deki `unsafe-inline`'ı per-request nonce'a çevir (Next middleware/proxy nonce üretimi + Next script'lerine propagasyon). ORTA risk (script yükleme kırılabilir, dikkatli test). Bloklamıyor: prod'da `unsafe-eval` zaten yok (`isDev` guard). Efor ~2-4s.
+
+**PLAN — 2 oturum (kullanıcı ile kararlaştırıldı 2026-07-04):**
+- **OTURUM A (SIRADAKİ / watch-devam ilk işi):** Yukarıdaki **K1→K2→K3→K4**'ü bitir. Hedef: local KUSURSUZ — tüm testler yeşil (frontend vitest + backend suite + e2e), CSP sertleştirmesi tamam. Her adımdan sonra doğrula (vitest/artisan test/Playwright). Sonunda watch-kaydet.
+- **OTURUM B (ondan sonraki chat):** Kullanıcı ne isteyeceğini söyleyecek (muhtemelen CANLIYA ALMA) → ona göre hareket. Canlıya-alma envanteri progress.md "🚀 Canlıya Alma Taraması" + yukarıdaki taramada hazır (deploy tooling, secrets, prod env).
+
+**Bu chat'te YAPILMADI (yalnız tarama/karar):** kod değişikliği yok; PR #3 hâlâ açık (merge bekliyor). PR #3 merge'i K1-K4 ile aynı dalda (`feature/security-ui-polish`) devam edebilir ya da merge sonrası yeni dal — Oturum A başında karar ver.
+
+---
+
+## 📌 Son Oturum (2026-07-05 — OTURUM A: K1-K4 tamam, "local kusursuz")
+
+Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #3 artık bunları da içeriyor). Sıra K1→K4 uygulandı, her adımda doğrulama.
+
+**K1 — Frontend kırık testler (3 dosya/12 test):** Kök neden `next-intl` provider'ı sarılmamıştı (ürün bug'ı değil). `src/__tests__/setup.tsx`'e `next-intl` mock'u eklendi: `useTranslations` gerçek `tr.json`'ı `createTranslator` ile çözüyor (`useLocale`→'tr'). Ayrıca aynı dosyadaki pre-existing `next/dynamic` displayName tsc uyarısı + `inventoryStore.test.ts` mock payload `PaginatedResponse<Watch>` cast'i düzeltildi. → **vitest 63/63**, **tsc 0**.
+
+**K2 — Backend kırık testler (4) + 1 ekstra flaky:** (a) **GERÇEK BUG FIX:** `InvoiceController::index` `?status=` parametresini yok sayıyordu; frontend faturalar sayfası `statusFilter` gönderiyor → UI filtresi kırıktı → `when(...)` ile filtre eklendi. (b) `InvoiceTest::test_invoice_number_auto_generated` payload'ına eksik `customer_id`+`items.*.quantity` eklendi. (c) `AuthTest` register/login kök neden **"Session store not set on request"**: `/api/auth/*` yalnız *stateful* isteklerde session başlatıyor (Sanctum SPA); testlere `Referer: http://localhost` eklendi + tasarım gereği dönmeyen `token` assertion'ları kaldırıldı (app SPA cookie-auth). `phpunit.xml`'e deterministik `SANCTUM_STATEFUL_DOMAINS=localhost` eklendi (CI/.env farkından bağımsız). (d) Ekstra: `CustomerCrudTest::test_can_search_customers` pre-existing Faker flakiness (rastgele email/company "john" içerebiliyordu) — email+company sabitlendi. → **backend 136 passed, 1 skipped (redis, beklenen), 0 failed**.
+
+**K3 — Admin sidebar side-stripe (kozmetik):** `AdminSidebar.tsx` aktif nav item'ı layout kaydıran `border-l-2` yerine ana `Sidebar.tsx`'teki absolute stripe pattern'ini kullanıyor (`absolute left-0 … h-5 w-1 rounded-r-full`). Artık hizalı + iki sidebar tutarlı.
+
+**K4 — CSP nonce (F4, en riskli madde — kanıtlı çalışıyor):** `next.config.ts`'ten statik CSP kaldırıldı; `src/middleware.ts`'e per-request nonce eklendi. `script-src` artık `'self' 'nonce-…' 'strict-dynamic'` (dev'de `'unsafe-eval'`) — **`unsafe-inline` gitti**. Yalnız `script-src` değişti; `style-src` dahil diğer direktifler aynı (risk daraltma). next-intl middleware'i `new Headers(request.headers)` ile request header'larını kopyalayıp downstream'e ilettiği için (`intlMiddleware(request)` ÖNCESİ `request.headers`'a `x-nonce`+CSP set → Next SSR nonce'u script'lere uygular) çalışıyor. **Doğrulama:** CSP header'ında nonce var/`unsafe-inline` yok · 35 Next script'i nonce'lu (tek istisna çalıştırılmayan JSON-LD veri bloğu — CSP bloklamaz) · geçici teşhis spec'i **CSP_VIOLATION_COUNT=0** (login+team sayfası tam hydrate) · `team.spec` **5/5** + `ui-polish.spec` **5/5** (izole/warm) · tsc 0.
+
+**Uyarı (Next 16 CSP dokümanından):** nonce kullanınca TÜM sayfalar zorunlu dynamic render olur (statik opt./ISR/PPR/CDN cache devre dışı). App'te `generateStaticParams`/PPR yok → maliyet düşük ama prod'da bilinçli olun.
+
+**e2e durumu / pre-existing:** `auth/navigation/visual.spec` **stale** — Türkçe-default varsayıyorlar ama app `de`/Accept-Language tespiti yapıyor (team.spec yazarının kendi yorumuyla doğrulandı); plan'ın "yeşil olmalı" e2e seti team+ui-polish. Birleşik e2e koşularında görülen fail'ler dev **cold-compile** + serial-mode + parallel-worker flake'i → **izole/warm'da team 5/5 & ui-polish 5/5**. CSP DEĞİL.
+
+**Ortam:** next.config değişikliğini almak için kullanıcının dev server'ı durduruldu, `.next` temizlendi, arka planda taze başlatıldı (3000'de çalışıyor). Backend :8001 ayakta (health degraded=normal). Playwright MCP yok → repo'nun `@playwright/test` CLI'ı kullanıldı. Demo DB'de e2e'den `focus-*`/`e2e-staff` davet kalıntıları birikiyor (kozmetik).
+
+**Baseline-kırık DOKUNULMAYAN:** yok — Oturum A hepsini kapattı. Kalan tek "failing" e2e (auth/navigation/visual) kasıtlı stale + kapsam dışı.
+
+**SIRADAKİ:** PR #3'ü incele/merge et (artık K1-K4 dahil) → sonra **Oturum B = CANLIYA ALMA** (deploy tooling: backend Dockerfile + docker-compose yok; eBay/Shopify/Gemini gerçek anahtar; SAM2 checkpoint; prod env). Detay: progress.md "🚀 Canlıya Alma".

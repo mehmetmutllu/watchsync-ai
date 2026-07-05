@@ -117,11 +117,17 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
                   transition-all duration-150
                   ${
                     isActive
-                      ? "bg-accent-blue/10 text-accent-blue border-l-2 border-accent-blue"
+                      ? "bg-accent-blue/10 text-accent-blue"
                       : "text-secondary-text hover:bg-surface-elevated hover:text-primary-text"
                   }
                 `}
               >
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-accent-blue"
+                  />
+                )}
                 <Icon
                   className={`flex-shrink-0 w-5 h-5 transition-colors duration-150 ${
                     isActive

@@ -26,7 +26,7 @@ export default function PendingInvitations({
   return (
     <div className="bg-surface border border-border-subtle rounded-lg p-4">
       <h3 className="flex items-center gap-2 text-sm font-semibold text-primary-text mb-3">
-        <Clock className="w-4 h-4 text-amber-400" />
+        <Clock className="w-4 h-4 text-semantic-warning" />
         {t('pending_title')} ({invitations.length})
       </h3>
       <ul className="space-y-2">

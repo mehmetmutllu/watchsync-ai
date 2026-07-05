@@ -6,7 +6,6 @@ import {
   Package,
   Clock,
   CheckCircle,
-  Loader2,
   AlertTriangle,
   ShoppingCart,
 } from "lucide-react";
@@ -101,10 +100,15 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Loading */}
+      {/* Loading skeleton — KPI kartlarının şeklini korur (algılanan hızı artırır) */}
       {loading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-accent-blue animate-spin" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="glass-strong rounded-2xl p-6 space-y-3">
+              <div className="h-3 w-20 rounded bg-surface-elevated animate-pulse" />
+              <div className="h-7 w-28 rounded bg-surface-elevated animate-pulse" />
+            </div>
+          ))}
         </div>
       )}
 
@@ -130,13 +134,13 @@ export default function DashboardPage() {
                 <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-30 ${
                   card.key === 'total_inventory_value' ? 'bg-accent-gold' : 
                   card.key === 'active_watches' ? 'bg-accent-blue' :
-                  card.key === 'sync_success_rate' ? 'bg-emerald-500' : 'bg-purple-500'
+                  card.key === 'sync_success_rate' ? 'bg-semantic-success' : 'bg-accent-blue'
                 }`} />
 
                 <span className="relative z-10 text-xs font-medium uppercase tracking-wider text-secondary-text">
                   {card.label}
                 </span>
-                <p className="relative z-10 mt-2 text-2xl font-bold font-mono text-primary-text group-hover:text-white transition-colors">
+                <p className="relative z-10 mt-2 text-2xl font-bold font-mono text-primary-text">
                   {card.value}
                 </p>
                 <div className="absolute bottom-4 right-4 opacity-10 group-hover:opacity-30 transition-opacity">

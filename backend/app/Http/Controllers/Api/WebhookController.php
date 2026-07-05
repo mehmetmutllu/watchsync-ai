@@ -182,8 +182,16 @@ class WebhookController extends Controller
     {
         $verificationToken = config('services.ebay.webhook_verification_token', '');
 
-        // Verification token yapılandırılmamışsa (development/test), geç
+        // Verification token yapılandırılmamışsa: dev/test'te geç, production'da
+        // fail-CLOSED — aksi halde konfigürasyon eksikliği kimlik doğrulamasız
+        // webhook'a (sahte order → cross-tenant stok kilidi) dönüşür.
         if (empty($verificationToken)) {
+            if (app()->environment('production')) {
+                Log::critical('eBay webhook: verification token yapılandırılmamış — production isteği reddedildi', [
+                    'ip' => $request->ip(),
+                ]);
+                return false;
+            }
             return true;
         }
 
@@ -217,8 +225,14 @@ class WebhookController extends Controller
     {
         $shopifySecret = config('services.shopify.webhook_secret', '');
 
-        // Webhook secret yapılandırılmamışsa (development), geç
+        // Webhook secret yapılandırılmamışsa: dev'de geç, production'da fail-CLOSED.
         if (empty($shopifySecret)) {
+            if (app()->environment('production')) {
+                Log::critical('Shopify webhook: secret yapılandırılmamış — production isteği reddedildi', [
+                    'ip' => $request->ip(),
+                ]);
+                return false;
+            }
             return true;
         }
 

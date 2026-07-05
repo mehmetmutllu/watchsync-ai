@@ -278,7 +278,7 @@ export default function AiStudioPage() {
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                       activeVariant === i
                         ? 'border-accent-blue ring-2 ring-accent-blue/20'
-                        : 'border-border-subtle hover:border-border-default'
+                        : 'border-border-subtle hover:border-border-strong'
                     }`}
                   >
                     <img

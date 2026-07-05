@@ -223,7 +223,7 @@ export default function StepReviewPublish({
                     ? 'opacity-40 cursor-not-allowed border-border-subtle'
                     : isSelected
                       ? 'border-accent-blue bg-accent-blue/10'
-                      : 'border-border-subtle hover:border-border-default'
+                      : 'border-border-subtle hover:border-border-strong'
                   }
                 `}
               >
@@ -248,7 +248,7 @@ export default function StepReviewPublish({
           type="button"
           onClick={handleSaveDraft}
           disabled={isSaving}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-default transition-colors disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-strong transition-colors disabled:opacity-50"
         >
           {isSaving ? (
             <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />

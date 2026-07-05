@@ -65,7 +65,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
         <h4 className="font-semibold text-white/90 truncate flex items-center gap-2">
           {customer.first_name} {customer.last_name}
           {customer.needs_follow_up && (
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title={t("follow_up_due")}></span>
+            <span className="w-2 h-2 rounded-full bg-semantic-error animate-pulse" title={t("follow_up_due")}></span>
           )}
         </h4>
       </div>
@@ -73,9 +73,9 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
       <div className="flex flex-wrap items-center gap-2 mb-2">
         {customer.vip_tier && customer.vip_tier !== 'Standard' && (
           <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
-            customer.vip_tier === 'Platinum' ? 'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-900 shadow-[0_0_8px_rgba(226,232,240,0.5)]' :
-            customer.vip_tier === 'Gold' ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' :
-            'bg-gray-400/20 text-gray-300 border border-gray-400/30'
+            customer.vip_tier === 'Platinum' ? 'bg-surface-elevated text-primary-text border border-border-strong' :
+            customer.vip_tier === 'Gold' ? 'bg-accent-gold/15 text-accent-gold border border-accent-gold/30' :
+            'bg-surface-elevated text-secondary-text border border-border-subtle'
           }`}>
             {customer.vip_tier}
           </span>

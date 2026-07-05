@@ -332,7 +332,7 @@ export default function WatchWizard({ watchId }: WatchWizardProps) {
         <button
           onClick={goPrev}
           disabled={step === 1}
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-default transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border border-border-subtle text-secondary-text hover:text-primary-text hover:border-border-strong transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="w-4 h-4" />
           {t('back_btn')}

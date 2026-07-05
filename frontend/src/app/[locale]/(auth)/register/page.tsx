@@ -37,7 +37,10 @@ export default function RegisterPage() {
       name: z.string().min(2, t("name_too_short")),
       email: z.string().email(t("invalid_email")),
       company_name: z.string().optional(),
-      password: z.string().min(8, t("password_too_short")),
+      password: z
+        .string()
+        .min(8, t("password_too_short"))
+        .regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, t("password_requirements")),
       password_confirmation: z.string(),
     })
     .refine((data) => data.password === data.password_confirmation, {

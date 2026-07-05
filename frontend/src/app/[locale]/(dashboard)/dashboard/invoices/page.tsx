@@ -25,10 +25,12 @@ import {
 } from "@/lib/invoice-api";
 import { getCustomers, type Customer } from "@/lib/crm-api";
 import { confirmDialog } from "@/stores/confirmStore";
+import { useToastStore } from "@/stores/toastStore";
 
 export default function InvoicesPage() {
   const t = useTranslations("Invoices");
   const tCommon = useTranslations("Common");
+  const addToast = useToastStore((s) => s.addToast);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function InvoicesPage() {
       if (selectedInvoice) openDetail(id);
       fetchInvoices();
     } catch {
-      alert(t("email_send_error"));
+      addToast({ type: "error", title: t("email_send_error") });
     }
   };
 

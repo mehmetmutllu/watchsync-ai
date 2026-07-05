@@ -34,6 +34,7 @@
     "invalid_email": "Please enter a valid email address.",
     "password_required": "Password is required.",
     "password_too_short": "Password must be at least 8 characters.",
+    "password_requirements": "Password must contain at least one uppercase letter, one lowercase letter and one number.",
     "passwords_mismatch": "Passwords do not match.",
     "name_too_short": "Name must be at least 2 characters.",
     "register_failed": "Registration failed. Please try again.",
@@ -138,6 +139,8 @@
     "cta_desc": "Join luxury watch dealers who already manage their inventory with AI. Start streamlining your workflow today.",
     "cta_btn": "Get Started for Free",
     "footer_rights": "© 2026 WatchSync AI. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms",
     "skip_content": "Skip to content"
   },
   "Inventory": {
@@ -836,6 +839,7 @@
     "go_login": "Back to sign in",
     "name_too_short": "Name must be at least 2 characters",
     "password_too_short": "Password must be at least 8 characters",
+    "password_requirements": "Password must contain at least one uppercase letter, one lowercase letter and one number.",
     "passwords_mismatch": "Passwords do not match",
     "role_owner": "Owner",
     "role_manager": "Manager",
@@ -906,6 +910,11 @@
     "group_platforms": "Platforms",
     "group_ai": "AI",
     "group_settings": "Settings",
-    "group_team": "Team"
+    "group_team": "Team",
+    "select_all": "Select all",
+    "clear_group": "Clear",
+    "preset_matches": "Matches role default",
+    "preset_customized": "Customized",
+    "preset_reset": "Reset to default"
   }
 }

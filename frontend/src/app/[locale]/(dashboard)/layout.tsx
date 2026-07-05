@@ -14,14 +14,22 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Masaüstü daraltma ve mobil drawer ayrı durumlar: aynı state'i paylaşırlarsa
+  // mobilde varsayılan "açık" olur ve içeriği tamamen kapatır (blocker).
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarCollapsed((prev) => !prev);
 
   return (
     <AuthGuard>
       <div className="min-h-screen bg-transparent">
-        <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          mobileOpen={mobileOpen}
+          onToggle={toggleSidebar}
+          onMobileClose={() => setMobileOpen(false)}
+        />
 
         {/* Main content area */}
         <div
@@ -32,7 +40,7 @@ export default function DashboardLayout({
           `}
         >
           <TopBar
-            onMenuToggle={toggleSidebar}
+            onMenuToggle={() => setMobileOpen((prev) => !prev)}
             sidebarCollapsed={sidebarCollapsed}
           />
 

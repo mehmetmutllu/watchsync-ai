@@ -13,15 +13,15 @@ interface MemberRowProps {
 }
 
 const ROLE_META: Record<string, { icon: typeof UserIcon; className: string }> = {
-  owner: { icon: ShieldCheck, className: 'text-amber-400' },
+  owner: { icon: ShieldCheck, className: 'text-accent-gold' },
   manager: { icon: UserCog, className: 'text-accent-blue' },
   staff: { icon: UserIcon, className: 'text-secondary-text' },
 };
 
 const STATUS_META: Record<string, { className: string }> = {
-  active: { className: 'bg-emerald-500/15 text-emerald-400' },
-  invited: { className: 'bg-amber-500/15 text-amber-400' },
-  disabled: { className: 'bg-red-500/15 text-red-400' },
+  active: { className: 'bg-semantic-success/15 text-semantic-success' },
+  invited: { className: 'bg-semantic-warning/15 text-semantic-warning' },
+  disabled: { className: 'bg-semantic-error/15 text-semantic-error' },
 };
 
 const LOCALE_MAP: Record<string, string> = { tr: 'tr-TR', en: 'en-US', de: 'de-DE' };
@@ -75,6 +75,7 @@ export default function MemberRow({
             <button
               onClick={() => onEditPermissions(member)}
               title={t('action_edit_permissions')}
+              aria-label={t('action_edit_permissions')}
               className="p-1.5 rounded-md text-secondary-text hover:text-accent-blue hover:bg-surface-elevated transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -84,7 +85,8 @@ export default function MemberRow({
             <button
               onClick={() => onToggleStatus(member)}
               title={member.status === 'disabled' ? t('action_activate') : t('action_deactivate')}
-              className="p-1.5 rounded-md text-secondary-text hover:text-amber-400 hover:bg-surface-elevated transition-colors"
+              aria-label={member.status === 'disabled' ? t('action_activate') : t('action_deactivate')}
+              className="p-1.5 rounded-md text-secondary-text hover:text-semantic-warning hover:bg-surface-elevated transition-colors"
             >
               {member.status === 'disabled' ? (
                 <CheckCircle2 className="w-4 h-4" />
@@ -97,7 +99,8 @@ export default function MemberRow({
             <button
               onClick={() => onDelete(member)}
               title={t('action_delete')}
-              className="p-1.5 rounded-md text-secondary-text hover:text-red-400 hover:bg-surface-elevated transition-colors"
+              aria-label={t('action_delete')}
+              className="p-1.5 rounded-md text-secondary-text hover:text-semantic-error hover:bg-surface-elevated transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>

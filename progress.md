@@ -1326,4 +1326,47 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [x] P2: objectURL leak · BulkActions/ActivityFeed cleanup · Zustand selector'lar · çift fetchPlatforms · mobil (BottomNav CRM+Invoices, 44px hedefler) · gradient-text/bounce easing/amber buton/sidebar sol şerit · invite sayfası memo+MobileLogo · kalan i18n string'leri (Common/TopBar/Sidebar/CRM 10 anahtar × 3 dil). (Market Scanner hiyerarşi/P2.14 opsiyonel — ertelendi)
 - [x] Doğrulama (P0+P1): tsc temiz · vitest (AuthGuard geçti; 3 baseline-kırık dosya dokunulmadı) · e2e/team.spec **5/5** · Playwright görsel smoke (ConfirmDialog/CRM i18n/tour/locale-redirect/renkler)
 - [x] P2 doğrulama: tsc temiz · vitest baseline'a döndü (AuthGuard testi NextIntlClientProvider ile sarılıp düzeltildi; 3 baseline-kırık dosya dokunulmadı) · e2e/team.spec **5/5** · i18n parite 857/857/857 → `feature/team-management` → develop **PR açıldı**
-- [ ] `feature/team-management` → develop PR
+- [x] `feature/team-management` → develop PR #1 **merge edildi** (+ eBay güvenlik PR #2 merge → Aşama 7 tümüyle develop'ta)
+
+---
+
+## 🔒 Güvenlik Turu + 🎨 UI/UX Pro Max Turu (2026-07-04 · devam 4) — `feature/security-ui-polish` → PR #3
+
+### Güvenlik/kod turu (security-audit) — commit d724d38
+- [x] F1 Webhook prod fail-closed (eBay/Shopify token boşsa production'da reddet; cross-tenant stok kilidi açığı kapandı)
+- [x] F2 Davet kabul TOCTOU kilidi (lockForUpdate; çift kabul 500→404)
+- [x] F3 Şifre politikası (min 8 + büyük/küçük + rakam; back+front+i18n) · backend suite 132 passed
+
+### UI/UX pro max turu (design-review ajanı 7-aşama + impeccable) — commit 4b497b8
+- [x] P0: 3 tanımsız token bug'ı (accent-primary/surface-base/hover:border-default) · mobil sidebar blocker (ayrı mobileOpen state) · CRM tab focus baskılaması (WCAG)
+- [x] P1: alert()→toast · auth İngilizce hero→i18n · CRM neon-glow/purple kümesi→sessiz lüks · market-scanner alarm tonu · dashboard KPI skeleton
+- [x] Doğrulama: tsc 0 kaynak hatası · i18n 861/861/861 · e2e/team 5/5 · Playwright görsel teyit
+### Ertelenen UI/a11y maddeleri (2026-07-04 · devam 5) — `feature/security-ui-polish`
+- [x] Settings mobil tab etiketleri görünür + `role=tablist/tab/tabpanel` + `aria-selected`
+- [x] İzin matrisi grup "Tümünü seç / Temizle" (grantable/disabled'a saygılı, gruplar bağımsız)
+- [x] İzin preset-farkı göstergesi + "Varsayılana dön" (InviteMemberModal)
+- [x] Invoice vade `type="date"` (zaten mevcuttu — teyit edildi)
+- [x] ConfirmDialog odak geri-verme (aç→onay butonu, kapan→tetikleyen öğe)
+- [x] Envanter satır `aria-label` + ikon aksiyon butonuna erişilebilir ad + 44px hedef
+- [x] BULUNAN+DÜZELTİLEN bug: davet modalı preset useEffect'i arka plan refetch'te seçimi siliyordu → `[role]`'e bağlandı
+- [x] Yeni `frontend/e2e/ui-polish.spec.ts` **5/5** · tsc 0 kaynak hatası · i18n 866/866/866 · e2e/team 5/5 (regresyon yok)
+- [x] Dokunulmadı (gerekçeli): landing "Demo İzle" zaten `#features` anchor · CRM tab zaten flex-1/sabit font (kayma yok) · invite modal zaten native `<select>`
+- [ ] **Backlog:** F4 CSP nonce · admin side-stripe (ayrı sistem) · demo DB davet kalıntıları temizliği
+- [ ] PR #3 → develop merge/inceleme
+
+---
+
+## ✅ KALAN KOD İŞİ — OTURUM A ✅ TAMAM (2026-07-05) — "local kusursuz"
+> Çekirdek ürün kodu bitti (TODO/stub yok). Kalan test temizliği + 1 sertleştirme + 1 kozmetik. Sıra K1→K2→K3→K4 uygulandı.
+- [x] **K1** Frontend kırık testler (3 dosya/12 test) — `setup.tsx`'e `next-intl` mock'u (`useTranslations`→gerçek `tr.json` via `createTranslator`) + `next/dynamic` displayName + `inventoryStore.test.ts` cast → **vitest 63/63, tsc 0**
+- [x] **K2** Backend kırık testler (4) + 1 flaky — GERÇEK BUG: `InvoiceController::index` `?status=` yok sayıyordu → filtre eklendi · Invoice payload fix · Auth stateful (`Referer`+`token` assertion kaldır) + `phpunit.xml SANCTUM_STATEFUL_DOMAINS` · CustomerCrud Faker flakiness fix → **136 passed, 0 failed**
+- [x] **K3** Admin sidebar side-stripe — `AdminSidebar` `border-l-2` → absolute stripe (ana Sidebar pattern'i), hizalı + tutarlı
+- [x] **K4** F4 CSP nonce — statik CSP `next.config.ts`'ten kaldırıldı → `middleware.ts` per-request nonce; `script-src` `unsafe-inline`→`nonce + strict-dynamic`. Kanıt: teşhis spec **CSP_VIOLATION_COUNT=0**, 35 script nonce'lu, team+ui-polish 5/5. ⚠ nonce = tüm sayfalar dynamic render
+- [x] Doğrulama: vitest 63/63 · backend 136 passed · e2e team 5/5 + ui-polish 5/5 (izole/warm) · tsc 0 → watch-kaydet
+
+## 🚀 Canlıya Alma — OTURUM B (kullanıcı isteğine göre) — doğrulanmış envanter
+- [x] Tarama yapıldı: backend'de stub/TODO **yok** (API'ler gerçek), 34 migration, CI `ci.yml` var
+- [ ] eBay/Shopify/Gemini gerçek API anahtarları + sandbox uçtan-uca test
+- [ ] SAM2 model checkpoint indir + AI enhance uçtan-uca doğrula
+- [ ] Prod env: `APP_DEBUG=false`/`APP_ENV=production`, gerçek mail, persistent+şifreli Redis, prod DB+yedek, gerçek domain'e Sanctum/CORS/`NEXT_PUBLIC_API_URL`
+- [ ] Deploy tooling: backend `Dockerfile` + kök `docker-compose.prod.yml` (yok) + CI deploy adımı + `DEPLOYMENT.md`
