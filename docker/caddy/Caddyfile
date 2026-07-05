@@ -1,0 +1,12 @@
+# WatchSync AI — Caddy reverse proxy with automatic HTTPS (Let's Encrypt).
+# Domains are injected from the root .env (APP_DOMAIN / API_DOMAIN).
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy frontend:3000
+}
+
+{$API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy nginx:80
+}

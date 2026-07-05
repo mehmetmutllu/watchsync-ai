@@ -1,0 +1,184 @@
+# WatchSync AI — production stack for a single-host Docker deployment.
+#
+#   cp .env.prod.example .env            # orchestration vars (DB creds, domains, tags)
+#   cp backend/.env.example backend/.env # Laravel app config (APP_KEY, mail, keys, ...)
+#   docker compose -f docker-compose.prod.yml --profile proxy up -d --build
+#
+# See DEPLOYMENT.md for the full runbook. The `proxy` profile adds Caddy with
+# automatic HTTPS; omit it if you terminate TLS elsewhere.
+
+# Shared definition for every container that runs the Laravel image.
+x-backend-image: &backend-image
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+    target: app
+  image: ${BACKEND_IMAGE:-watchsync-backend:latest}
+  restart: unless-stopped
+  env_file: ./backend/.env
+  volumes:
+    - backend-storage:/var/www/html/storage
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - watchsync
+
+services:
+  # ── Laravel PHP-FPM (owns migrations) ──────────────────────────────────
+  backend:
+    <<: *backend-image
+    environment:
+      RUN_MIGRATIONS: "true"
+
+  # ── Horizon queue workers (redis) ──────────────────────────────────────
+  horizon:
+    <<: *backend-image
+    command: ["php", "artisan", "horizon"]
+    depends_on:
+      backend:
+        condition: service_started
+    stop_signal: SIGTERM
+    stop_grace_period: 3600s
+
+  # ── Scheduler ──────────────────────────────────────────────────────────
+  scheduler:
+    <<: *backend-image
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      backend:
+        condition: service_started
+
+  # ── nginx: serves public/ and proxies PHP to `backend` ─────────────────
+  nginx:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: web
+    image: ${NGINX_IMAGE:-watchsync-nginx:latest}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    volumes:
+      - backend-storage:/var/www/html/storage:ro
+    networks:
+      - watchsync
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Next.js frontend ───────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: ${FRONTEND_IMAGE:-watchsync-frontend:latest}
+    restart: unless-stopped
+    networks:
+      - watchsync
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── AI service (SAM2 segmentation) ─────────────────────────────────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    image: ${AI_IMAGE:-watchsync-ai-service:latest}
+    restart: unless-stopped
+    environment:
+      AI_DEBUG: "false"
+      AI_SAM2_CHECKPOINT: /app/models/sam2_hiera_small.pt
+      AI_SAM2_MODEL_CFG: sam2_hiera_s
+    volumes:
+      - ai-models:/app/models
+      - ai-outputs:/app/outputs
+    networks:
+      - watchsync
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── MariaDB/MySQL ──────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-watchsync}
+      MYSQL_USER: ${DB_USERNAME:-watchsync}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - watchsync
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (cache + queue, persistent + password) ───────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - watchsync
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── Caddy reverse proxy + automatic HTTPS (opt-in via `--profile proxy`) ─
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: ["proxy"]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - nginx
+    networks:
+      - watchsync
+
+networks:
+  watchsync:
+    driver: bridge
+
+volumes:
+  db-data:
+  redis-data:
+  backend-storage:
+  ai-models:
+  ai-outputs:
+  caddy-data:
+  caddy-config:

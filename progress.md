@@ -1369,4 +1369,5 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [ ] eBay/Shopify/Gemini gerçek API anahtarları + sandbox uçtan-uca test
 - [ ] SAM2 model checkpoint indir + AI enhance uçtan-uca doğrula
 - [ ] Prod env: `APP_DEBUG=false`/`APP_ENV=production`, gerçek mail, persistent+şifreli Redis, prod DB+yedek, gerçek domain'e Sanctum/CORS/`NEXT_PUBLIC_API_URL`
-- [ ] Deploy tooling: backend `Dockerfile` + kök `docker-compose.prod.yml` (yok) + CI deploy adımı + `DEPLOYMENT.md`
+- [x] Deploy tooling (2026-07-05, `feature/deployment-tooling`): backend `Dockerfile` (3 target: vendor/app-fpm/web-nginx) + `frontend/Dockerfile` (Next standalone) + kök `docker-compose.prod.yml` (backend/horizon/scheduler/nginx/frontend/ai-service/mysql/redis/caddy) + `.env.prod.example` + `docker/caddy/Caddyfile` + CI `docker-build` job (+yorumlu deploy şablonu) + `DEPLOYMENT.docker.md`. `next.config.ts`→`output:standalone`. ⚠ `docker compose config` geçti ama gerçek imaj build'i HENÜZ yapılmadı. NOT: `DEPLOYMENT.md` (Non-Docker) zaten vardı, dokunulmadı.
+  - [ ] Lokalde `docker compose build` ile Dockerfile'ları gerçekten doğrula (Oturum B devam)

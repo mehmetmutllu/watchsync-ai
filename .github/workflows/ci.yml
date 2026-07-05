@@ -160,3 +160,67 @@ jobs:
           name: frontend-build
           path: frontend/.next
           retention-days: 3
+
+  # ── Docker images (validate production Dockerfiles build) ──────────────
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend (php-fpm) image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          target: app
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build backend (nginx) image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          target: web
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.watchsync.ai/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Production deploy (manual) ─────────────────────────────────────────
+  # Enable once a target host + registry are configured. Requires repository
+  # secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY. See DEPLOYMENT.md.
+  #
+  # deploy:
+  #   name: Deploy
+  #   runs-on: ubuntu-latest
+  #   needs: docker-build
+  #   if: github.ref == 'refs/heads/main'
+  #   environment: production
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy over SSH
+  #       uses: appleboy/ssh-action@v1
+  #       with:
+  #         host: ${{ secrets.DEPLOY_HOST }}
+  #         username: ${{ secrets.DEPLOY_USER }}
+  #         key: ${{ secrets.DEPLOY_SSH_KEY }}
+  #         script: |
+  #           cd /opt/watchsync-ai
+  #           git pull --ff-only
+  #           docker compose -f docker-compose.prod.yml --profile proxy up -d --build
+  #           docker image prune -f

@@ -10,6 +10,8 @@ const apiOrigin = apiUrl.replace(/\/api\/?$/, "");
 // nonce can replace 'unsafe-inline' in script-src on every response.
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained .next/standalone bundle for the production Docker image.
+  output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
   images: {

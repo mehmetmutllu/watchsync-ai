@@ -1,0 +1,8 @@
+# Keep container/build files LF so Docker (Linux) builds are not broken by CRLF.
+*.sh            text eol=lf
+Dockerfile      text eol=lf
+*.Dockerfile    text eol=lf
+.dockerignore   text eol=lf
+Caddyfile       text eol=lf
+docker/**       text eol=lf
+backend/docker/** text eol=lf

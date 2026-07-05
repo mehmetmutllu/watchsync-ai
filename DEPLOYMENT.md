@@ -2,6 +2,8 @@
 
 > **Hedef:** Tek bir VPS/sunucu üzerinde tüm servisleri çalıştırmak.  
 > **Amaç:** Sadece API key'leri `.env` dosyalarına yazmak yeterli olsun.
+>
+> **Docker ile kurmak isterseniz** (tek komutla tüm stack): [`DEPLOYMENT.docker.md`](./DEPLOYMENT.docker.md) — `docker-compose.prod.yml`, çok aşamalı Dockerfile'lar ve Caddy otomatik-HTTPS.
 
 ---
 

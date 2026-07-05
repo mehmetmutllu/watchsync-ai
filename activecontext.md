@@ -1,9 +1,9 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-05  
-> **Mevcut Faz:** Aşama 7 develop'ta ✅. `feature/security-ui-polish` dalında güvenlik/UI turu **+ Oturum A (K1-K4) TAMAM** (local kusursuz: tüm testler yeşil + CSP nonce sertleştirmesi) → **PR #3 açık** (develop'a, MERGEABLE; artık K1-K4'ü de içeriyor).  
-> **Sıradaki (İLK İŞ):** PR #3'ü incele/merge et. Merge sonrası → Oturum B = CANLIYA ALMA (aşağıdaki "CANLIYA ALMA" özeti + en alttaki Son Oturum'a bak).  
-> **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env/deploy (docker-compose/backend Dockerfile yok).  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. **PR #3 MERGED** (Oturum A K1-K4 + güvenlik/UI turu develop'a girdi, merge commit `deb67b4`). **Oturum B başladı** → `feature/deployment-tooling` dalında **deploy tooling TAMAM** (Docker prod stack). Detay: en alttaki Son Oturum (2026-07-05 · Oturum B).  
+> **Sıradaki (İLK İŞ):** Oturum B kalan maddeler — (a) lokalde `docker compose build` ile Dockerfile'ları gerçekten doğrula, (b) eBay/Shopify/Gemini gerçek anahtar, (c) SAM2 checkpoint, (d) prod env. Sonra `feature/deployment-tooling` → PR ile develop'a.  
+> **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env. (Deploy tooling artık VAR: `docker-compose.prod.yml` + backend/frontend Dockerfile + CI docker-build + `DEPLOYMENT.docker.md`.)  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
 ---
@@ -915,3 +915,26 @@ Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #
 **Baseline-kırık DOKUNULMAYAN:** yok — Oturum A hepsini kapattı. Kalan tek "failing" e2e (auth/navigation/visual) kasıtlı stale + kapsam dışı.
 
 **SIRADAKİ:** PR #3'ü incele/merge et (artık K1-K4 dahil) → sonra **Oturum B = CANLIYA ALMA** (deploy tooling: backend Dockerfile + docker-compose yok; eBay/Shopify/Gemini gerçek anahtar; SAM2 checkpoint; prod env). Detay: progress.md "🚀 Canlıya Alma".
+
+---
+
+## 📌 Son Oturum (2026-07-05 · Oturum B — PR #3 merge + deploy tooling)
+
+**PR #3 MERGED:** `gh pr merge 3 --merge` → develop'a girdi (merge commit `deb67b4`). Oturum A (K1-K4) + tüm güvenlik/UI turu artık develop'ta. Sonra Oturum B için `develop`'tan yeni dal **`feature/deployment-tooling`** açıldı.
+
+**Kullanıcı kararı:** Canlıya alma hedefi = **tek VPS + Docker Compose** ("değişebilir, ona göre hareket ederiz"). Oturum B'nin secret gerektirmeyen, tamamen-kod parçası olan **deploy tooling** yapıldı.
+
+**Envanter düzeltmesi:** Eski memo "backend Dockerfile + docker-compose + DEPLOYMENT.md yok" diyordu; **DEPLOYMENT.md ZATEN VARDI** (500 satır, Non-Docker/bare-metal rehberi, 1 Tem). O dosyaya dokunulmadı; Docker yolu ayrı dosyaya yazıldı. `backend/compose.yaml` ise Laravel **Sail'in local-dev** compose'u (prod değil).
+
+**Yazılan dosyalar (13 değişiklik):**
+- **Backend** `backend/Dockerfile` — 3 target: `vendor` (composer `--no-dev` + optimize autoload), `app` (php:8.3-fpm-alpine + gd/pdo_mysql/bcmath/zip/intl/pcntl/mbstring/opcache + pecl redis, opcache JIT, non-root www-data, entrypoint), `web` (nginx:1.27-alpine, public/ servis + `public/storage` symlink). Destek: `backend/docker/php/php-prod.ini` (display_errors off, 20M upload), `opcache.ini` (validate_timestamps=0, JIT tracing), `entrypoint.sh` (storage skeleton + config/event/route/view cache + `RUN_MIGRATIONS=true` guard'lı `migrate --force`), `backend/docker/nginx/default.conf` (fastcgi→`app:9000`, güvenlik header, deny dotfiles), `backend/.dockerignore`.
+- **Frontend** `next.config.ts` → **`output: "standalone"`** eklendi (Next 16.2.1 `output.md` docs ile teyit — API geçerli). `frontend/Dockerfile` (node:22-alpine, deps→builder→runner standalone, non-root nextjs, build-arg `NEXT_PUBLIC_API_URL` — client'a inline edildiği için build-time şart), `frontend/.dockerignore`.
+- **Orkestrasyon** `docker-compose.prod.yml` (kök) — YAML anchor `x-backend-image` ile backend/horizon/scheduler aynı imajı paylaşır (yalnız backend `RUN_MIGRATIONS=true`); + nginx(target web) + frontend + ai-service + mysql:8.4 + redis (şifreli/AOF) + **caddy** (`--profile proxy`, otomatik HTTPS). Paylaşımlı `backend-storage` volume (app+nginx) → upload servisi. Healthcheck'ler (nginx `/up`, frontend node fetch, mysql/redis). `.env.prod.example` (orkestrasyon: domain/DB/Redis/NEXT_PUBLIC_API_URL) + `docker/caddy/Caddyfile` (APP_DOMAIN→frontend, API_DOMAIN→nginx). **İki .env ayrımı:** kök `.env`=infra, `backend/.env`=Laravel; DB/Redis şifreleri eşleşmeli.
+- **CI** `.github/workflows/ci.yml` → `docker-build` job (backend app+web + frontend imajlarını GHA cache ile build eder, push YOK, secret YOK) + yorumlu SSH `deploy` şablonu (secrets: DEPLOY_HOST/USER/SSH_KEY).
+- **Docs** `DEPLOYMENT.docker.md` (mimari + 5 adım runbook + go-live checklist) + mevcut `DEPLOYMENT.md`'ye çapraz referans satırı.
+
+**Doğrulama:** `docker compose config -q` (profile dahil) **geçti**, ci.yml girinti tutarlı. Horizon prod'da AKTİF (bootstrap/providers.php `extension_loaded('redis')` şartlı kayıtlı; alpine'de pecl redis kurulu). Laravel health = `/up` (bootstrap/app.php). **⚠ HENÜZ GERÇEK BUILD YOK** — Docker daemon bu oturumda çalışmıyordu; imajlar lokalde `docker compose build` veya CI `docker-build` ile ilk kez build edilecek.
+
+**Ortam:** Bash CWD bir ara `cd frontend` ile frontend'e kaydı (mutlak yol kullan). Sunucular: backend :8001 (health 503=degraded/normal), frontend :3000 (307). Bu oturumda commit YAPILMADI (watch-kaydet'te yapılıyor).
+
+**SIRADAKİ (Oturum B devam):** (1) lokalde `docker compose -f docker-compose.prod.yml build` → Dockerfile'ları gerçekten doğrula/düzelt. (2) eBay/Shopify/Gemini gerçek anahtar (kullanıcı sağlar) + sandbox uçtan-uca. (3) SAM2 checkpoint kopyala + AI enhance doğrula. (4) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR develop'a.
