@@ -17,9 +17,10 @@ class InvoiceController extends Controller
     {
         $invoices = Invoice::with(['customer'])
             ->where('dealer_id', $request->user()->dealer_id)
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->query('status')))
             ->latest('issue_date')
             ->get();
-            
+
         return response()->json(['data' => $invoices]);
     }
 

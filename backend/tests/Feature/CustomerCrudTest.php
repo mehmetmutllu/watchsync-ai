@@ -69,11 +69,15 @@ class CustomerCrudTest extends TestCase
             'dealer_id' => $this->dealer->id,
             'first_name' => 'John',
             'last_name' => 'Doe',
+            'email' => 'john.doe@example.com',
+            'company' => 'Doe Watches',
         ]);
         Customer::factory()->create([
             'dealer_id' => $this->dealer->id,
             'first_name' => 'Jane',
             'last_name' => 'Smith',
+            'email' => 'jane.smith@example.com',
+            'company' => 'Smith Timepieces',
         ]);
 
         $response = $this->withHeaders($this->authHeader())

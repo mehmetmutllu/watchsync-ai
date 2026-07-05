@@ -108,9 +108,10 @@ class InvoiceTest extends TestCase
     public function test_invoice_number_auto_generated(): void
     {
         $data = [
+            'customer_id' => $this->customer->id,
             'issue_date' => '2026-04-10',
             'items' => [
-                ['description' => 'Test item', 'unit_price' => 1000],
+                ['description' => 'Test item', 'quantity' => 1, 'unit_price' => 1000],
             ],
         ];
 
