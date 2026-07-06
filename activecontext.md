@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-07-05  
-> **Mevcut Faz:** Aşama 7 develop'ta ✅. **PR #3 MERGED** (Oturum A K1-K4 + güvenlik/UI turu develop'a girdi, merge commit `deb67b4`). **Oturum B başladı** → `feature/deployment-tooling` dalında **deploy tooling TAMAM** (Docker prod stack). Detay: en alttaki Son Oturum (2026-07-05 · Oturum B).  
-> **Sıradaki (İLK İŞ):** Oturum B kalan maddeler — (a) lokalde `docker compose build` ile Dockerfile'ları gerçekten doğrula, (b) eBay/Shopify/Gemini gerçek anahtar, (c) SAM2 checkpoint, (d) prod env. Sonra `feature/deployment-tooling` → PR ile develop'a.  
+> **Son Güncelleme:** 2026-07-06  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. **PR #3 MERGED** (Oturum A K1-K4 + güvenlik/UI turu develop'a girdi, merge commit `deb67b4`). **Oturum B** → `feature/deployment-tooling` dalında **deploy tooling TAMAM + imaj build'i lokalde DOĞRULANDI** (backend/nginx/frontend imajları hatasız build oldu, çalışır durumda). Detay: en alttaki Son Oturum (2026-07-06).  
+> **Sıradaki (İLK İŞ):** Oturum B kalan maddeler — hepsi secret/asset bekliyor, yayına-alma anında yapılacak: (a) eBay/Shopify/Gemini gerçek anahtar + sandbox test, (b) SAM2 checkpoint, (c) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR ile develop'a.  
 > **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env. (Deploy tooling artık VAR: `docker-compose.prod.yml` + backend/frontend Dockerfile + CI docker-build + `DEPLOYMENT.docker.md`.)  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -938,3 +938,21 @@ Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #
 **Ortam:** Bash CWD bir ara `cd frontend` ile frontend'e kaydı (mutlak yol kullan). Sunucular: backend :8001 (health 503=degraded/normal), frontend :3000 (307). Bu oturumda commit YAPILMADI (watch-kaydet'te yapılıyor).
 
 **SIRADAKİ (Oturum B devam):** (1) lokalde `docker compose -f docker-compose.prod.yml build` → Dockerfile'ları gerçekten doğrula/düzelt. (2) eBay/Shopify/Gemini gerçek anahtar (kullanıcı sağlar) + sandbox uçtan-uca. (3) SAM2 checkpoint kopyala + AI enhance doğrula. (4) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR develop'a.
+
+---
+
+## 📌 Son Oturum (2026-07-06 — Docker prod imaj build'i lokalde doğrulandı)
+
+**Amaç:** Oturum B'de yazılan Docker tooling'in "kağıt üzerinde" (`docker compose config` geçmişti) değil, gerçekten build edilebildiğini kanıtlamak. Kullanıcı kararı: secret gerektiren maddeler (API anahtarları, SAM2, prod env) **yayına-alma anında** yapılacak; bu oturum yalnız kod-doğrulama.
+
+**Yapılanlar:**
+- Docker Desktop başlatıldı (daemon v29.2.1). `docker compose build` **düz haliyle patladı**: compose interpolasyonu `DB_PASSWORD`/`DB_ROOT_PASSWORD`/`REDIS_PASSWORD` gibi **zorunlu** env değişkenleri (`${VAR:?...}`) istiyor → build/up öncesi kökte `.env` şart. Çözüm: `--env-file .env.prod.example` (örnek tüm zorunlu değişkenleri içeriyor). `.env` ve `backend/.env` gitignore'da, `backend/.env` mevcut.
+- **Build komutu:** `docker compose -f docker-compose.prod.yml --env-file .env.prod.example build backend nginx frontend` → **exit 0**. (ai-service kasıtlı atlandı — önceden vardı, 7.5GB torch/SAM2 indirir.)
+- **Üretilen imajlar:** `watchsync-backend:latest` 230MB · `watchsync-nginx:latest` 73.7MB · `watchsync-frontend:latest` 312MB. **Dockerfile'larda düzeltme GEREKMEDİ.**
+- **Smoke testler:** backend → PHP 8.3.32, tüm eklentiler OK (gd/pdo_mysql/bcmath/zip/intl/pcntl/mbstring/redis + **Zend OPcache enabled**, `opcache.enable=1`), `php artisan --version` = Laravel 13.18.0 boot ediyor. frontend → node v22.23.1, `next build` tüm route'ları derledi, standalone `server.js` var. nginx → config syntax OK.
+
+**Yanıltıcı ama sorun-DEĞİL 2 nokta:** (a) `extension_loaded('opcache')` FALSE döner çünkü kayıtlı ad "Zend OPcache" — `php -m`'de yüklü, `opcache.enable=1`. (b) izole `nginx -t` → `host not found in upstream "app"`: compose ağında `app` backend-fpm'e çözülür, tek başına çalışınca DNS yok; syntax hatası değil. Ayrıca backend entrypoint her `docker run`'da config/route/view cache'liyor (kasıtlı, `migrate` guard'lı).
+
+**ÖĞRENİLEN (runbook için kritik):** `docker compose build/up` öncesi kökte `.env` (örnekten kopya) **zorunlu**, yoksa `DB_PASSWORD is required` ile durur — `DEPLOYMENT.docker.md`'de `cp .env.prod.example .env` adımı bunu zaten karşılıyor.
+
+**SIRADAKİ:** Kod tarafı bitti. Kalanlar yayına-alma anında (secret/asset): eBay/Shopify/Gemini anahtar + sandbox test · SAM2 checkpoint · prod `backend/.env` · sonra `feature/deployment-tooling` → develop PR.
