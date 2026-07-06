@@ -1,0 +1,323 @@
+/* ============================================================
+   WatchSync AI — Landing "Precision Instrument"
+   Steel monochrome + single amber signal accent.
+   Scoped under .ws-landing so app-wide tokens stay untouched.
+   ============================================================ */
+
+.ws-landing {
+  /* Steel neutrals, all tinted toward a cool instrument hue (OKLCH) */
+  --ws-bg: oklch(0.15 0.006 250);
+  --ws-bg-2: oklch(0.185 0.008 250);
+  --ws-panel: oklch(0.21 0.009 250);
+  --ws-line: oklch(0.3 0.011 250);
+  --ws-line-strong: oklch(0.42 0.014 250);
+  --ws-text: oklch(0.96 0.004 250);
+  --ws-text-dim: oklch(0.72 0.008 250);
+  --ws-text-faint: oklch(0.55 0.01 250);
+  --ws-steel: oklch(0.72 0.018 250);
+
+  /* The one signal color — warm sodium amber */
+  --ws-amber: oklch(0.83 0.135 72);
+  --ws-amber-dim: oklch(0.72 0.12 68);
+
+  --ws-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ws-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  position: relative;
+  z-index: 0;
+  background-color: var(--ws-bg);
+  color: var(--ws-text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+/* Fine measuring-grid backdrop — reads as a technical instrument surface */
+.ws-landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(oklch(0.3 0.011 250 / 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.3 0.011 250 / 0.35) 1px, transparent 1px);
+  background-size: 96px 96px;
+  -webkit-mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 25%, transparent 75%);
+  mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 25%, transparent 75%);
+}
+
+.ws-display {
+  font-family: var(--font-archivo), var(--font-inter), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+.ws-mono {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---- Instrument label (mono, amber tick) ---- */
+.ws-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ws-text-dim);
+}
+.ws-eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--ws-amber);
+  box-shadow: 0 0 10px 1px var(--ws-amber);
+  border-radius: 1px;
+}
+.ws-eyebrow[data-live]::before {
+  animation: wsPulse 2.4s var(--ws-ease-in-out) infinite;
+}
+@keyframes wsPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px 1px var(--ws-amber); }
+  50% { opacity: 0.55; box-shadow: 0 0 4px 0 var(--ws-amber); }
+}
+
+/* ---- Buttons ---- */
+.ws-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 3rem;
+  padding: 0 1.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 2px;
+  transition: transform 0.16s var(--ws-ease-out),
+    background-color 0.16s var(--ws-ease-out),
+    border-color 0.16s var(--ws-ease-out),
+    box-shadow 0.2s var(--ws-ease-out);
+}
+.ws-btn:active { transform: scale(0.97); }
+
+.ws-btn-primary {
+  background: var(--ws-amber);
+  color: oklch(0.2 0.03 70);
+  box-shadow: 0 0 0 0 var(--ws-amber);
+}
+.ws-btn-primary:hover {
+  background: oklch(0.87 0.14 74);
+  box-shadow: 0 0 28px -4px var(--ws-amber);
+}
+
+.ws-btn-ghost {
+  background: transparent;
+  color: var(--ws-text);
+  border: 1px solid var(--ws-line-strong);
+}
+.ws-btn-ghost:hover {
+  border-color: var(--ws-steel);
+  background: oklch(0.22 0.009 250 / 0.6);
+}
+
+/* ---- Corner-ticked panel (instrument frame) ---- */
+.ws-frame {
+  position: relative;
+  border: 1px solid var(--ws-line);
+  background: linear-gradient(180deg, var(--ws-bg-2), oklch(0.16 0.007 250));
+}
+.ws-frame::before,
+.ws-frame::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--ws-amber);
+  border-style: solid;
+  border-width: 0;
+}
+.ws-frame::before { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+.ws-frame::after { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* ============================================================
+   HERO — scroll-scrubbed video (Apple-style). A tall track pins a
+   full-bleed watch clip; scroll maps to video.currentTime. Four
+   narrative beats cross-fade across the scroll.
+   ============================================================ */
+.ws-vhero-track {
+  position: relative;
+  min-height: 460vh;
+}
+@media (max-width: 860px) {
+  .ws-vhero-track { min-height: 380vh; }
+}
+.ws-vhero-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+.ws-vhero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+/* Legibility scrim: darken left (where copy sits) + top/bottom vignette */
+.ws-vhero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, oklch(0.13 0.006 250 / 0.92) 0%, oklch(0.13 0.006 250 / 0.6) 38%, transparent 70%),
+    linear-gradient(180deg, oklch(0.13 0.006 250 / 0.7) 0%, transparent 22%, transparent 68%, oklch(0.13 0.006 250 / 0.85) 100%);
+}
+.ws-vhero-beats {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+}
+.ws-vbeat {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-inline: 1.5rem;
+  max-width: 42rem;
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+@media (min-width: 1024px) {
+  .ws-vbeat { padding-inline: 3rem; }
+}
+/* First beat visible by default (SSR / no-JS) */
+.ws-vbeat:first-child { opacity: 1; }
+.ws-vbeat-sub {
+  margin-top: 1.5rem;
+  max-width: 30rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: oklch(0.85 0.006 250);
+}
+.ws-vhero-hud {
+  position: absolute;
+  z-index: 3;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ws-text-faint);
+}
+@media (min-width: 1024px) {
+  .ws-vhero-hud { left: 3rem; right: 3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* show all beats stacked & legible, no cross-fade */
+  .ws-vhero-track { min-height: auto; }
+  .ws-vhero-pin { position: relative; height: auto; }
+  .ws-vhero-beats { position: relative; display: block; padding-block: 6rem; }
+  .ws-vbeat { position: relative; opacity: 1; margin-bottom: 4rem; }
+  .ws-vhero-hud { display: none; }
+}
+
+/* ============================================================
+   Reveal-on-scroll (IntersectionObserver toggles data-inview)
+   ============================================================ */
+/* Content is visible by default (no-JS / SEO safe). The hidden-then-reveal
+   only applies once JS marks the document with .ws-js, so IntersectionObserver
+   is guaranteed to run and bring it back. */
+.ws-js [data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s var(--ws-ease-out), transform 0.7s var(--ws-ease-out);
+}
+.ws-js [data-reveal][data-inview] {
+  opacity: 1;
+  transform: none;
+}
+[data-reveal-delay="1"] { transition-delay: 0.05s; }
+[data-reveal-delay="2"] { transition-delay: 0.1s; }
+[data-reveal-delay="3"] { transition-delay: 0.15s; }
+[data-reveal-delay="4"] { transition-delay: 0.2s; }
+[data-reveal-delay="5"] { transition-delay: 0.25s; }
+
+/* ---- Gauge cluster (metrics) ---- */
+.ws-gauge-value {
+  font-family: var(--font-archivo), sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ws-text);
+}
+.ws-gauge-value em {
+  font-style: normal;
+  color: var(--ws-amber);
+}
+
+/* ---- Anatomy callout connector ---- */
+.ws-callout-index {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--ws-amber);
+}
+
+/* ---- Platform node link ---- */
+.ws-node {
+  border: 1px solid var(--ws-line);
+  background: var(--ws-bg-2);
+  transition: border-color 0.2s var(--ws-ease-out), transform 0.2s var(--ws-ease-out);
+}
+.ws-node:hover {
+  border-color: var(--ws-amber-dim);
+  transform: translateY(-2px);
+}
+
+/* ---- How-it-works step connector ---- */
+.ws-step-index {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--ws-amber);
+}
+.ws-cap-index {
+  font-family: var(--font-archivo), sans-serif;
+  font-weight: 700;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 0.9;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--ws-line-strong);
+}
+
+/* Ambient looping video (CTA) */
+.ws-ambient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.28;
+  z-index: 0;
+}
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .ws-eyebrow[data-live]::before { animation: none; }
+}

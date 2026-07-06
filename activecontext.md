@@ -1,8 +1,9 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-06  
-> **Mevcut Faz:** Aşama 7 develop'ta ✅. **PR #3 MERGED** (Oturum A K1-K4 + güvenlik/UI turu develop'a girdi, merge commit `deb67b4`). **Oturum B** → `feature/deployment-tooling` dalında **deploy tooling TAMAM + imaj build'i lokalde DOĞRULANDI** (backend/nginx/frontend imajları hatasız build oldu, çalışır durumda). Detay: en alttaki Son Oturum (2026-07-06).  
-> **Sıradaki (İLK İŞ):** Oturum B kalan maddeler — hepsi secret/asset bekliyor, yayına-alma anında yapılacak: (a) eBay/Shopify/Gemini gerçek anahtar + sandbox test, (b) SAM2 checkpoint, (c) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR ile develop'a.  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. **AKTİF İŞ = Landing redesign** (bu oturum): landing sıfırdan "Precision Instrument" yönünde yeniden yazıldı; hero'da scroll-scrub saat animasyonu üzerinde çalışılıyor. Deploy tooling TAMAM + imaj build DOĞRULANDI (önceki oturum). Detay: en alttaki Son Oturum (2026-07-06 · Landing redesign) + `landing-redesign-notes.md`.  
+> **Sıradaki (İLK İŞ):** Landing hero'yu **transparan PNG/WebP kare-dizisi → canvas scroll-scrub**'a çevir (kullanıcı Pika/Kling/Luma ile ilk+son kare→video üretip bg-removal ile şeffaf kare getirecek). Tam plan/araçlar: `landing-redesign-notes.md`.  
+> **Sıradaki (bekleyen, deploy):** Oturum B kalan maddeler — secret/asset bekliyor: (a) eBay/Shopify/Gemini gerçek anahtar + sandbox test, (b) SAM2 checkpoint, (c) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR ile develop'a.  
 > **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env. (Deploy tooling artık VAR: `docker-compose.prod.yml` + backend/frontend Dockerfile + CI docker-build + `DEPLOYMENT.docker.md`.)  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
 
@@ -956,3 +957,28 @@ Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #
 **ÖĞRENİLEN (runbook için kritik):** `docker compose build/up` öncesi kökte `.env` (örnekten kopya) **zorunlu**, yoksa `DB_PASSWORD is required` ile durur — `DEPLOYMENT.docker.md`'de `cp .env.prod.example .env` adımı bunu zaten karşılıyor.
 
 **SIRADAKİ:** Kod tarafı bitti. Kalanlar yayına-alma anında (secret/asset): eBay/Shopify/Gemini anahtar + sandbox test · SAM2 checkpoint · prod `backend/.env` · sonra `feature/deployment-tooling` → develop PR.
+
+---
+
+## 📌 Son Oturum (2026-07-06 · Landing redesign — "Precision Instrument" + scroll-scrub saat)
+
+**Bağlam:** Kullanıcı mevcut landing'i "çok klasik, AI-slop dolu" buldu; scrollytelling ile ayırt edici, güven veren bir hero istedi. `impeccable` + `emil-design-eng` skill'leriyle araştırıldı; yön kararı **C — "Precision Instrument"** (koyu çelik OKLCH + tek amber sinyal aksanı; mavi+altın refleksinden ve tüm mutlak-yasak slop desenlerinden kaçış) + **tüm sayfa, native scroll-driven, kütüphanesiz**.
+
+**Yapılanlar:**
+- **Landing sıfırdan yeniden yazıldı** (`frontend/src/app/[locale]/page.tsx`). Yeni yapı: scroll-scrub video hero → manifesto → how-it-works (3 adım) → capabilities (alternating satırlar, özdeş kart yok) → platform node diyagramı → metrics (gauge cluster) → trust → ambient-video CTA → footer.
+- Yeni scoped stil: `frontend/src/app/[locale]/landing.css` (OKLCH steel+amber token'ları — app geneline dokunmadan; grid doku; `.ws-vhero-*`, reveal, gauge, cap, node stilleri; reduced-motion).
+- Yeni bileşenler: `frontend/src/components/landing/VideoScrollytelling.tsx` (rAF scroll-scrub hero), `Reveal.tsx` (IntersectionObserver). Ara adımda yapılıp **silinen**: `WatchExploded.tsx` (SVG wireframe saat), `HeroScrollytelling.tsx` — kullanıcı SVG'yi beğenmedi.
+- **Hero evrimi:** (1) SVG exploded-reassembling saat → beğenilmedi. (2) Gerçek stok saat videosu (Mixkit 3649, makro) scroll-scrub → "video gibi hareket" istendi. (3) **İki-fazlı** gerçek video: saat yüzü (3649) → blur crossfade → mekanizma (3650, Frederique Constant otomatik hareket). ffmpeg-static (--no-save) ile her-kare-keyframe olacak şekilde yeniden kodlandı → `frontend/public/media/watch-hero-scrub.mp4` + `watch-movement-scrub.mp4` + posterlar.
+- **Layout:** `layout.tsx`'e **Archivo** display fontu eklendi.
+- **i18n:** `messages/{en,tr,de}.json` `Landing` altına beat/manifesto/how/step/cap + sync/trust anahtarları; hero copy güçlendirildi.
+- **KALICI BUG FIX:** `frontend/src/middleware.ts` matcher'ına `media`/`icon.svg` dışlaması eklendi — next-intl/CSP middleware `public/media/*`'i locale'e 307'liyordu (video 404 idi); artık 200.
+- **Araştırma notu yazıldı:** `landing-redesign-notes.md` (kök) — transparan kare-dizisi boru hattı + 2026 AI araçları + ideal çıktı spec'i.
+
+**Mevcut durum:** Landing "Precision Instrument" olarak **çalışıyor** (tsc + eslint temiz; Playwright ile scroll pozisyonlarında video karesi değişimi + beat geçişleri + bölümler doğrulandı; en/tr/de + mobil OK). **AMA** kullanıcı iki-fazlı video hero'yu da **beğenmedi**: dikdörtgen video değil, **arka planı olmayan (transparan/PNG), karelerden oluşuyormuş gibi** bir saat + gerçek "exploded/parçalanma" istiyor.
+
+**Sonraki adımlar (İLK İŞ):**
+1. Kullanıcıya `landing-redesign-notes.md`'yi hatırlat; getirdiği kare/video formatını sor (ideal: `frontend/public/media/frames/` içine şeffaf PNG/WebP kare dizisi, ~60–120 kare, kare format, saat ortalı).
+2. Kareler geldiyse: `VideoScrollytelling`'i **canvas kare-scrub** bileşenine çevir (bağımlılıksız rAF: preload → scroll index → canvas draw; reduced-motion=ilk kare; beat'ler korunur). Not: tarayıcıda mp4 şeffaflık taşımaz → PNG/WebP kare-dizisi + canvas doğru yol (WebM VP9 alpha Safari'de çalışmaz).
+3. Kullanıcı video ayarlarken (Pika Pikaframes / Kling 3.0 / Luma Ray3 ile ilk+son kare → video, sonra bg-removal ile şeffaf kare) bizden onay/yardım isteyecek. Gerçek exploded için alternatif: Sketchfab 3B model + Blender explode → alpha PNG render.
+
+**Not (deploy işi hâlâ bekliyor):** `feature/deployment-tooling` dalındayız; landing bu dalda yapıldı. Landing bitince deploy'un secret/asset maddeleri (eBay/Shopify/Gemini anahtar, SAM2, prod env) hâlâ sırada.

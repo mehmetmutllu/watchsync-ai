@@ -1,281 +1,329 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import {
-  Watch,
-  Cpu,
-  Globe,
-  Zap,
-  Shield,
-  TrendingUp,
-  ArrowRight,
-  CheckCircle,
-} from "lucide-react";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+import { ArrowRight } from "lucide-react";
+import VideoScrollytelling from "@/components/landing/VideoScrollytelling";
+import Reveal from "@/components/landing/Reveal";
+import "./landing.css";
 
 export const metadata: Metadata = {
   title: "WatchSync AI — AI-Powered Luxury Watch Inventory Management",
   description:
     "Lüks saat bayileri için yapay zeka destekli envanter yönetimi. eBay, Chrono24 ve Shopify ile çoklu kanal senkronizasyonu, AI görsel işleme, pazar istihbaratı.",
-  alternates: {
-    canonical: "https://watchsync.ai",
-  },
+  alternates: { canonical: "https://watchsync.ai" },
 };
 
-export default function LandingPage() {
-  const t = useTranslations("Landing");
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "WatchSync AI",
+  applicationCategory: "BusinessApplication",
+  description:
+    "AI-powered B2B SaaS platform for luxury watch dealers. Multi-channel inventory sync, AI image processing, market intelligence.",
+  url: "https://watchsync.ai",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD", description: "14-day free trial" },
+};
 
-  const features = [
-    {
-      icon: Cpu,
-      title: t("f1_title"),
-      description: t("f1_desc"),
-    },
-    {
-      icon: Globe,
-      title: t("f2_title"),
-      description: t("f2_desc"),
-    },
-    {
-      icon: Zap,
-      title: t("f3_title"),
-      description: t("f3_desc"),
-    },
-    {
-      icon: Shield,
-      title: t("f4_title"),
-      description: t("f4_desc"),
-    },
-    {
-      icon: TrendingUp,
-      title: t("f5_title"),
-      description: t("f5_desc"),
-    },
-    {
-      icon: Watch,
-      title: t("f6_title"),
-      description: t("f6_desc"),
-    },
+export default async function LandingPage() {
+  const t = await getTranslations("Landing");
+
+  const steps = [
+    { k: "01", title: t("step1_t"), desc: t("step1_d") },
+    { k: "02", title: t("step2_t"), desc: t("step2_d") },
+    { k: "03", title: t("step3_t"), desc: t("step3_d") },
   ];
 
-  const stats = [
+  const caps = [
+    { k: "01", part: t("part_dial"), title: t("f1_title"), desc: t("f1_desc"), meta: "SAM 2 · Studio-grade" },
+    { k: "02", part: t("part_movement"), title: t("f4_title"), desc: t("f4_desc"), meta: "Redis mutex · Per-SKU" },
+    { k: "03", part: t("part_crown"), title: t("f5_title"), desc: t("f5_desc"), meta: "Chrono24 · Watchfinder" },
+  ];
+
+  const platforms = ["eBay", "Chrono24", "Shopify"];
+
+  const metrics = [
     { value: "50K+", label: t("stats_watches") },
-    { value: "98.2%", label: t("stats_sync") },
-    { value: "<200ms", label: t("stats_api") },
+    { value: "98.2", unit: "%", label: t("stats_sync") },
+    { value: "<200", unit: "ms", label: t("stats_api") },
     { value: "3", label: t("stats_platforms") },
   ];
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "WatchSync AI",
-    applicationCategory: "BusinessApplication",
-    description:
-      "AI-powered B2B SaaS platform for luxury watch dealers. Multi-channel inventory sync, AI image processing, market intelligence.",
-    url: "https://watchsync.ai",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      description: "14-day free trial",
-    },
-  };
+  const trust = [
+    { k: "01", title: t("trust_point1_t"), desc: t("trust_point1_d") },
+    { k: "02", title: t("trust_point2_t"), desc: t("trust_point2_d") },
+    { k: "03", title: t("trust_point3_t"), desc: t("trust_point3_d") },
+  ];
 
   return (
-    <div className="min-h-screen bg-midnight text-primary-text overflow-hidden">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      {/* Navbar */}
-      <nav className="relative z-10 flex items-center justify-between px-6 lg:px-12 py-5 max-w-7xl mx-auto">
+    <div className="ws-landing min-h-screen">
+      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('ws-js')" }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+      {/* ============ Nav ============ */}
+      <nav className="absolute inset-x-0 top-0 z-30 mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-accent-blue/20 flex items-center justify-center">
-            <Watch className="w-5 h-5 text-accent-blue" strokeWidth={1.5} />
-          </div>
-          <span className="text-lg font-bold tracking-tight">
-            WatchSync<span className="text-accent-blue"> AI</span>
+          <WatchMark />
+          <span className="ws-display text-base tracking-tight">WatchSync</span>
+          <span className="ws-mono text-[10px] tracking-[0.25em]" style={{ color: "var(--ws-text-faint)" }}>
+            AI
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           <Link
-            href="#features"
-            className="text-sm text-secondary-text hover:text-primary-text transition-colors duration-150 hidden sm:block"
+            href="#how"
+            className="ws-mono hidden text-xs tracking-[0.15em] uppercase sm:block"
+            style={{ color: "var(--ws-text-dim)" }}
           >
             {t("nav_features")}
           </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center h-9 px-4 rounded-lg bg-accent-blue text-white text-sm font-medium
-              hover:bg-accent-blue-hover transition-colors duration-150"
-          >
+          <Link href="/login" className="ws-btn ws-btn-ghost !h-9 !px-4 text-sm">
             {t("nav_start")}
           </Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-24 lg:pt-28 lg:pb-36 px-6 lg:px-12 max-w-7xl mx-auto">
-        {/* Background gradient orbs */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-accent-blue/5 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-accent-gold/5 blur-[100px] pointer-events-none" />
+      {/* ============ Scroll-scrubbed video hero ============ */}
+      <VideoScrollytelling />
 
-        <div className="relative z-10 text-center max-w-4xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent-blue/10 border border-accent-blue/20 mb-8">
-            <span className="w-2 h-2 rounded-full bg-accent-blue animate-pulse-soft" />
-            <span className="text-xs font-medium text-accent-blue">
-              {t("hero_badge")}
-            </span>
-          </div>
-
-          <h1 className="text-display sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-            {t("hero_title_1")}
-            <br />
-            <span className="text-accent-blue">
-              {t("hero_title_2")}
-            </span>
-          </h1>
-
-          <p className="mt-6 text-lg lg:text-xl text-secondary-text max-w-2xl mx-auto leading-relaxed">
-            {t("hero_desc")}
+      {/* ============ Manifesto ============ */}
+      <section className="relative z-10 mx-auto max-w-5xl px-6 py-28 lg:px-12 lg:py-40">
+        <Reveal>
+          <p className="ws-display text-3xl leading-[1.15] sm:text-4xl lg:text-5xl">
+            {t("manifesto_1")}{" "}
+            <span style={{ color: "var(--ws-text-faint)" }}>{t("manifesto_2")}</span>
           </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-accent-blue text-white font-semibold
-                hover:bg-accent-blue-hover shadow-lg shadow-accent-blue/25 hover:shadow-accent-blue/40
-                transition-all duration-150"
-            >
-              {t("btn_trial")}
-              <ArrowRight className="w-4 h-4" strokeWidth={2} />
-            </Link>
-            <Link
-              href="#features"
-              className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-surface border border-border-subtle
-                text-primary-text font-semibold hover:bg-surface-elevated hover:border-border-strong
-                transition-all duration-150"
-            >
-              {t("btn_demo")}
-            </Link>
-          </div>
-
-          {/* Trust row */}
-          <div className="flex items-center justify-center gap-6 mt-12 text-xs text-disabled-text">
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5 text-semantic-success" strokeWidth={2} />
-              {t("trust_1")}
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5 text-semantic-success" strokeWidth={2} />
-              {t("trust_2")}
-            </span>
-            <span className="inline-flex items-center gap-1.5 hidden sm:inline-flex">
-              <CheckCircle className="w-3.5 h-3.5 text-semantic-success" strokeWidth={2} />
-              {t("trust_3")}
-            </span>
-          </div>
-        </div>
+        </Reveal>
       </section>
 
-      {/* Stats Bar */}
-      <section className="border-y border-border-subtle bg-surface/30">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 lg:grid-cols-4 divide-x divide-border-subtle">
-          {stats.map((stat) => (
-            <div key={stat.label} className="py-8 px-6 text-center">
-              <p className="text-2xl lg:text-3xl font-bold font-mono text-accent-blue">
-                {stat.value}
-              </p>
-              <p className="mt-1 text-xs uppercase tracking-wider text-secondary-text">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ============ How it works ============ */}
+      <section id="how" className="relative z-10 border-t border-[var(--ws-line)]">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
+          <Reveal className="max-w-2xl">
+            <span className="ws-eyebrow">{t("how_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-5xl">{t("how_title")}</h2>
+          </Reveal>
 
-      {/* Features Grid */}
-      <section id="features" className="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold tracking-tight">
-            {t("features_title")}{" "}
-            <span className="text-accent-blue">{t("features_title_highlight")}</span>
-          </h2>
-          <p className="mt-4 text-secondary-text max-w-2xl mx-auto">
-            {t("features_desc")}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={feature.title}
-                className="group relative glass glass-hover rounded-2xl p-8 overflow-hidden transition-all duration-300"
+          <div className="mt-16 grid gap-px bg-[var(--ws-line)] md:grid-cols-3">
+            {steps.map((s, i) => (
+              <Reveal
+                key={s.k}
+                delay={(Math.min(i + 1, 3) as 1 | 2 | 3)}
+                className="bg-[var(--ws-bg)] p-8 lg:p-10"
               >
-                {/* Subtle background glow on hover */}
-                <div className="absolute -top-16 -right-16 w-32 h-32 rounded-full bg-accent-blue/20 blur-[40px] pointer-events-none transition-opacity duration-500 opacity-0 group-hover:opacity-100" />
-                
-                <div className="relative z-10 w-11 h-11 rounded-xl bg-accent-blue/10 flex items-center justify-center mb-5
-                  group-hover:bg-accent-blue/20 group-hover:scale-110 transition-all duration-300">
-                  <Icon
-                    className="w-5 h-5 text-accent-blue"
-                    strokeWidth={1.5}
+                <div className="flex items-baseline justify-between">
+                  <span className="ws-step-index">{s.k}</span>
+                  {i < steps.length - 1 && (
+                    <ArrowRight className="h-4 w-4" style={{ color: "var(--ws-line-strong)" }} strokeWidth={1.5} />
+                  )}
+                </div>
+                <h3 className="ws-display mt-6 text-2xl">{s.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+                  {s.desc}
+                </p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ Capabilities — alternating rows ============ */}
+      <section className="relative z-10 border-t border-[var(--ws-line)]">
+        <div className="mx-auto max-w-6xl px-6 py-24 lg:px-12">
+          <Reveal className="max-w-2xl">
+            <span className="ws-eyebrow">{t("cap_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-5xl">{t("cap_title")}</h2>
+          </Reveal>
+
+          <div className="mt-16 flex flex-col gap-16 lg:gap-24">
+            {caps.map((c, i) => (
+              <Reveal key={c.k} className="grid items-center gap-8 lg:grid-cols-2">
+                <div className={i % 2 === 1 ? "lg:order-2" : ""}>
+                  <span className="ws-cap-index">{c.k}</span>
+                  <p className="ws-mono mt-2 text-[11px] tracking-[0.2em] uppercase" style={{ color: "var(--ws-amber-dim)" }}>
+                    {c.part}
+                  </p>
+                  <h3 className="ws-display mt-3 text-2xl lg:text-3xl">{c.title}</h3>
+                  <p className="mt-4 max-w-md text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+                    {c.desc}
+                  </p>
+                  <p className="ws-mono mt-5 text-[11px] tracking-[0.15em]" style={{ color: "var(--ws-text-faint)" }}>
+                    {c.meta}
+                  </p>
+                </div>
+                <div className={`ws-frame aspect-[4/3] overflow-hidden ${i % 2 === 1 ? "lg:order-1" : ""}`}>
+
+                  <video
+                    className="h-full w-full object-cover opacity-70"
+                    src="/media/watch-hero-scrub.mp4"
+                    poster="/media/watch-hero-poster.jpg"
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    aria-hidden
                   />
                 </div>
-                <h3 className="relative z-10 text-lg font-semibold text-primary-text mb-2 group-hover:text-white transition-colors">
-                  {feature.title}
-                </h3>
-                <p className="relative z-10 text-sm text-secondary-text leading-relaxed">
-                  {feature.description}
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ Platform sync — node diagram ============ */}
+      <section className="relative z-10 border-t border-[var(--ws-line)]">
+        <div className="mx-auto max-w-6xl px-6 py-24 lg:px-12">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <span className="ws-eyebrow">{t("sync_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-4xl">{t("sync_title")}</h2>
+            <p className="mt-5 text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+              {t("sync_desc")}
+            </p>
+          </Reveal>
+
+          <Reveal delay={1} className="mt-16">
+            <div className="flex flex-col items-center gap-8 lg:flex-row lg:justify-between lg:gap-6">
+              <div className="grid w-full max-w-md gap-3 lg:flex-1">
+                {platforms.map((p) => (
+                  <div key={p} className="ws-node flex items-center justify-between rounded-sm px-5 py-4">
+                    <span className="ws-display text-lg">{p}</span>
+                    <span className="ws-mono text-[10px] tracking-[0.2em] uppercase" style={{ color: "var(--ws-amber-dim)" }}>
+                      {t("sync_channel")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden flex-1 items-center justify-center lg:flex" aria-hidden>
+                <svg viewBox="0 0 200 160" className="w-full max-w-[220px]" fill="none">
+                  <path d="M0 30 C90 30 90 80 190 80" stroke="var(--ws-line-strong)" strokeWidth="1" />
+                  <path d="M0 80 H190" stroke="var(--ws-amber)" strokeWidth="1.25" strokeDasharray="3 4" />
+                  <path d="M0 130 C90 130 90 80 190 80" stroke="var(--ws-line-strong)" strokeWidth="1" />
+                </svg>
+              </div>
+              <div className="ws-frame flex w-full max-w-md items-center gap-4 p-5 lg:flex-1">
+                <div className="w-full">
+                  <p className="ws-display text-lg">{t("sync_hub")}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+                    {t("sync_hub_desc")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============ Metrics ============ */}
+      <section className="relative z-10 border-y border-[var(--ws-line)]">
+        <Reveal>
+          <div className="mx-auto grid max-w-6xl grid-cols-2 lg:grid-cols-4">
+            {metrics.map((m) => (
+              <div
+                key={m.label}
+                className="border-b border-[var(--ws-line)] px-6 py-9 lg:border-b-0 lg:border-r lg:last:border-r-0"
+              >
+                <p className="ws-gauge-value">
+                  {m.value}
+                  {m.unit ? <em>{m.unit}</em> : null}
+                </p>
+                <p className="ws-mono mt-2 text-[11px] tracking-[0.18em] uppercase" style={{ color: "var(--ws-text-faint)" }}>
+                  {m.label}
                 </p>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-6 lg:px-12">
-        <div className="relative max-w-4xl mx-auto rounded-2xl bg-gradient-to-br from-accent-blue/10 via-surface to-accent-gold/5 border border-border-subtle p-12 lg:p-16 text-center overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-accent-blue/10 blur-[80px] pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              {t("cta_title")}
-            </h2>
-            <p className="text-secondary-text max-w-xl mx-auto mb-8">
-              {t("cta_desc")}
+      {/* ============ Trust ============ */}
+      <section className="relative z-10">
+        <div className="mx-auto max-w-6xl px-6 py-24 lg:px-12">
+          <Reveal className="max-w-2xl">
+            <span className="ws-eyebrow">{t("trust_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-4xl">{t("trust_title")}</h2>
+            <p className="mt-5 max-w-xl text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+              {t("trust_desc")}
             </p>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-accent-blue text-white font-semibold
-                hover:bg-accent-blue-hover shadow-lg shadow-accent-blue/25
-                transition-all duration-150"
-            >
-              {t("cta_btn")}
-              <ArrowRight className="w-4 h-4" strokeWidth={2} />
-            </Link>
+          </Reveal>
+
+          <div className="mt-14 grid gap-px bg-[var(--ws-line)] lg:grid-cols-3">
+            {trust.map((item, i) => (
+              <Reveal key={item.k} delay={(Math.min(i + 1, 3) as 1 | 2 | 3)} className="bg-[var(--ws-bg)] p-8">
+                <span className="ws-mono text-xs tracking-[0.2em]" style={{ color: "var(--ws-amber)" }}>
+                  {item.k}
+                </span>
+                <h3 className="ws-display mt-4 text-xl">{item.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+                  {item.desc}
+                </p>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border-subtle py-8 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Watch className="w-4 h-4 text-accent-blue" strokeWidth={1.5} />
-            <span className="text-sm font-semibold">
-              WatchSync<span className="text-accent-blue"> AI</span>
-            </span>
+      {/* ============ CTA with ambient video ============ */}
+      <section className="relative z-10 px-6 py-24 lg:px-12">
+        <Reveal className="mx-auto max-w-5xl">
+          <div className="ws-frame relative overflow-hidden px-8 py-20 text-center lg:px-16 lg:py-28">
+            <video
+              className="ws-ambient"
+              src="/media/watch-hero-scrub.mp4"
+              poster="/media/watch-hero-poster.jpg"
+              muted
+              loop
+              playsInline
+              autoPlay
+              aria-hidden
+            />
+            <div className="relative z-10">
+              <h2 className="ws-display mx-auto max-w-2xl text-3xl lg:text-5xl">{t("cta_title")}</h2>
+              <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+                {t("cta_desc")}
+              </p>
+              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link href="/register" className="ws-btn ws-btn-primary">
+                  {t("cta_btn")}
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                </Link>
+                <Link href="/login" className="ws-btn ws-btn-ghost">
+                  {t("nav_start")}
+                </Link>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-disabled-text">
+        </Reveal>
+      </section>
+
+      {/* ============ Footer ============ */}
+      <footer className="relative z-10 border-t border-[var(--ws-line)] px-6 py-10 lg:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex items-center gap-3">
+            <WatchMark />
+            <span className="ws-display text-sm">WatchSync AI</span>
+          </div>
+          <p className="ws-mono text-[11px]" style={{ color: "var(--ws-text-faint)" }}>
             {t("footer_rights")}
           </p>
         </div>
       </footer>
     </div>
+  );
+}
+
+function WatchMark() {
+  return (
+    <span
+      className="flex h-8 w-8 items-center justify-center rounded-sm"
+      style={{ border: "1px solid var(--ws-line-strong)" }}
+      aria-hidden
+    >
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none">
+        <circle cx="12" cy="12" r="7" stroke="var(--ws-steel)" strokeWidth="1.4" />
+        <path d="M12 12 V8" stroke="var(--ws-amber)" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M12 12 L15 13.5" stroke="var(--ws-text)" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="12" cy="12" r="1" fill="var(--ws-amber)" />
+      </svg>
+    </span>
   );
 }

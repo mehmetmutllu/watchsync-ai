@@ -1371,3 +1371,16 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [ ] Prod env: `APP_DEBUG=false`/`APP_ENV=production`, gerçek mail, persistent+şifreli Redis, prod DB+yedek, gerçek domain'e Sanctum/CORS/`NEXT_PUBLIC_API_URL`
 - [x] Deploy tooling (2026-07-05, `feature/deployment-tooling`): backend `Dockerfile` (3 target: vendor/app-fpm/web-nginx) + `frontend/Dockerfile` (Next standalone) + kök `docker-compose.prod.yml` (backend/horizon/scheduler/nginx/frontend/ai-service/mysql/redis/caddy) + `.env.prod.example` + `docker/caddy/Caddyfile` + CI `docker-build` job (+yorumlu deploy şablonu) + `DEPLOYMENT.docker.md`. `next.config.ts`→`output:standalone`. ⚠ `docker compose config` geçti ama gerçek imaj build'i HENÜZ yapılmadı. NOT: `DEPLOYMENT.md` (Non-Docker) zaten vardı, dokunulmadı.
   - [x] Lokalde `docker compose build` ile Dockerfile'ları gerçekten doğrula (2026-07-06): `--env-file .env.prod.example build backend nginx frontend` → exit 0. İmajlar: backend 230MB (PHP 8.3.32, tüm eklenti+OPcache OK, Laravel 13.18.0 boot), nginx 73.7MB (config OK), frontend 312MB (next build+standalone server.js OK). Düzeltme gerekmedi. NOT: build/up öncesi kökte `.env` zorunlu (compose `${DB_PASSWORD:?}` interpolasyonu).
+
+## 🎨 Landing Redesign — "Precision Instrument" (2026-07-06)
+> Amaç: klasik/AI-slop landing'i ayırt edici, güven veren, scrollytelling'li bir hero'ya çevirmek. Tam not: `landing-redesign-notes.md`.
+- [x] Yön araştırması (`impeccable` + `emil-design-eng` skill'leri) → karar: **C "Precision Instrument"** (koyu çelik OKLCH + amber; slop desenleri kaldırıldı)
+- [x] Landing sıfırdan yeniden yazıldı: nav, hero, manifesto, how-it-works (3 adım), capabilities (alternating), platform node, metrics gauge, trust, ambient-video CTA, footer
+- [x] Scoped stil `landing.css` (steel+amber token'ları app'e dokunmadan) + `Reveal` (IntersectionObserver) + Archivo fontu
+- [x] i18n: `messages/{en,tr,de}.json` `Landing` altına beat/manifesto/how/step/cap anahtarları + hero copy güçlendirme
+- [x] BUG FIX: `middleware.ts` matcher'ına `media`/`icon.svg` dışlaması (public statik asset 307/404 → 200)
+- [x] Hero denemesi 1: SVG exploded-reassembling saat → kullanıcı beğenmedi (silindi)
+- [x] Hero denemesi 2: iki-fazlı gerçek stok video scroll-scrub (saat yüzü → mekanizma, ffmpeg all-keyframe) → kullanıcı beğenmedi (dikdörtgen video istemiyor)
+- [x] Araştırma: transparan **PNG/WebP kare-dizisi → canvas scroll-scrub** boru hattı + 2026 AI araçları (`landing-redesign-notes.md`)
+- [ ] **SIRADAKİ:** kullanıcı şeffaf kare dizisi/video getirecek → hero'yu bağımlılıksız **canvas kare-scrub**'a çevir (reduced-motion=ilk kare, beat'ler korunur)
+- [ ] (opsiyonel) gerçek exploded için 3B rotası (Sketchfab model + Blender explode → alpha PNG render)
