@@ -153,18 +153,23 @@
   position: relative;
   min-height: 560vh;
 }
+/* Phones flick-scroll much faster than mouse wheels — a longer track slows
+   the story down to a readable pace. */
 @media (max-width: 860px) {
-  .ws-vhero-track { min-height: 460vh; }
+  .ws-vhero-track { min-height: 700vh; }
 }
 .ws-vhero-pin {
   position: sticky;
   top: 0;
   height: 100vh;
   overflow: hidden;
+  /* Opaque flat stage: hides the measuring-grid backdrop so the frame
+     plane's letterbox edges melt into the section invisibly. */
+  background: #060607;
 }
-/* Video plane: fixed frame size, JS positions/scales it so the watch sits
-   centered in the space right of the copy column (top region on mobile).
-   Same-color letterboxing keeps the plane edges invisible. */
+/* Frame plane (canvas): fixed 1280x720 layout box, JS positions/scales it so
+   the watch sits centered in the space right of the copy column (top region
+   on mobile). Poster background paints instantly before frames arrive. */
 .ws-vj-video {
   position: absolute;
   left: 50%;
@@ -175,6 +180,7 @@
   transform: translate(-50%, -50%);
   z-index: 0;
   will-change: transform;
+  background: #060607 url("/media/scrolly/journey-poster.jpg") center / cover no-repeat;
 }
 /* Soft vignette only — the copy column has its own reserved space */
 .ws-vj-scrim {
@@ -284,6 +290,78 @@
   .ws-vj-step { position: relative; top: auto; bottom: auto; translate: none; opacity: 1; margin-bottom: 4rem; }
   .ws-vj-rail { display: none; }
   .ws-vhero-hud { display: none; }
+}
+
+/* ============================================================
+   Product tour — browser-chrome mockup frames
+   ============================================================ */
+.ws-shot {
+  border: 1px solid var(--ws-line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b0c10;
+  box-shadow: 0 40px 90px -30px oklch(0 0 0 / 0.7);
+}
+.ws-shot-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid var(--ws-line);
+  background: oklch(0.17 0.008 250 / 0.6);
+}
+.ws-shot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ws-line-strong);
+}
+.ws-shot-dot[data-amber] { background: var(--ws-amber-dim); }
+.ws-shot-url {
+  margin-inline: auto;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ws-text-faint);
+  border: 1px solid var(--ws-line);
+  border-radius: 4px;
+  padding: 2px 12px;
+  background: oklch(0.13 0.006 250 / 0.5);
+}
+.ws-shot img {
+  display: block;
+  width: 100%;
+}
+
+/* ============================================================
+   FAQ — native details accordion
+   ============================================================ */
+.ws-faq {
+  border-bottom: 1px solid var(--ws-line);
+}
+.ws-faq summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.4rem 0;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1.02rem;
+  font-weight: 500;
+}
+.ws-faq summary::-webkit-details-marker { display: none; }
+.ws-faq-mark {
+  font-size: 1rem;
+  color: var(--ws-amber-dim);
+  transition: transform 0.25s;
+}
+.ws-faq[open] .ws-faq-mark { transform: rotate(45deg); }
+.ws-faq > p {
+  max-width: 46rem;
+  padding-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--ws-text-dim);
 }
 
 /* ============================================================

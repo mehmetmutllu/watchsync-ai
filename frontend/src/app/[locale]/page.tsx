@@ -61,7 +61,7 @@ export default async function LandingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* ============ Nav ============ */}
-      <nav className="absolute inset-x-0 top-0 z-30 mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
+      <nav className="fixed inset-x-0 top-0 z-30 mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
         <div className="flex items-center gap-3">
           <WatchMark />
           <span className="ws-display text-base tracking-tight">WatchSync</span>
@@ -76,6 +76,13 @@ export default async function LandingPage() {
             style={{ color: "var(--ws-text-dim)" }}
           >
             {t("nav_features")}
+          </Link>
+          <Link
+            href="#pricing"
+            className="ws-mono hidden text-xs tracking-[0.15em] uppercase sm:block"
+            style={{ color: "var(--ws-text-dim)" }}
+          >
+            {t("nav_pricing")}
           </Link>
           <Link href="/login" className="ws-btn ws-btn-ghost !h-9 !px-4 text-sm">
             {t("nav_start")}
@@ -123,6 +130,30 @@ export default async function LandingPage() {
                 </p>
               </Reveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ Product tour — real screenshots in browser chrome ============ */}
+      <section className="relative z-10 border-t border-[var(--ws-line)]">
+        <div className="mx-auto max-w-7xl px-6 py-24 lg:px-12">
+          <Reveal className="max-w-2xl">
+            <span className="ws-eyebrow">{t("prod_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-5xl">{t("prod_title")}</h2>
+            <p className="mt-5 max-w-xl text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+              {t("prod_desc")}
+            </p>
+          </Reveal>
+
+          <div className="mt-16 grid gap-12 lg:grid-cols-12 lg:gap-10">
+            <Reveal className="lg:col-span-7">
+              <BrowserShot url="app.watchsync.ai/dashboard" src="/media/product/shot-dashboard.webp" alt={t("prod_shot1_t")} />
+              <ShotCaption k="01" title={t("prod_shot1_t")} desc={t("prod_shot1_d")} />
+            </Reveal>
+            <Reveal delay={2} className="lg:col-span-5 lg:mt-28">
+              <BrowserShot url="app.watchsync.ai/inventory" src="/media/product/shot-inventory.webp" alt={t("prod_shot2_t")} />
+              <ShotCaption k="02" title={t("prod_shot2_t")} desc={t("prod_shot2_d")} />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -258,6 +289,86 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* ============ Pricing ============ */}
+      <section id="pricing" className="relative z-10 border-t border-[var(--ws-line)]">
+        <div className="mx-auto max-w-6xl px-6 py-24 lg:px-12">
+          <Reveal className="max-w-2xl">
+            <span className="ws-eyebrow">{t("pricing_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-5xl">{t("pricing_title")}</h2>
+            <p className="mt-5 max-w-xl text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+              {t("pricing_desc")}
+            </p>
+          </Reveal>
+
+          <div className="mt-14 grid gap-px bg-[var(--ws-line)] lg:grid-cols-2">
+            <Reveal className="bg-[var(--ws-bg)] p-8 lg:p-12">
+              <p className="ws-mono text-[11px] tracking-[0.2em] uppercase" style={{ color: "var(--ws-amber-dim)" }}>
+                {t("plan1_name")}
+              </p>
+              <div className="mt-6 flex items-baseline gap-2">
+                <span className="ws-display text-5xl">{t("plan1_price")}</span>
+                <span className="text-sm" style={{ color: "var(--ws-text-dim)" }}>{t("plan1_period")}</span>
+              </div>
+              <p className="mt-2 text-sm" style={{ color: "var(--ws-text-faint)" }}>{t("plan1_note")}</p>
+              <ul className="mt-8 flex flex-col gap-3">
+                {["plan1_f1", "plan1_f2", "plan1_f3", "plan1_f4", "plan1_f5"].map((k) => (
+                  <li key={k} className="flex items-baseline gap-3 text-sm" style={{ color: "var(--ws-text-dim)" }}>
+                    <span className="ws-mono text-[10px]" style={{ color: "var(--ws-amber)" }}>—</span>
+                    {t(k)}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/register" className="ws-btn ws-btn-primary mt-10">
+                {t("plan1_cta")}
+                <ArrowRight className="h-4 w-4" strokeWidth={2} />
+              </Link>
+            </Reveal>
+
+            <Reveal delay={2} className="bg-[var(--ws-bg)] p-8 lg:p-12">
+              <p className="ws-mono text-[11px] tracking-[0.2em] uppercase" style={{ color: "var(--ws-text-faint)" }}>
+                {t("plan2_name")}
+              </p>
+              <div className="mt-6 flex items-baseline gap-2">
+                <span className="ws-display text-5xl">{t("plan2_price")}</span>
+              </div>
+              <p className="mt-2 text-sm" style={{ color: "var(--ws-text-faint)" }}>{t("plan2_note")}</p>
+              <ul className="mt-8 flex flex-col gap-3">
+                {["plan2_f1", "plan2_f2", "plan2_f3"].map((k) => (
+                  <li key={k} className="flex items-baseline gap-3 text-sm" style={{ color: "var(--ws-text-dim)" }}>
+                    <span className="ws-mono text-[10px]" style={{ color: "var(--ws-line-strong)" }}>—</span>
+                    {t(k)}
+                  </li>
+                ))}
+              </ul>
+              <a href="mailto:hello@watchsync.ai" className="ws-btn ws-btn-ghost mt-10">
+                {t("plan2_cta")}
+              </a>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FAQ ============ */}
+      <section className="relative z-10 border-t border-[var(--ws-line)]">
+        <div className="mx-auto max-w-4xl px-6 py-24 lg:px-12">
+          <Reveal>
+            <span className="ws-eyebrow">{t("faq_kicker")}</span>
+            <h2 className="ws-display mt-5 text-3xl lg:text-4xl">{t("faq_title")}</h2>
+          </Reveal>
+          <Reveal delay={1} className="mt-12">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <details key={n} className="ws-faq">
+                <summary>
+                  <span>{t(`faq${n}_q`)}</span>
+                  <span className="ws-faq-mark ws-mono" aria-hidden>+</span>
+                </summary>
+                <p>{t(`faq${n}_a`)}</p>
+              </details>
+            ))}
+          </Reveal>
+        </div>
+      </section>
+
       {/* ============ CTA with ambient video ============ */}
       <section className="relative z-10 px-6 py-24 lg:px-12">
         <Reveal className="mx-auto max-w-5xl">
@@ -289,11 +400,49 @@ export default async function LandingPage() {
             <WatchMark />
             <span className="ws-display text-sm">WatchSync AI</span>
           </div>
-          <p className="ws-mono text-[11px]" style={{ color: "var(--ws-text-faint)" }}>
-            {t("footer_rights")}
-          </p>
+          <div className="flex items-center gap-6">
+            <Link href="/impressum" className="ws-mono text-[11px] tracking-[0.1em]" style={{ color: "var(--ws-text-dim)" }}>
+              {t("footer_imprint")}
+            </Link>
+            <Link href="/datenschutz" className="ws-mono text-[11px] tracking-[0.1em]" style={{ color: "var(--ws-text-dim)" }}>
+              {t("footer_privacy")}
+            </Link>
+            <p className="ws-mono text-[11px]" style={{ color: "var(--ws-text-faint)" }}>
+              {t("footer_rights")}
+            </p>
+          </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function BrowserShot({ url, src, alt }: { url: string; src: string; alt: string }) {
+  return (
+    <div className="ws-shot">
+      <div className="ws-shot-bar">
+        <span className="ws-shot-dot" data-amber />
+        <span className="ws-shot-dot" />
+        <span className="ws-shot-dot" />
+        <span className="ws-shot-url ws-mono">{url}</span>
+      </div>
+      <img src={src} alt={alt} loading="lazy" />
+    </div>
+  );
+}
+
+function ShotCaption({ k, title, desc }: { k: string; title: string; desc: string }) {
+  return (
+    <div className="mt-5 flex items-baseline gap-4">
+      <span className="ws-mono text-[11px] tracking-[0.2em]" style={{ color: "var(--ws-amber-dim)" }}>
+        {k}
+      </span>
+      <div>
+        <p className="ws-display text-lg">{title}</p>
+        <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
+          {desc}
+        </p>
+      </div>
     </div>
   );
 }

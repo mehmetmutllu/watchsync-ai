@@ -6,35 +6,46 @@ import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 
 /**
- * Split-stage scrollytelling (canonical Pudding/NYT layout): the watch video
- * is pinned on the right, short narrative steps live in a reserved left
- * column, so copy and visual never share space. Scroll scrubs the single
- * all-keyframe video through a piecewise timeline with dwell phases: the
- * frame holds still while a step reads, then plays to the next key pose.
- * On small screens the split turns vertical: video on top, copy in its own
- * band below. No animation library.
+ * Split-stage scrollytelling (canonical Pudding/NYT layout): the watch is
+ * pinned on the right, short narrative steps live in a reserved left column,
+ * so copy and visual never share space. Scroll drives an Apple-style JPEG
+ * frame sequence drawn to a canvas — no <video> scrubbing, which mobile
+ * browsers (autoplay/seek policies) make unreliable. A piecewise timeline
+ * adds dwell phases: the frame holds still while a step reads, then plays to
+ * the next key pose. On small screens the split turns vertical: watch on
+ * top, copy in its own band below. No animation library.
  */
 
-// Source video geometry (watch-journey.mp4)
+// Stage plane geometry (frames are 16:9, positioned as a 1280x720 plane)
 const VIDEO_W = 1280;
 const VIDEO_H = 720;
 // The watch occupies roughly this box centered in the frame (px in frame space)
 const WATCH_W = 430;
 
-// [pStart, pEnd, tStart, tEnd] — scroll fraction -> video time fraction.
-// Gaps between rows are dwells (frame holds at previous tEnd).
+const FRAME_COUNT = 234;
+const framePath = (i: number, sm: boolean) =>
+  `/media/scrolly/${sm ? "frames-sm" : "frames"}/f${String(i + 1).padStart(3, "0")}.webp`;
+
+// [pStart, pEnd, tStart, tEnd] — scroll fraction -> frame-sequence fraction.
+// Play rows are eased (smoothstep). The narrow rows spanning each dwell are
+// "bridges": they dissolve across the hard cut between source clips (frames
+// 53->54, 113->114, 173->174 of 234) over the whole dwell, so the tiny pose
+// mismatch between AI-generated clips is never visible as a jump.
 const TIMELINE: ReadonlyArray<readonly [number, number, number, number]> = [
-  [0.1, 0.28, 0.0, 0.2496], // front -> three-quarter angle
-  [0.34, 0.5, 0.2496, 0.4992], // explode into components
-  [0.56, 0.72, 0.4992, 0.7488], // reassemble
-  [0.78, 0.94, 0.7488, 1.0], // flip to caseback
+  [0.02, 0.24, 0.0, 0.2275], // front -> three-quarter angle
+  [0.24, 0.32, 0.2275, 0.2318], // bridge cut 1
+  [0.32, 0.5, 0.2318, 0.485], // explode into components
+  [0.5, 0.57, 0.485, 0.4893], // bridge cut 2
+  [0.57, 0.73, 0.4893, 0.7425], // reassemble
+  [0.73, 0.79, 0.7425, 0.7468], // bridge cut 3
+  [0.79, 0.94, 0.7468, 1.0], // flip to caseback
 ];
 
 // Step visibility: [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd]
 const STEP_WINDOWS: ReadonlyArray<readonly [number, number, number, number]> = [
-  [0, 0, 0.24, 0.29],
-  [0.3, 0.35, 0.5, 0.55],
-  [0.56, 0.61, 0.74, 0.79],
+  [0, 0, 0.2, 0.25],
+  [0.26, 0.31, 0.5, 0.55],
+  [0.57, 0.62, 0.74, 0.79],
   [0.81, 0.86, 1.01, 1.02],
 ];
 
@@ -43,16 +54,16 @@ const MOBILE_BP = 860;
 export default function WatchScrollytelling() {
   const t = useTranslations("Landing");
   const trackRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const colRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const track = trackRef.current;
-    const video = videoRef.current;
+    const canvas = canvasRef.current;
     const col = colRef.current;
-    if (!track || !video || !col) return;
+    if (!track || !canvas || !col) return;
 
     const steps = Array.from(col.querySelectorAll<HTMLElement>("[data-step]"));
     const ticks = railRef.current
@@ -89,28 +100,74 @@ export default function WatchScrollytelling() {
       return;
     }
 
-    // Mobile gets the lighter encode; swap before metadata loads.
-    if (window.innerWidth < MOBILE_BP) {
-      video.src = "/media/scrolly/watch-journey-sm.mp4";
-      video.load();
-    }
-
     const timeAt = (p: number) => {
       let tf = 0;
       for (const [ps, pe, ts, te] of TIMELINE) {
         if (p >= pe) tf = te;
         else if (p > ps) {
-          tf = ts + ((p - ps) / (pe - ps)) * (te - ts);
+          // smoothstep: velocity ramps from/to zero, so dwells melt into motion
+          let u = (p - ps) / (pe - ps);
+          u = u * u * (3 - 2 * u);
+          tf = ts + u * (te - ts);
           break;
         } else break;
       }
       return tf;
     };
 
-    let duration = 0;
-    const onMeta = () => (duration = video.duration || 0);
-    video.addEventListener("loadedmetadata", onMeta);
-    if (video.readyState >= 1) onMeta();
+    const sm = window.innerWidth < MOBILE_BP;
+    canvas.width = sm ? 768 : 1536;
+    canvas.height = sm ? 432 : 864;
+    const ctx = canvas.getContext("2d");
+
+    const imgs: HTMLImageElement[] = [];
+    const ready: boolean[] = new Array(FRAME_COUNT).fill(false);
+    let targetPos = 0; // fractional frame position
+    let lastDrawn = "";
+
+    // Cross-blend the two frames around the fractional position — synthesizes
+    // in-between frames so 6fps stepping reads as continuous motion. Falls
+    // back to the closest loaded frame while the sequence is still arriving.
+    const drawBest = () => {
+      if (!ctx) return;
+      const i0 = Math.min(Math.floor(targetPos), FRAME_COUNT - 1);
+      const i1 = Math.min(i0 + 1, FRAME_COUNT - 1);
+      const frac = targetPos - i0;
+      if (ready[i0] && ready[i1]) {
+        const key = `${i0}:${frac.toFixed(2)}`;
+        if (key === lastDrawn) return;
+        ctx.globalAlpha = 1;
+        ctx.drawImage(imgs[i0], 0, 0, canvas.width, canvas.height);
+        if (i1 !== i0 && frac > 0.01) {
+          ctx.globalAlpha = frac;
+          ctx.drawImage(imgs[i1], 0, 0, canvas.width, canvas.height);
+          ctx.globalAlpha = 1;
+        }
+        lastDrawn = key;
+        return;
+      }
+      let idx = -1;
+      for (let i = i0; i >= 0; i--) {
+        if (ready[i]) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx === -1 || String(idx) === lastDrawn) return;
+      ctx.drawImage(imgs[idx], 0, 0, canvas.width, canvas.height);
+      lastDrawn = String(idx);
+    };
+
+    for (let i = 0; i < FRAME_COUNT; i++) {
+      const im = new Image();
+      im.decoding = "async";
+      im.onload = () => {
+        ready[i] = true;
+        drawBest();
+      };
+      im.src = framePath(i, sm);
+      imgs.push(im);
+    }
 
     let mobile = false;
     let scale = 1;
@@ -121,11 +178,11 @@ export default function WatchScrollytelling() {
       const vh = window.innerHeight;
       mobile = vw < MOBILE_BP;
       if (mobile) {
-        // vertical split: watch centered in the top ~62% of the viewport
-        scale = Math.min((vw * 0.94) / WATCH_W, (vh * 0.62) / VIDEO_H);
-        scale = Math.max(scale, (vh * 0.5) / VIDEO_H);
+        // vertical split: watch centered in the top ~54% so it clears the copy band
+        scale = Math.min((vw * 0.82) / WATCH_W, (vh * 0.52) / VIDEO_H);
+        scale = Math.max(scale, (vh * 0.42) / VIDEO_H);
         shiftX = 0;
-        shiftY = -vh * 0.21;
+        shiftY = -vh * 0.23;
       } else {
         // horizontal split: watch centered in the space right of the column
         const colW = col.offsetWidth + col.offsetLeft;
@@ -134,7 +191,7 @@ export default function WatchScrollytelling() {
         shiftX = colW + right / 2 - vw / 2;
         shiftY = 0;
       }
-      video.style.transform = `translate(calc(-50% + ${shiftX.toFixed(1)}px), calc(-50% + ${shiftY.toFixed(1)}px)) scale(${scale.toFixed(4)})`;
+      canvas.style.transform = `translate(calc(-50% + ${shiftX.toFixed(1)}px), calc(-50% + ${shiftY.toFixed(1)}px)) scale(${scale.toFixed(4)})`;
     };
     measure();
 
@@ -146,10 +203,8 @@ export default function WatchScrollytelling() {
       const scrolled = Math.min(Math.max(-rect.top, 0), Math.max(total, 1));
       const p = total > 0 ? scrolled / total : 0;
 
-      if (duration > 0) {
-        const target = Math.min(timeAt(clamp01(p)) * duration, duration - 0.05);
-        if (Math.abs(video.currentTime - target) > 0.02) video.currentTime = target;
-      }
+      targetPos = timeAt(clamp01(p)) * (FRAME_COUNT - 1);
+      drawBest();
       paintSteps(p);
     };
     const onScroll = () => {
@@ -166,7 +221,7 @@ export default function WatchScrollytelling() {
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
-      video.removeEventListener("loadedmetadata", onMeta);
+      imgs.forEach((im) => (im.onload = null));
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
@@ -223,16 +278,7 @@ export default function WatchScrollytelling() {
   return (
     <div ref={trackRef} className="ws-vhero-track">
       <div className="ws-vhero-pin">
-        <video
-          ref={videoRef}
-          className="ws-vj-video"
-          src="/media/scrolly/watch-journey.mp4"
-          poster="/media/scrolly/journey-poster.jpg"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden
-        />
+        <canvas ref={canvasRef} className="ws-vj-video" width={1536} height={864} aria-hidden />
         <div className="ws-vj-scrim" />
 
         <div ref={colRef} className="ws-vj-col">

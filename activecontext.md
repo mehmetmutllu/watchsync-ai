@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
 > **Son Güncelleme:** 2026-07-11  
-> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. **AKTİF İŞ = Landing scrollytelling cilası.** Hero artık **AI-üretimi saat videosu + split-stage scrollytelling** (video sağda, metin solda ayrık kolonda; scroll→currentTime, dwell/play ritmi). Çalışıyor; kullanıcının 3 cila notu bekliyor (en alttaki Son Oturum 2026-07-11).  
-> **Sıradaki (İLK İŞ — kullanıcı notları):** (1) Video segment birleşimlerindeki crossfade "efekti" kaldırılsın/azaltılsın (ffmpeg xfade süresini kısalt veya hard-cut; boru hattı bu oturum bloğunda). (2) Küçük ekranlarda saat **daha da küçük** olmalı — ekranı kaplayıp yazıların altında kalıyor (`WatchScrollytelling.tsx` `measure()` mobil dalındaki scale formülü). (3) **BUG:** gerçek telefonda (LAN IPv4) scroll'da video scrub çalışmıyor, ilk karede kalıyor — muhtemelen `duration` metadata gelmeden 0 kalıyor / mobil preload kısıtı; `loadeddata` bekleme + yükleme göstergesi/fallback araştır.  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. Landing hero artık **canvas + WebP kare-dizisi scrollytelling** (video elementi YOK — mobil autoplay/seek sorunları kökten bitti); site yapısı tamamlandı: ürün turu (mockup), pricing, FAQ, Impressum/Datenschutz. **AKTİF İŞ = MICROCOPY TURU (her dilde, DE ana dil).**  
+> **Sıradaki (İLK İŞ):** Microcopy revizyonu — bir önceki chat'te kullanıcıya sunulan **12 maddelik jargon tablosu** (mutex/SKU/Redis/LLM temizliği) + `cta_title` klişesi + Yetenekler 6→4 kart (f4 kaldır) + tüm `Landing` metinlerinin DE-ana-dil elden geçirilmesi; de/en/tr eş zamanlı. Ardından dashboard'daki **$→€ format** düzeltmesi + `public/media/product/` ekran görüntülerini yeniden çek. Kullanıcıdan beklenen: gerçek fiyat (99 € yer tutucu) + Impressum/Datenschutz şirket bilgileri.  
 > **Sıradaki (bekleyen, deploy):** Oturum B kalan maddeler — secret/asset bekliyor: (a) eBay/Shopify/Gemini gerçek anahtar + sandbox test, (b) SAM2 checkpoint, (c) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR ile develop'a.  
 > **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env. (Deploy tooling artık VAR: `docker-compose.prod.yml` + backend/frontend Dockerfile + CI docker-build + `DEPLOYMENT.docker.md`.)  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
@@ -1016,3 +1016,24 @@ Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #
 4. Sonra bekleyen deploy maddeleri (secret/asset) + `feature/deployment-tooling` → develop PR.
 
 **Not:** Kaynak üretim dosyaları kökte ve **git'e EKLENMEDİ** (foto1-4.png ~9MB, foto*-*.mp4 ~7.7MB) — kullanıcının ham AI çıktıları; site assetleri `public/media/scrolly/` altında commit'li. Dünkü dev server hâlâ :3000'de çalışıyor olabilir (PID değişken, `taskkill` ile kapatılır).
+
+## 📌 Son Oturum (2026-07-11 · devam — scrollytelling kök çözümler + landing yapı bölümleri)
+
+**Yapılanlar:**
+1. **Mobil scrub bug kökten çözüldü:** `<video>` tamamen kaldırıldı → Apple tarzı **canvas + WebP kare dizisi** (`WatchScrollytelling.tsx`; 234 kare, kaynak fps=6, `public/media/scrolly/frames/` 1536px ≈8MB + `frames-sm/` 768px ≈3.7MB, <860px'te sm seti). mp4'ler public'ten silindi.
+2. **LAN/telefon bug'ının gerçek kökü:** Next 16 cross-origin dev koruması — hydration hiç başlamıyordu. `next.config.ts` → `allowedDevOrigins: ["192.168.1.*"]` (dev-only).
+3. **Video zinciri yeniden (sc-tmp/, git dışı):** xfade tamamen kaldırıldı (hard-cut); `foto1-2`'nin ilk 1sn'si (AI zoom-out) kırpıldı; kesimler TIMELINE'daki **bridge-dissolve** satırlarıyla dwell'e yayılıyor (kare 53→54, 113→114, 173→174 / 234 — sıçrama algılanmaz). Segment içi **smoothstep easing** + ardışık iki karenin **alpha harmanı** (akıcılık); mobil track 460→**700vh**. **Black-crush curves + vignette** → foto2-3 ortasındaki arka plan ışığı söndü; `.ws-vhero-pin` düz `#060607` (ölçüm ızgarası hero'da görünmez).
+4. Nav `absolute`→`fixed` (WatchSync/Başla scroll'da kaybolmuyor); animasyon p=0.02'de başlıyor (bekleme yok).
+5. **Landing yapı bölümleri:** _DAS PRODUKT_ ürün turu (`BrowserShot` tarayıcı-chrome mockup + gerçek DE ekranları `public/media/product/*.webp`), _Pricing_ (`#pricing`; **99 € YER TUTUCU** + Enterprise "Auf Anfrage"; nav'a PREISE), _FAQ_ (5 soru, native `<details>` + `.ws-faq`), footer'a **Impressum/Datenschutz** linkleri + `/impressum` `/datenschutz` sayfaları (`[..]` şirket-bilgisi yer tutucularıyla; robots noindex).
+6. **Vitrin verisi:** `backend/database/seeders/ShowcaseSeeder.php` (idempotent) — 12 saat (EUR), PlatformConnection=connected, SyncLog=success, dolu aktivite feed'i. Saat görselleri `backend/storage/app/public/watches/{demo,thumbnails}` (**git'te YOK** — frames'ten ffmpeg ile yeniden üretilebilir). İki fix: backend `.env` `APP_URL` 127.0.0.1→**localhost** (CSP `img-src` bloğunu çözdü) + `artisan storage:link`.
+7. i18n: `prod_*`, `pricing_*`, `plan1_*/plan2_*`, `faq*`, `footer_imprint/privacy` anahtarları de/en/tr (taslak metin — final microcopy turunda).
+
+**Mevcut durum:** Scrollytelling localhost + LAN'da akıcı ve doğrulandı (Playwright masaüstü/mobil). Site akışı tam: hero → metrikler → nasıl çalışır → ürün turu → yetenekler → kanal → trust → pricing → FAQ → CTA → footer. Microcopy 12-madde sorun listesi kullanıcıya sunuldu (mutex/SKU/Redis/LLM/API jargonu + klişeler) — onaylı, uygulama bekliyor. Dashboard ekran görüntüsünde toplam değer **$** görünüyor (saatler EUR) — app format sorunu. `defaultLocale` zaten `de`.
+
+**Sonraki adımlar (sırayla):**
+1. **MICROCOPY TURU — her dilde:** 12 maddelik tablo + `cta_title` klişesi + Yetenekler 6→4 (f4 kartı kaldır, `page.tsx:39` "Redis mutex · Per-SKU" meta etiketi dahil) + tüm Landing metinleri DE ana dil olarak elden geçir, en/tr çeviri.
+2. Dashboard $→€ format düzeltmesi → `shot-dashboard.webp` yeniden çek.
+3. Kullanıcıdan: gerçek fiyat + Impressum/Datenschutz şirket bilgileri (sayfalardaki `[..]` alanlar).
+4. Deploy maddeleri (secret/asset) + `feature/deployment-tooling` → develop PR.
+
+**Not:** Kökteki `foto*.png/mp4` + `sc-tmp/` git dışı ham/ara dosyalar (boru hattı sc-tmp'den saniyeler içinde yeniden koşar). `.next-dev.log` git dışı. Dev server bu oturumda arka planda yeniden başlatıldı (allowedDevOrigins için restart gerekmişti).

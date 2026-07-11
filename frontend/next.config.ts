@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
+  // Dev-only: lets phones on the LAN load the dev server (Next blocks
+  // cross-origin dev assets otherwise, which silently kills hydration).
+  allowedDevOrigins: ["192.168.1.*"],
   images: {
     remotePatterns: [
       {
