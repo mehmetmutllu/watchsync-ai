@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight } from "lucide-react";
-import VideoScrollytelling from "@/components/landing/VideoScrollytelling";
+import WatchScrollytelling from "@/components/landing/WatchScrollytelling";
 import Reveal from "@/components/landing/Reveal";
 import "./landing.css";
 
@@ -35,9 +35,9 @@ export default async function LandingPage() {
   ];
 
   const caps = [
-    { k: "01", part: t("part_dial"), title: t("f1_title"), desc: t("f1_desc"), meta: "SAM 2 · Studio-grade" },
-    { k: "02", part: t("part_movement"), title: t("f4_title"), desc: t("f4_desc"), meta: "Redis mutex · Per-SKU" },
-    { k: "03", part: t("part_crown"), title: t("f5_title"), desc: t("f5_desc"), meta: "Chrono24 · Watchfinder" },
+    { k: "01", part: t("part_dial"), title: t("f1_title"), desc: t("f1_desc"), meta: "SAM 2 · Studio-grade", img: "/media/scrolly/exploded.jpg" },
+    { k: "02", part: t("part_movement"), title: t("f4_title"), desc: t("f4_desc"), meta: "Redis mutex · Per-SKU", img: "/media/scrolly/back.jpg" },
+    { k: "03", part: t("part_crown"), title: t("f5_title"), desc: t("f5_desc"), meta: "Chrono24 · Watchfinder", img: "/media/scrolly/angle.jpg" },
   ];
 
   const platforms = ["eBay", "Chrono24", "Shopify"];
@@ -83,8 +83,8 @@ export default async function LandingPage() {
         </div>
       </nav>
 
-      {/* ============ Scroll-scrubbed video hero ============ */}
-      <VideoScrollytelling />
+      {/* ============ Scroll-scrubbed keyframe hero ============ */}
+      <WatchScrollytelling />
 
       {/* ============ Manifesto ============ */}
       <section className="relative z-10 mx-auto max-w-5xl px-6 py-28 lg:px-12 lg:py-40">
@@ -152,15 +152,11 @@ export default async function LandingPage() {
                   </p>
                 </div>
                 <div className={`ws-frame aspect-[4/3] overflow-hidden ${i % 2 === 1 ? "lg:order-1" : ""}`}>
-
-                  <video
+                  <img
                     className="h-full w-full object-cover opacity-70"
-                    src="/media/watch-hero-scrub.mp4"
-                    poster="/media/watch-hero-poster.jpg"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
+                    src={c.img}
+                    alt=""
+                    loading="lazy"
                     aria-hidden
                   />
                 </div>
@@ -266,16 +262,7 @@ export default async function LandingPage() {
       <section className="relative z-10 px-6 py-24 lg:px-12">
         <Reveal className="mx-auto max-w-5xl">
           <div className="ws-frame relative overflow-hidden px-8 py-20 text-center lg:px-16 lg:py-28">
-            <video
-              className="ws-ambient"
-              src="/media/watch-hero-scrub.mp4"
-              poster="/media/watch-hero-poster.jpg"
-              muted
-              loop
-              playsInline
-              autoPlay
-              aria-hidden
-            />
+            <img className="ws-ambient" src="/media/scrolly/back.jpg" alt="" loading="lazy" aria-hidden />
             <div className="relative z-10">
               <h2 className="ws-display mx-auto max-w-2xl text-3xl lg:text-5xl">{t("cta_title")}</h2>
               <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>

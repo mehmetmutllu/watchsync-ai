@@ -1,8 +1,8 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-07-06  
-> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. **AKTİF İŞ = Landing redesign** (bu oturum): landing sıfırdan "Precision Instrument" yönünde yeniden yazıldı; hero'da scroll-scrub saat animasyonu üzerinde çalışılıyor. Deploy tooling TAMAM + imaj build DOĞRULANDI (önceki oturum). Detay: en alttaki Son Oturum (2026-07-06 · Landing redesign) + `landing-redesign-notes.md`.  
-> **Sıradaki (İLK İŞ):** Landing hero'yu **transparan PNG/WebP kare-dizisi → canvas scroll-scrub**'a çevir (kullanıcı Pika/Kling/Luma ile ilk+son kare→video üretip bg-removal ile şeffaf kare getirecek). Tam plan/araçlar: `landing-redesign-notes.md`.  
+> **Son Güncelleme:** 2026-07-11  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. **AKTİF İŞ = Landing scrollytelling cilası.** Hero artık **AI-üretimi saat videosu + split-stage scrollytelling** (video sağda, metin solda ayrık kolonda; scroll→currentTime, dwell/play ritmi). Çalışıyor; kullanıcının 3 cila notu bekliyor (en alttaki Son Oturum 2026-07-11).  
+> **Sıradaki (İLK İŞ — kullanıcı notları):** (1) Video segment birleşimlerindeki crossfade "efekti" kaldırılsın/azaltılsın (ffmpeg xfade süresini kısalt veya hard-cut; boru hattı bu oturum bloğunda). (2) Küçük ekranlarda saat **daha da küçük** olmalı — ekranı kaplayıp yazıların altında kalıyor (`WatchScrollytelling.tsx` `measure()` mobil dalındaki scale formülü). (3) **BUG:** gerçek telefonda (LAN IPv4) scroll'da video scrub çalışmıyor, ilk karede kalıyor — muhtemelen `duration` metadata gelmeden 0 kalıyor / mobil preload kısıtı; `loadeddata` bekleme + yükleme göstergesi/fallback araştır.  
 > **Sıradaki (bekleyen, deploy):** Oturum B kalan maddeler — secret/asset bekliyor: (a) eBay/Shopify/Gemini gerçek anahtar + sandbox test, (b) SAM2 checkpoint, (c) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR ile develop'a.  
 > **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env. (Deploy tooling artık VAR: `docker-compose.prod.yml` + backend/frontend Dockerfile + CI docker-build + `DEPLOYMENT.docker.md`.)  
 > **Görev Dağılımı:** Hafta 1-6 Mehmet yaptı (backend + frontend). Hafta 7+ Berat devam edecek (backend + frontend, AI ile çalışarak). Junior/Senior ayrımı kaldırıldı.
@@ -982,3 +982,37 @@ Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #
 3. Kullanıcı video ayarlarken (Pika Pikaframes / Kling 3.0 / Luma Ray3 ile ilk+son kare → video, sonra bg-removal ile şeffaf kare) bizden onay/yardım isteyecek. Gerçek exploded için alternatif: Sketchfab 3B model + Blender explode → alpha PNG render.
 
 **Not (deploy işi hâlâ bekliyor):** `feature/deployment-tooling` dalındayız; landing bu dalda yapıldı. Landing bitince deploy'un secret/asset maddeleri (eBay/Shopify/Gemini anahtar, SAM2, prod env) hâlâ sırada.
+
+---
+
+## 📌 Son Oturum (2026-07-10/11 · Landing scrollytelling — AI video + split-stage)
+
+**Bağlam:** Kullanıcı hero için kilit-kare tabanlı scrollytelling istedi. İki oturumluk evrim: (a) 2026-07-10 — Gemini ile 4 kilit kare (foto1-4.png, kökte: ön / 45° / exploded / caseback; prompt'lar `landing-video-prompts.md`'de) üretildi; AI video beğenilmeyince kareler **koda dayalı katman-scrollytelling**'e çevrildi (foto3'ten 6 parça PNG kesildi, scroll transform'la ayrılıp birleşiyordu). Kullanıcı metin-görsel çakışmasını beğenmedi → **ciddi araştırma** istedi. (b) 2026-07-11 — kullanıcı Kling/Gemini ile 3 video getirdi (kökte `foto1-2.mp4`, `foto2-3.mp4`, `foto2-4.mp4`); araştırma bulgularıyla video tabanlı **split-stage** kuruldu.
+
+**Araştırma kararı (impeccable + emil-design-eng + The Pudding/NYT/Apple):** iyi scrollytelling'de görsel ile metin AYNI ALANI PAYLAŞMAZ → kanonik **split-stage**: görsel sağda sabit sahne, kısa metin adımları solda AYRILMIŞ kolonda ("one idea per step"); mobilde dikey bölme. Alternating sol/sağ + saat kaçırma denemesi ÇÖPTE (yama, kök çözüm değil).
+
+**Video boru hattı (ffmpeg = pip `imageio-ffmpeg` statik binary; sistemde ffmpeg YOK):**
+- 3 klip 1280x720/24fps/10sn; Gemini yıldız filigranı `delogo=x=1130:y=570:w=60:h=60` ile silindi (drawbox DEĞİL — foto2-4'te kordon bölgeye yaklaşıyor).
+- Birleşme sahnesi = `foto2-3`'ün **reverse**'ü (kullanıcı 3→2 videosu üretmedi, kasıtlı).
+- Zincir: foto1-2 ⟶(xfade 0.4s)⟶ foto2-3 ⟶(hard cut, kusursuz)⟶ reverse(foto2-3) ⟶(xfade 0.4s)⟶ foto2-4; sonra `setpts=PTS/2` (2x hız) + `fps=24` + `-g 1 -bf 0` (her kare keyframe → iki yönlü akıcı scrub). Dev filter_complex grafiği bu ffmpeg build'inde -22 ile patlıyor → **adım adım ara dosyalarla** yapıldı (önce delogo'lu/reverse'lü intermediates, sonra concat, sonra xfade'ler).
+- Çıktılar: `frontend/public/media/scrolly/watch-journey.mp4` (19.63sn, 7.6MB, masaüstü) + `watch-journey-sm.mp4` (960x540, 4.3MB, <860px'te JS src swap) + `journey-poster.jpg`. Segment sınırları (fraksiyon): 0.25 / 0.50 / 0.75 (≈4.9s/9.8s/14.7s; 0.25 ve 0.75 xfade ORTA noktası).
+
+**Komponent (`frontend/src/components/landing/WatchScrollytelling.tsx` — eski VideoScrollytelling SİLİNDİ):**
+- TIMELINE piecewise map: scroll p → video zamanı; segmentler arası **dwell** (kare sabit durur, metin okunur), sonra play. STEP_WINDOWS trapezoid pencereler; adımlar fade+translateY.
+- Video "plane" tekniği: sabit 1280x720 element, JS `measure()` scale+translate → masaüstünde saat metin kolonunun sağındaki boşluğun ortasında; mobilde üst ~%62 bölge + `shiftY=-0.21vh`.
+- Sol kolonda 4 kısa adım (i18n YENİ anahtarlar: `beat2_line/beat3_line/beat4_line` × de/en/tr — "one idea per step") + mono ilerleme rayı (01-04, aktif amber). CTA'lar adım 1 ve 4'te.
+- `landing.css`: `.ws-vj-*` sınıfları (video plane, col, steps, rail, mobil dikey bölme, reduced-motion fallback: poster 0.35 + statik adımlar). Eski `.ws-vhero-img/stage/layer/.ws-vbeat` stilleri kaldırıldı (`.ws-vhero-track/pin/hud` duruyor).
+- Sayfadaki diğer eski video referansları görsele çevrildi: caps kartları exploded/back/angle.jpg, CTA ambient back.jpg.
+- Katman-kesim boru hattı korunuyor: `frontend/scripts/build-scrolly-assets.py` (foto1-4'ten temiz jpg + 6 parça PNG üretir; parça PNG'leri artık KULLANILMIYOR ve public'ten silindi, script dursun).
+
+**Doğrulama:** tsc temiz; Playwright masaüstü 1280/1440 + mobil 390 kilit noktalarda ekran görüntüleriyle doğrulandı (çakışma sıfır). Konsolda kalan tek hata ÖNCEDEN VAR OLAN CSP inline-script (page.tsx'teki nonce'suz `ws-js` script'i) — bu işten bağımsız.
+
+**Mevcut durum:** Landing scrollytelling çalışıyor (localhost). Kullanıcı genel olarak beğendi; 3 cila notu verdi (header "Sıradaki İLK İŞ"): xfade efekti, mobilde saat boyutu, telefonda (LAN IPv4) scrub'ın hiç çalışmaması bug'ı.
+
+**Sonraki adımlar (sırayla):**
+1. **Telefon scrub bug'ı** (en kritik): LAN'da `duration` 0 kalıyor olabilir (metadata/preload) veya mobil tarayıcı scrub'ı engelliyor; `loadedmetadata` yerine `loadeddata/canplaythrough` + readyState kontrolü, gerekirse poster-fallback/loading state. Gerçek cihazda IPv4 ile test et.
+2. **Mobil ölçek:** `measure()` mobil dalında scale'i küçült (ör. `vw*0.94/430` → `vw*0.80/430` ve/veya üst bölgeyi %52'ye indir), yazı bandıyla üst üste binmeyi bitir; gerçek telefonda doğrula.
+3. **Xfade efekti:** kullanıcı birleşim "efektini" istemiyor → xfade süresini 0.15-0.2s'e indir veya tamamen hard-cut dene (pozlar zaten benzer); `/tmp` intermediates yok artık, boru hattını `foto*-*.mp4` kaynaklarından yeniden koş (komutlar yukarıda).
+4. Sonra bekleyen deploy maddeleri (secret/asset) + `feature/deployment-tooling` → develop PR.
+
+**Not:** Kaynak üretim dosyaları kökte ve **git'e EKLENMEDİ** (foto1-4.png ~9MB, foto*-*.mp4 ~7.7MB) — kullanıcının ham AI çıktıları; site assetleri `public/media/scrolly/` altında commit'li. Dünkü dev server hâlâ :3000'de çalışıyor olabilir (PID değişken, `taskkill` ile kapatılır).

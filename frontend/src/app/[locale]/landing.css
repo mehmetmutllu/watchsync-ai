@@ -143,16 +143,18 @@
 .ws-frame::after { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
 
 /* ============================================================
-   HERO — scroll-scrubbed video (Apple-style). A tall track pins a
-   full-bleed watch clip; scroll maps to video.currentTime. Four
-   narrative beats cross-fade across the scroll.
+   HERO — split-stage scrollytelling. A tall track pins the stage:
+   the scrubbed watch video lives right of a reserved copy column
+   (copy and visual never share space). Scroll drives currentTime
+   through dwell/play phases; four short steps swap in the column.
+   Small screens split vertically: video top, copy band below.
    ============================================================ */
 .ws-vhero-track {
   position: relative;
-  min-height: 460vh;
+  min-height: 560vh;
 }
 @media (max-width: 860px) {
-  .ws-vhero-track { min-height: 380vh; }
+  .ws-vhero-track { min-height: 460vh; }
 }
 .ws-vhero-pin {
   position: sticky;
@@ -160,51 +162,99 @@
   height: 100vh;
   overflow: hidden;
 }
-.ws-vhero-video {
+/* Video plane: fixed frame size, JS positions/scales it so the watch sits
+   centered in the space right of the copy column (top region on mobile).
+   Same-color letterboxing keeps the plane edges invisible. */
+.ws-vj-video {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  left: 50%;
+  top: 50%;
+  width: 1280px;
+  height: 720px;
+  max-width: none;
+  transform: translate(-50%, -50%);
   z-index: 0;
+  will-change: transform;
 }
-/* Legibility scrim: darken left (where copy sits) + top/bottom vignette */
-.ws-vhero-scrim {
+/* Soft vignette only — the copy column has its own reserved space */
+.ws-vj-scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(90deg, oklch(0.13 0.006 250 / 0.92) 0%, oklch(0.13 0.006 250 / 0.6) 38%, transparent 70%),
-    linear-gradient(180deg, oklch(0.13 0.006 250 / 0.7) 0%, transparent 22%, transparent 68%, oklch(0.13 0.006 250 / 0.85) 100%);
+    linear-gradient(180deg, oklch(0.13 0.006 250 / 0.6) 0%, transparent 20%, transparent 72%, oklch(0.13 0.006 250 / 0.8) 100%);
 }
-.ws-vhero-beats {
+/* Copy column (desktop: left rail) */
+.ws-vj-col {
   position: absolute;
-  inset: 0;
   z-index: 2;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(44vw, 34rem);
+  padding: 0 1.5rem 0 clamp(1.5rem, 5vw, 4.5rem);
   display: flex;
   align-items: center;
 }
-.ws-vbeat {
+.ws-vj-steps {
+  position: relative;
+  width: 100%;
+  min-height: 24rem;
+}
+.ws-vj-step {
   position: absolute;
-  left: 0;
-  right: 0;
-  padding-inline: 1.5rem;
-  max-width: 42rem;
+  inset-inline: 0;
+  top: 50%;
+  translate: 0 -50%;
   opacity: 0;
-  transition: opacity 0.25s linear;
+  will-change: opacity, transform;
 }
-@media (min-width: 1024px) {
-  .ws-vbeat { padding-inline: 3rem; }
-}
-/* First beat visible by default (SSR / no-JS) */
-.ws-vbeat:first-child { opacity: 1; }
-.ws-vbeat-sub {
-  margin-top: 1.5rem;
-  max-width: 30rem;
-  font-size: 1.05rem;
-  line-height: 1.6;
+/* First step visible by default (SSR / no-JS) */
+.ws-vj-step:first-child { opacity: 1; }
+.ws-vj-line {
+  margin-top: 1.25rem;
+  max-width: 26rem;
+  font-size: 1.02rem;
+  line-height: 1.65;
   color: oklch(0.85 0.006 250);
+}
+/* Progress rail: quiet mono step counter at the column's bottom */
+.ws-vj-rail {
+  position: absolute;
+  left: clamp(1.5rem, 5vw, 4.5rem);
+  bottom: 4.5rem;
+  display: flex;
+  gap: 1.1rem;
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+}
+.ws-vj-rail [data-tick] {
+  color: var(--ws-text-faint);
+  border-top: 1px solid var(--ws-line-strong);
+  padding-top: 0.5rem;
+  min-width: 2.2rem;
+  transition: color 0.3s, border-color 0.3s;
+}
+.ws-vj-rail [data-tick][data-active="1"] {
+  color: var(--ws-amber);
+  border-top-color: var(--ws-amber);
+}
+/* Vertical split on small screens: video top, copy band bottom */
+@media (max-width: 860px) {
+  .ws-vj-col {
+    width: 100%;
+    top: auto;
+    bottom: 0;
+    height: 42vh;
+    padding: 0 1.5rem 3.5rem;
+    align-items: flex-end;
+    background: linear-gradient(180deg, transparent 0%, oklch(0.13 0.006 250 / 0.88) 20%, oklch(0.13 0.006 250 / 0.97) 100%);
+  }
+  .ws-vj-steps { min-height: 15rem; }
+  .ws-vj-step { top: auto; bottom: 0; translate: none; }
+  .ws-vj-line { font-size: 0.95rem; }
+  .ws-vj-rail { display: none; }
 }
 .ws-vhero-hud {
   position: absolute;
@@ -225,11 +275,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* show all beats stacked & legible, no cross-fade */
+  /* static fallback: poster as backdrop, all steps stacked & legible */
   .ws-vhero-track { min-height: auto; }
   .ws-vhero-pin { position: relative; height: auto; }
-  .ws-vhero-beats { position: relative; display: block; padding-block: 6rem; }
-  .ws-vbeat { position: relative; opacity: 1; margin-bottom: 4rem; }
+  .ws-vj-video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform: none; object-fit: cover; opacity: 0.35; }
+  .ws-vj-col { position: relative; width: 100%; max-width: 44rem; height: auto; padding-block: 6rem; background: none; }
+  .ws-vj-steps { min-height: 0; }
+  .ws-vj-step { position: relative; top: auto; bottom: auto; translate: none; opacity: 1; margin-bottom: 4rem; }
+  .ws-vj-rail { display: none; }
   .ws-vhero-hud { display: none; }
 }
 

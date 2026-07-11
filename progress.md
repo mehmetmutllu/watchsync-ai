@@ -1382,5 +1382,10 @@ Adım 6: İnceleme & Yayınla (özet + platform toggle'ları + "Taslak Kaydet" /
 - [x] Hero denemesi 1: SVG exploded-reassembling saat → kullanıcı beğenmedi (silindi)
 - [x] Hero denemesi 2: iki-fazlı gerçek stok video scroll-scrub (saat yüzü → mekanizma, ffmpeg all-keyframe) → kullanıcı beğenmedi (dikdörtgen video istemiyor)
 - [x] Araştırma: transparan **PNG/WebP kare-dizisi → canvas scroll-scrub** boru hattı + 2026 AI araçları (`landing-redesign-notes.md`)
-- [ ] **SIRADAKİ:** kullanıcı şeffaf kare dizisi/video getirecek → hero'yu bağımlılıksız **canvas kare-scrub**'a çevir (reduced-motion=ilk kare, beat'ler korunur)
+- [x] Kilit kareler: Gemini ile 4 foto (ön / 45° / exploded / caseback) — prompt'lar `landing-video-prompts.md` (2026-07-10)
+- [x] Hero denemesi 3: karelerden koda dayalı katman-scrollytelling (foto3'ten 6 parça PNG kesildi, scroll transform) → metin-görsel çakışması beğenilmedi (2026-07-10)
+- [x] Scrollytelling araştırması (impeccable + emil-design-eng + Pudding/NYT/Apple) → karar: **split-stage** (görsel sağda, metin solda ayrık kolon; asla çakışmaz) (2026-07-11)
+- [x] Kullanıcının 3 AI videosu tek scrub videosuna dikildi (delogo filigran + reverse birleşme + xfade + 2x + her-kare-keyframe) → `public/media/scrolly/watch-journey{,-sm}.mp4` (2026-07-11)
+- [x] Hero FINAL: `WatchScrollytelling.tsx` video split-stage (dwell/play timeline, sol kolonda 4 kısa adım + ilerleme rayı, mobil dikey bölme, reduced-motion fallback) + `beat*_line` i18n ×3 dil (2026-07-11)
+- [ ] **CİLA (kullanıcı notları 2026-07-11):** (1) segment birleşimlerindeki xfade efektini kaldır/kısalt, (2) küçük ekranda saati DAHA küçült (yazının altında kalıyor), (3) **BUG:** gerçek telefonda (LAN IPv4) scrub çalışmıyor — ilk karede kalıyor
 - [ ] (opsiyonel) gerçek exploded için 3B rotası (Sketchfab model + Blender explode → alpha PNG render)
