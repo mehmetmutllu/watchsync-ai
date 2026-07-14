@@ -1,7 +1,7 @@
 # WatchSync AI — Active Context
 
-> **Son Güncelleme:** 2026-07-11  
-> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. Landing hero artık **canvas + WebP kare-dizisi scrollytelling** (video elementi YOK — mobil autoplay/seek sorunları kökten bitti); site yapısı tamamlandı: ürün turu (mockup), pricing, FAQ, Impressum/Datenschutz. **AKTİF İŞ = MICROCOPY TURU (her dilde, DE ana dil).**  
+> **Son Güncelleme:** 2026-07-14  
+> **Mevcut Faz:** Aşama 7 develop'ta ✅. Aktif dal `feature/deployment-tooling`. Landing hero artık **canvas + WebP kare-dizisi scrollytelling** (video elementi YOK — mobil autoplay/seek sorunları kökten bitti); site yapısı tamamlandı: ürün turu (mockup), pricing, FAQ, Impressum/Datenschutz. **İKİ AÇIK İŞ: (1) MICROCOPY TURU (kullanıcı ChatGPT'ye verecek JSON promptu hazır — çıktı bekleniyor); (2) HERO VİDEO YENİDEN ÜRETİMİ (exploded-view — strateji araştırıldı, karar: fal.ai + Nano Banana Pro keyframe + Kling FLF).**  
 > **Sıradaki (İLK İŞ):** Microcopy revizyonu — bir önceki chat'te kullanıcıya sunulan **12 maddelik jargon tablosu** (mutex/SKU/Redis/LLM temizliği) + `cta_title` klişesi + Yetenekler 6→4 kart (f4 kaldır) + tüm `Landing` metinlerinin DE-ana-dil elden geçirilmesi; de/en/tr eş zamanlı. Ardından dashboard'daki **$→€ format** düzeltmesi + `public/media/product/` ekran görüntülerini yeniden çek. Kullanıcıdan beklenen: gerçek fiyat (99 € yer tutucu) + Impressum/Datenschutz şirket bilgileri.  
 > **Sıradaki (bekleyen, deploy):** Oturum B kalan maddeler — secret/asset bekliyor: (a) eBay/Shopify/Gemini gerçek anahtar + sandbox test, (b) SAM2 checkpoint, (c) prod `backend/.env`. Sonra `feature/deployment-tooling` → PR ile develop'a.  
 > **Sıradaki (bekleyen):** eBay/Shopify/Gemini gerçek API anahtarları + SAM2 model checkpoint + prod env. (Deploy tooling artık VAR: `docker-compose.prod.yml` + backend/frontend Dockerfile + CI docker-build + `DEPLOYMENT.docker.md`.)  
@@ -1037,3 +1037,23 @@ Oturum A `feature/security-ui-polish` dalında bitti (K1-K4 aynı dalda → PR #
 4. Deploy maddeleri (secret/asset) + `feature/deployment-tooling` → develop PR.
 
 **Not:** Kökteki `foto*.png/mp4` + `sc-tmp/` git dışı ham/ara dosyalar (boru hattı sc-tmp'den saniyeler içinde yeniden koşar). `.next-dev.log` git dışı. Dev server bu oturumda arka planda yeniden başlatıldı (allowedDevOrigins için restart gerekmişti).
+
+## 📌 Son Oturum (2026-07-14 · Microcopy promptu + Hero video üretim stratejisi araştırması)
+
+**Yapılanlar (bu oturum kod DEĞİL, hazırlık/araştırma):**
+1. **Microcopy turu — ChatGPT'ye verilecek prompt hazırlandı:** Landing'de fiilen kullanılan TÜM metin anahtarları (`page.tsx` + `WatchScrollytelling.tsx` + `messages/de.json` `Landing` namespace) tarandı; kullanıcının ChatGPT'ye yapıştıracağı tek-parça brief üretildi (ürün bağlamı + ton kuralları + jargon YASAK listesi [Redis/Mutex/SKU/Race Condition/API/LLM/SAM 2] + klişe yasağı [Geschäft transformieren, unfairer Vorteil, Workflow optimieren, "Schließen Sie sich an"] + anahtar-anahtar mevcut DE metni + ⚠/⚠⚠ öncelik işaretleri). **Çıktı formatı: `{ "key": {"de","en","tr"} }` JSON** — kullanıcı geri getirince 3 dile tek seferde işlenecek. Ayrıca **3 YENİ anahtar** talep edildi: `f1_meta`, `f4_meta`, `f5_meta` (şu an `page.tsx:38-40`'ta İngilizce SABİT string — "SAM 2 · Studio-grade", "Redis mutex · Per-SKU", "Chrono24 · Watchfinder"; çeviril­e­miyorlar, i18n'e taşınacak). Yetenekler bölümü 6→3 kart zaten (f1/f4/f5); f4 kartı metni bayi diline TAMAMEN yeniden yazılacak.
+2. **Hero video sorunu — kök neden bulundu:** Önceki Gemini/Veo denemeleri başarısızdı çünkü (a) video modeline exploded-view'ü PROMPT'la icat ettirdik → morph/lapa; (b) 4 bağımsız klip üretildi, **ilk+son kare sabitlenmedi** → ekler zıplıyor; (c) Rolex logosu sızıyordu.
+3. **2 paralel derin web araştırması yapıldı** (AI video araçları + 3D/hibrit yollar + fal.ai ödeme/fiyat). **KARAR = Yol A (AI, düşük bütçe, hızlı):** Nano Banana Pro ile patlamış hali önce STILL üret (kamera/ışık kilitli, logosuz, 5 keyframe: hero→dönmüş→yarı-açık→tam-açık→hero) → **Kling 2.5 Turbo Pro** (veya hassas segmentte **Kling O1** ilk+son-kare zorunlu model) ile her segmente start+end frame ver, segmentleri DURGUN pozda bitir (sıfır-hız = eksiz birleşme) → renk-eşitle + ücretsiz **RIFE** ile 234+ kareye interpolate → mevcut WebP/canvas boru hattına gir. Ucuz iterasyon: prompt'u önce **Wan FLF2V** ($0.20-0.40/klip) ile dene, tutanı Kling'de finalle.
+4. **Ödeme netleşti (fal.ai):** ön ödemeli kredi (abonelik yok), kart/USDC, kredi 365 gün geçerli, yeni hesaba ~$10 ücretsiz kredi, watermark yok, hatalı üretim faturalanmaz. **Gerçekçi toplam maliyet: $13-15** (iyi senaryo ~$7.50, ücretsiz kredi karşılar; kötü senaryo ~$30). Önerilen aksiyon: **tek seferlik $20 yükle** → ~$30 bakiye, ileriki scrollytelling işleri için de yeter.
+5. **Yol B (yedek/uzun vade) belgelendi:** Blender + hazır 3D model. CGTrader **"Watch 5 exploded"** ($30-100) = 78 parça + **240 kare HAZIR patlama animasyonu** (bizim 234-kare spec'e ~birebir); logoyu sil + #060607 stüdyo ışığı (Blender Python script'i Claude yazar) + gece render (GPU yoksa SheepIt ücretsiz). Kalite tavanı EN YÜKSEK (Apple/Cartier tekniği), deterministik, gelecekteki tüm sahnelerin temeli. Kalite yetmezse veya scrollytelling büyürse buna geçilecek.
+
+**Mevcut durum:** Kod DEĞİŞMEDİ (bu oturum planlama). Landing hâlâ 2026-07-11 durumunda çalışıyor (backend :8001, frontend :3000 doğrulandı). İki iş açık ve BLOKE: microcopy JSON'u kullanıcıdan bekleniyor; hero video için kullanıcının fal.ai hesabı açıp keyframe/kliplerini üretmesi (veya Claude'un keyframe+segment promptlarını hazırlaması) bekleniyor.
+
+**Sonraki adımlar (sırayla):**
+1. **Microcopy:** Kullanıcı ChatGPT'den dönen `{key:{de,en,tr}}` JSON'unu getirince → `messages/{de,en,tr}.json` `Landing`'e işle + `page.tsx:38-40` sabit metaları `f1_meta/f4_meta/f5_meta` i18n anahtarlarına taşı → Playwright ile 3 dilde doğrula.
+2. **Hero video (Yol A):** Kullanıcı isterse → Claude, Nano Banana Pro **keyframe promptları** (5 kare) + **Kling segment promptları** (start+end frame'li, durgun-poz bitişli) hazırlar → kullanıcı fal.ai'de üretir → dönen klipler RIFE+ffmpeg (`sc-tmp/`) ile 234 kareye → `public/media/scrolly/frames{,-sm}/` güncellenir.
+3. **Dashboard $→€** format fix → `shot-dashboard.webp` yeniden çek.
+4. Kullanıcıdan: gerçek fiyat + Impressum/Datenschutz şirket bilgileri.
+5. Deploy maddeleri (secret/asset) + `feature/deployment-tooling` → develop PR.
+
+**Not:** Video araştırmasının tam kaynak/fiyat tablosu bu chat geçmişinde (fal.ai birim fiyatları, model karşılaştırması). Repo'ya ayrı doküman YAZILMADI — gerekirse sonraki oturumda `docs/`e özetlenebilir. `sc-tmp/` + kök `foto*` hâlâ git dışı.
