@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Script from "next/script";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight } from "lucide-react";
@@ -57,8 +58,8 @@ export default async function LandingPage() {
 
   return (
     <div className="ws-landing min-h-screen">
-      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('ws-js')" }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Script id="ws-js-init" dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('ws-js')" }} />
+      <Script id="ws-json-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* ============ Nav ============ */}
       <nav className="fixed inset-x-0 top-0 z-30 mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
