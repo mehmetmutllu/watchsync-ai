@@ -1,46 +1,49 @@
-# 🕐 WatchSync AI
+# WatchSync AI
 
-> Lüks saat satıcıları için yapay zeka destekli çoklu platform envanter ve ilan yönetim sistemi.
+**AI-assisted inventory and multi-channel listing platform for luxury watch dealers.**
 
----
+Luxury watch dealers manage the same inventory across marketplaces (eBay, Shopify, chrono platforms) by hand — re-typing listings, juggling prices and stock in spreadsheets. WatchSync AI centralizes the inventory and uses AI for enrichment (spec extraction, pricing signals, listing copy), then syncs listings to every connected channel.
 
-## 🏗 Proje Yapısı
+## Architecture
+
+Three services, each with a clear responsibility:
 
 ```
-saatProjesi/
-├── backend/          → Laravel 11 (PHP API & İş Mantığı)    [Senior]
-├── frontend/         → Next.js 14 (React Dashboard UI)      [Junior]
-├── ai-service/       → FastAPI (Python AI & Scraping)        [Senior]
-├── plan.md           → Proje yönetim planı
-├── design.md         → Tasarım sistemi rehberi
-└── progress.md       → İlerleme takip belgesi
+├── backend/     → Laravel 11 — REST API, business logic, channel integrations
+├── frontend/    → Next.js 14 — dealer dashboard UI
+└── ai-service/  → FastAPI (Python) — AI enrichment & market-data scraping
 ```
 
-## 🔀 Git Branch Kuralları
+- **Backend (Laravel 11):** inventory domain model, multi-channel listing sync (eBay / Shopify APIs, webhook verification), queue-driven jobs (Redis + RabbitMQ), mail flows.
+- **Frontend (Next.js 14):** dealer-facing dashboard for inventory, listings and channel status.
+- **AI service (FastAPI):** Python service for AI-powered enrichment and market data (watch pricing references), containerized with Docker.
 
-| Branch | Amaç |
-|--------|-------|
-| `main` | Canlı (production) — doğrudan push **YASAK** |
-| `develop` | Geliştirme ana dalı — PR ile merge |
-| `senior/feature/*` | Senior'un özellik branch'leri |
-| `junior/feature/*` | Junior'un özellik branch'leri |
+## Tech Stack
 
-## ⚠️ Altın Kurallar
+Laravel 11 · PHP · MySQL · Redis · RabbitMQ · Next.js 14 · React · TypeScript · FastAPI · Python · Docker · Sentry
 
-1. **`main` ve `develop`'a asla direkt push yapma** — her zaman PR aç
-2. **Kendi klasöründe çalış** — Senior: `backend/`, `ai-service/` | Junior: `frontend/`
-3. **Her feature dalı kısa ömürlü olsun** — max 2-3 gün, sonra PR aç ve merge et
-4. **Commit mesajları anlamlı olsun** — `feat:`, `fix:`, `style:` prefix'leri kullan
+## Key Engineering Decisions
 
-## 🚀 Çalıştırma
+- **Service split by workload type** — PHP for transactional business logic, Python for AI/scraping workloads, isolated so they scale and fail independently.
+- **Queue-first channel sync** — marketplace APIs are slow and rate-limited; all channel operations run through queues instead of blocking requests.
+- **Webhook-verified integrations** — eBay/Shopify webhooks are signature-verified before touching inventory state.
+- **AI-assisted development workflow** — the repo carries persistent project context (`CLAUDE.md`, `progress.md`, design docs) so AI-assisted sessions continue with full project knowledge.
+
+## Running Locally
 
 ```bash
 # Backend
-cd backend && php artisan serve
+cd backend && composer install && php artisan serve
 
 # Frontend
-cd frontend && npm run dev
+cd frontend && npm install && npm run dev
 
-# AI Servisi
-cd ai-service && uvicorn main:app --reload --port 8001
+# AI service
+cd ai-service && pip install -r requirements.txt && uvicorn main:app --reload --port 8001
 ```
+
+Each service has its own `.env.example` — copy to `.env` and fill in credentials.
+
+## Project Status
+
+Active development. Core inventory + dashboard implemented; channel integrations and AI enrichment expanding.
