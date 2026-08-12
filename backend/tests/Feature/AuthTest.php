@@ -119,7 +119,7 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(401)
-                 ->assertJson(['message' => 'E-posta adresi veya şifre hatalı.']);
+                 ->assertJson(['message' => __('api.login_invalid')]);
     }
 
     public function test_user_can_get_profile()

@@ -41,6 +41,9 @@ return new class extends Migration
             if (! Schema::hasColumn('dealers', 'cancel_at_period_end')) {
                 $table->boolean('cancel_at_period_end')->default(false)->after('current_period_end');
             }
+            if (! Schema::hasColumn('dealers', 'trial_ends_at')) {
+                $table->timestamp('trial_ends_at')->nullable()->after('cancel_at_period_end');
+            }
         });
     }
 

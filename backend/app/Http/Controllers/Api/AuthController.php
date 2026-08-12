@@ -27,12 +27,15 @@ class AuthController extends Controller
         try {
             $ipAddress = $request->ip();
             $user = DB::transaction(function () use ($validated, $ipAddress) {
-                // Dealer oluştur
+                // Dealer oluştur (7 Günlük Ücretsiz Pro Deneme Süresi ile)
                 $dealer = Dealer::create([
-                    'name'         => $validated['name'],
-                    'company_name' => $validated['company_name'] ?? null,
-                    'email'        => $validated['email'],
-                    'status'       => 'active',
+                    'name'                => $validated['name'],
+                    'company_name'        => $validated['company_name'] ?? null,
+                    'email'               => $validated['email'],
+                    'status'              => 'active',
+                    'plan_type'           => 'pro',
+                    'subscription_status' => 'trialing',
+                    'trial_ends_at'       => now()->addDays(7),
                 ]);
 
                 // User oluştur (ilk kullanıcı = owner)

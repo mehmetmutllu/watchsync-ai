@@ -32,6 +32,7 @@ class Dealer extends Model
         'subscription_status',
         'current_period_end',
         'cancel_at_period_end',
+        'trial_ends_at',
     ];
 
     protected function casts(): array
@@ -40,6 +41,7 @@ class Dealer extends Model
             'notification_preferences' => 'array',
             'current_period_end'       => 'datetime',
             'cancel_at_period_end'     => 'boolean',
+            'trial_ends_at'            => 'datetime',
         ];
     }
 
