@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { X, Loader2, Send } from 'lucide-react';
 import { teamApi } from '@/lib/team-api';
@@ -25,11 +26,17 @@ export default function InviteMemberModal({
 }: InviteMemberModalProps) {
   const t = useTranslations('Team');
   const { user } = usePermission();
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'manager' | 'staff'>('staff');
   const [permissions, setPermissions] = useState<string[]>(catalog.presets.staff ?? []);
   const [expiryDays, setExpiryDays] = useState<number>(defaultExpiryDays);
+  const [isIndefinite, setIsIndefinite] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Rol değişince (ve ilk açılışta) preset'i başlangıç olarak uygula.
   // catalog.presets kasıtlı olarak dep dışı: arka plan team refetch'i catalog
@@ -79,21 +86,33 @@ export default function InviteMemberModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-border-strong rounded-xl shadow-[var(--shadow-elevated)]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle sticky top-0 bg-surface">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal Card Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="relative w-full max-w-xl max-h-[85vh] bg-surface border border-border-strong rounded-xl shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col"
+      >
+        {/* Header - Fixed */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle shrink-0 bg-surface">
           <h2 className="text-lg font-semibold text-primary-text">{t('invite_title')}</h2>
           <button
+            type="button"
             onClick={onClose}
-            className="text-secondary-text hover:text-primary-text"
+            className="text-secondary-text hover:text-primary-text rounded-md p-1 hover:bg-surface-elevated transition-colors"
             aria-label={t('close')}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Scrollable Content Body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-secondary-text mb-1">{t('email')}</label>
             <input
@@ -119,16 +138,37 @@ export default function InviteMemberModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-secondary-text mb-1">
-                {t('expiry_days')}
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-secondary-text">
+                  {t('expiry_days')}
+                </label>
+                <label className="inline-flex items-center gap-1.5 text-xs text-secondary-text hover:text-primary-text cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isIndefinite}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIsIndefinite(checked);
+                      if (checked) {
+                        setExpiryDays(0);
+                      } else {
+                        setExpiryDays(defaultExpiryDays || 7);
+                      }
+                    }}
+                    className="rounded border-border-strong bg-surface-elevated text-accent-blue focus:ring-accent-blue/40"
+                  />
+                  <span>{t('expires_never')}</span>
+                </label>
+              </div>
               <input
                 type="number"
-                min={1}
+                min={0}
                 max={365}
-                value={expiryDays}
+                disabled={isIndefinite}
+                value={isIndefinite ? '' : expiryDays}
                 onChange={(e) => setExpiryDays(Number(e.target.value))}
-                className="w-full px-3 py-2 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue"
+                placeholder={isIndefinite ? t('expires_never') : '7'}
+                className="w-full px-3 py-2 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -140,8 +180,8 @@ export default function InviteMemberModal({
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-accent-blue">
                     {t('preset_customized')}
-                    {presetDiff.added > 0 && <span className="ml-1 tabular-nums">+{presetDiff.added}</span>}
-                    {presetDiff.removed > 0 && <span className="ml-1 tabular-nums">−{presetDiff.removed}</span>}
+                    {presetDiff.added > 0 && <span className="ms-1 tabular-nums">+{presetDiff.added}</span>}
+                    {presetDiff.removed > 0 && <span className="ms-1 tabular-nums">−{presetDiff.removed}</span>}
                   </span>
                   <button
                     type="button"
@@ -162,26 +202,28 @@ export default function InviteMemberModal({
               grantable={grantable}
             />
           </div>
+        </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text"
-            >
-              {t('cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
-            >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {t('send_invite')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Footer - Fixed */}
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border-subtle shrink-0 bg-surface">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text hover:bg-surface-elevated rounded-lg transition-colors"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
+          >
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {t('send_invite')}
+          </button>
+        </div>
+      </form>
+    </div>,
+    document.body
   );
 }

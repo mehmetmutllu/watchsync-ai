@@ -49,9 +49,9 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
   }
 
   return (
-    <div className="relative pl-8 space-y-8 my-4">
+    <div className="relative ps-8 space-y-8 my-4">
       {/* Timeline spine */}
-      <div className="absolute left-[11px] top-2 bottom-0 w-[2px] bg-gradient-to-b from-border-strong to-transparent rounded-full" />
+      <div className="absolute start-[11px] top-2 bottom-0 w-[2px] bg-gradient-to-b from-border-strong to-transparent rounded-full" />
       
       {events.map((event, index) => {
         const isNote = event.type === "note";
@@ -62,7 +62,7 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
           <div key={event.id} className={`relative group animate-slide-up ${staggerClass} opacity-0 [animation-fill-mode:forwards]`}>
             {/* Glowing Timeline Dot */}
             <div
-              className={`absolute -left-[35.5px] top-1 w-6 h-6 rounded-full flex items-center justify-center border-4 border-midnight transition-transform duration-300 group-hover:scale-110 ${
+              className={`absolute -start-[35.5px] top-1 w-6 h-6 rounded-full flex items-center justify-center border-4 border-midnight transition-transform duration-300 group-hover:scale-110 ${
                 isNote
                   ? "bg-accent-blue"
                   : isInvoice
@@ -75,9 +75,9 @@ export function CustomerTimeline({ customerId }: CustomerTimelineProps) {
             </div>
 
             {/* Premium Glass Event Card */}
-            <div className="glass-strong glass-hover rounded-2xl p-5 ml-2 relative overflow-hidden">
+            <div className="glass-strong glass-hover rounded-2xl p-5 ms-2 relative overflow-hidden">
               {/* Subtle background glow depending on type */}
-              <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-20 ${
+              <div className={`absolute -top-10 -end-10 w-32 h-32 rounded-full blur-[40px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-20 ${
                 isNote ? "bg-accent-blue" : isInvoice ? "bg-semantic-success" : "bg-accent-gold"
               }`} />
               

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   BarChart3,
   Download,
@@ -15,6 +16,10 @@ import {
 import type { CommissionReport } from "@/types/admin";
 
 export default function AdminReportsPage() {
+  const t = useTranslations("AdminReports");
+  const format = useFormatter();
+  const eur = (v: number) =>
+    format.number(v, { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
   const [activeTab, setActiveTab] = useState<"revenue" | "commissions">("revenue");
   const [revenueData, setRevenueData] = useState<{ invoices: unknown; total_revenue: number } | null>(null);
   const [commissionData, setCommissionData] = useState<CommissionReport | null>(null);
@@ -71,8 +76,8 @@ export default function AdminReportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-primary-text">Raporlar</h1>
-          <p className="text-sm text-secondary-text mt-1">Gelir ve komisyon analizleri</p>
+          <h1 className="text-2xl font-bold text-primary-text">{t("title")}</h1>
+          <p className="text-sm text-secondary-text mt-1">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -81,7 +86,7 @@ export default function AdminReportsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 transition-colors"
           >
             <Download className="w-4 h-4" />
-            Gelir CSV
+            {t("export_revenue")}
           </button>
           <button
             onClick={() => handleExport("watches")}
@@ -89,7 +94,7 @@ export default function AdminReportsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-accent-purple/10 text-accent-purple hover:bg-accent-purple/20 transition-colors"
           >
             <Download className="w-4 h-4" />
-            Saat CSV
+            {t("export_watches")}
           </button>
           <button
             onClick={() => handleExport("users")}
@@ -97,7 +102,7 @@ export default function AdminReportsPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-semantic-success/10 text-semantic-success hover:bg-semantic-success/20 transition-colors"
           >
             <Download className="w-4 h-4" />
-            Kullanıcı CSV
+            {t("export_users")}
           </button>
         </div>
       </div>
@@ -112,7 +117,7 @@ export default function AdminReportsPage() {
               : "text-secondary-text hover:text-primary-text"
           }`}
         >
-          Gelir
+          {t("tab_revenue")}
         </button>
         <button
           onClick={() => setActiveTab("commissions")}
@@ -122,7 +127,7 @@ export default function AdminReportsPage() {
               : "text-secondary-text hover:text-primary-text"
           }`}
         >
-          Platform Komisyon
+          {t("tab_commissions")}
         </button>
       </div>
 
@@ -134,14 +139,16 @@ export default function AdminReportsPage() {
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
             className="px-4 py-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-primary-text text-sm"
-            placeholder="Başlangıç"
+            aria-label={t("date_from")}
+            placeholder={t("date_from")}
           />
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
             className="px-4 py-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-primary-text text-sm"
-            placeholder="Bitiş"
+            aria-label={t("date_to")}
+            placeholder={t("date_to")}
           />
         </div>
       )}
@@ -161,9 +168,9 @@ export default function AdminReportsPage() {
               </div>
               <div>
                 <p className="text-3xl font-bold text-primary-text">
-                  €{revenueData.total_revenue.toLocaleString("tr-TR")}
+                  {eur(revenueData.total_revenue)}
                 </p>
-                <p className="text-sm text-secondary-text">Toplam Gelir</p>
+                <p className="text-sm text-secondary-text">{t("total_revenue")}</p>
               </div>
             </div>
           </div>
@@ -174,19 +181,19 @@ export default function AdminReportsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border-subtle text-secondary-text">
-                    <th className="text-left px-5 py-3 font-medium">Fatura No</th>
-                    <th className="text-left px-5 py-3 font-medium">Bayi</th>
-                    <th className="text-right px-5 py-3 font-medium">Toplam</th>
-                    <th className="text-left px-5 py-3 font-medium">Tarih</th>
+                    <th className="text-start px-5 py-3 font-medium">{t("col_invoice_no")}</th>
+                    <th className="text-start px-5 py-3 font-medium">{t("col_dealer")}</th>
+                    <th className="text-end px-5 py-3 font-medium">{t("col_total")}</th>
+                    <th className="text-start px-5 py-3 font-medium">{t("col_date")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(((revenueData.invoices as { data?: Record<string, unknown>[] })?.data ?? revenueData.invoices) as Record<string, unknown>[])?.map((inv, idx) => (
                     <tr key={idx} className="border-b border-border-subtle/50 hover:bg-surface-elevated/50">
-                      <td className="px-5 py-3 text-primary-text font-mono text-xs">{String(inv.invoice_number ?? "-")}</td>
-                      <td className="px-5 py-3 text-secondary-text">{String((inv.dealer as Record<string, unknown>)?.name ?? "-")}</td>
-                      <td className="px-5 py-3 text-right text-primary-text">€{Number(inv.total ?? 0).toLocaleString("tr-TR")}</td>
-                      <td className="px-5 py-3 text-secondary-text text-xs">{inv.updated_at ? new Date(String(inv.updated_at)).toLocaleDateString("tr-TR") : "-"}</td>
+                      <td className="px-5 py-3 text-primary-text font-mono text-xs">{String(inv.invoice_number ?? "—")}</td>
+                      <td className="px-5 py-3 text-secondary-text">{String((inv.dealer as Record<string, unknown>)?.name ?? "—")}</td>
+                      <td className="px-5 py-3 text-end text-primary-text">{eur(Number(inv.total ?? 0))}</td>
+                      <td className="px-5 py-3 text-secondary-text text-xs">{inv.updated_at ? format.dateTime(new Date(String(inv.updated_at)), "short") : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -199,17 +206,17 @@ export default function AdminReportsPage() {
           {commissionData.commissions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-secondary-text">
               <BarChart3 className="w-10 h-10 mb-3 opacity-40" />
-              <p>Henüz komisyon verisi yok</p>
+              <p>{t("no_commission_data")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border-subtle text-secondary-text">
-                    <th className="text-left px-5 py-3 font-medium">Platform</th>
-                    <th className="text-center px-5 py-3 font-medium">Başarılı Sync</th>
-                    <th className="text-center px-5 py-3 font-medium">Toplam Sync</th>
-                    <th className="text-center px-5 py-3 font-medium">Başarı Oranı</th>
+                    <th className="text-start px-5 py-3 font-medium">{t("col_platform")}</th>
+                    <th className="text-center px-5 py-3 font-medium">{t("col_successful_syncs")}</th>
+                    <th className="text-center px-5 py-3 font-medium">{t("col_total_syncs")}</th>
+                    <th className="text-center px-5 py-3 font-medium">{t("col_success_rate")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -224,7 +231,7 @@ export default function AdminReportsPage() {
                           c.success_rate >= 70 ? "bg-semantic-warning/10 text-semantic-warning" :
                           "bg-semantic-error/10 text-semantic-error"
                         }`}>
-                          %{c.success_rate}
+                          {format.number(c.success_rate / 100, { style: "percent", maximumFractionDigits: 1 })}
                         </span>
                       </td>
                     </tr>

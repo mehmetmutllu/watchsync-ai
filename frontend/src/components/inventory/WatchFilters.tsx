@@ -59,7 +59,7 @@ export default function WatchFilters() {
       <div className="flex items-center gap-3">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
           <input
             type="text"
             placeholder={t("search_placeholder")}
@@ -67,7 +67,7 @@ export default function WatchFilters() {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleSearch}
-            className="w-full pl-10 pr-4 py-2 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
+            className="w-full ps-10 pe-4 py-2 bg-black/20 border border-white/10 rounded-lg text-sm text-primary-text placeholder:text-disabled-text focus:outline-none focus:border-accent-blue transition-colors"
           />
         </div>
 

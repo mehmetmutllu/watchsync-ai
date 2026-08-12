@@ -76,7 +76,7 @@ export default function StatusBadge({
       {isOpen && canChange && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 z-20 w-36 bg-surface-elevated border border-border-subtle rounded-lg shadow-lg py-1 animate-fade-in">
+          <div className="absolute start-0 top-full mt-1 z-20 w-36 bg-surface-elevated border border-border-subtle rounded-lg shadow-lg py-1 animate-fade-in">
             {allowedTransitions.map((targetStatus) => {
               const targetConfig = STATUS_CONFIG[targetStatus];
               return (

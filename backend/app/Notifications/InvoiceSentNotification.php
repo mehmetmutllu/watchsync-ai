@@ -23,14 +23,22 @@ class InvoiceSentNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject("Invoice {$this->invoice->invoice_number}")
-            ->greeting("Hello {$notifiable->first_name},")
-            ->line("Please find your invoice #{$this->invoice->invoice_number} attached.")
-            ->line("Amount due: {$this->invoice->total} {$this->invoice->currency}")
-            ->when($this->invoice->due_date, function (MailMessage $message) {
-                $message->line("Due date: {$this->invoice->due_date->format('d.m.Y')}");
-            })
-            ->line('Thank you for your business!');
+        $locale = $notifiable->locale ?? app()->getLocale();
+        $amount = number_format((float) $this->invoice->total, 2) . ' ' . $this->invoice->currency;
+
+        $message = (new MailMessage)
+            ->locale($locale)
+            ->subject(__('notifications.invoice.subject', ['number' => $this->invoice->invoice_number], $locale))
+            ->greeting(__('notifications.greeting', ['name' => $notifiable->first_name], $locale))
+            ->line(__('notifications.invoice.intro', ['number' => $this->invoice->invoice_number], $locale))
+            ->line(__('notifications.invoice.amount', ['amount' => $amount], $locale));
+
+        if ($this->invoice->due_date) {
+            $message->line(__('notifications.invoice.due_date', [
+                'date' => $this->invoice->due_date->translatedFormat('d MMMM yyyy'),
+            ], $locale));
+        }
+
+        return $message->line(__('notifications.invoice.thanks', [], $locale));
     }
 }

@@ -119,8 +119,8 @@ function ProfileTab() {
           <div>
             <label className="block text-sm font-medium text-secondary-text mb-1">{t('current_password')}</label>
             <div className="relative">
-              <input type={showCurrentPw ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required className="w-full px-3 py-2 pr-10 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue" />
-              <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text">
+              <input type={showCurrentPw ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required className="w-full px-3 py-2 pe-10 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue" />
+              <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute end-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text">
                 {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -129,8 +129,8 @@ function ProfileTab() {
             <div>
               <label className="block text-sm font-medium text-secondary-text mb-1">{t('new_password')}</label>
               <div className="relative">
-                <input type={showNewPw ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} className="w-full px-3 py-2 pr-10 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue" />
-                <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text">
+                <input type={showNewPw ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} className="w-full px-3 py-2 pe-10 bg-surface-elevated border border-border-strong rounded-lg text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue" />
+                <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute end-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text">
                   {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -348,7 +348,7 @@ function NotificationsTab() {
               }`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                prefs[opt.key] ? 'translate-x-6' : 'translate-x-1'
+                prefs[opt.key] ? 'ltr:translate-x-6 rtl:-translate-x-6' : 'ltr:translate-x-1 rtl:-translate-x-1'
               }`} />
             </button>
           </div>

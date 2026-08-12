@@ -70,7 +70,7 @@ class MarketController extends Controller
         if (!$clientId || !$clientSecret) {
             return response()->json([
                 'status' => 'not_configured',
-                'message' => 'EBAY_CLIENT_ID ve EBAY_CLIENT_SECRET .env dosyasında tanımlanmalıdır.',
+                'message' => __('api.ebay_keys_missing_env'),
                 'environment' => $sandbox ? 'sandbox' : 'production',
             ], 422);
         }
@@ -92,7 +92,7 @@ class MarketController extends Controller
             if (!$tokenResponse->successful()) {
                 return response()->json([
                     'status' => 'auth_failed',
-                    'message' => 'eBay OAuth token alınamadı. Client ID/Secret kontrol edin.',
+                    'message' => __('api.ebay_token_failed'),
                     'environment' => $sandbox ? 'sandbox' : 'production',
                     'error_status' => $tokenResponse->status(),
                 ], 401);
@@ -102,7 +102,7 @@ class MarketController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'connection_error',
-                'message' => 'eBay OAuth sunucusuna bağlanılamadı: ' . $e->getMessage(),
+                'message' => __('api.ebay_oauth_unreachable', ['error' => $e->getMessage()]),
                 'environment' => $sandbox ? 'sandbox' : 'production',
             ], 503);
         }
@@ -142,7 +142,7 @@ class MarketController extends Controller
 
             return response()->json([
                 'status' => 'ok',
-                'message' => "eBay Browse API bağlantısı başarılı. '{$testRef}' için {$totalItems} sonuç bulundu.",
+                'message' => __('api.ebay_browse_ok', ['count' => $totalItems]),
                 'environment' => $sandbox ? 'sandbox' : 'production',
                 'token_type' => 'client_credentials',
                 'test_reference' => $testRef,
@@ -153,7 +153,7 @@ class MarketController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'browse_api_error',
-                'message' => 'eBay token alındı ama Browse API sorgusu başarısız: ' . $e->getMessage(),
+                'message' => __('api.ebay_browse_failed', ['error' => $e->getMessage()]),
                 'environment' => $sandbox ? 'sandbox' : 'production',
                 'token_acquired' => true,
             ], 503);
@@ -176,7 +176,7 @@ class MarketController extends Controller
         if ($trend === null) {
             return response()->json([
                 'data' => null,
-                'message' => 'WatchCharts API yapılandırılmamış veya kullanılamıyor.',
+                'message' => __('api.watchcharts_unavailable'),
             ]);
         }
 
@@ -226,6 +226,6 @@ class MarketController extends Controller
 
         $alert->delete();
 
-        return response()->json(['message' => 'Fiyat uyarısı silindi.']);
+        return response()->json(['message' => __('api.price_alert_deleted')]);
     }
 }

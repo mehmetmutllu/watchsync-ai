@@ -111,7 +111,7 @@ class UserController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Kullanıcı durumu güncellendi.',
+            'message' => __('api.user_status_updated'),
         ]);
     }
 
@@ -137,8 +137,8 @@ class UserController extends Controller
 
         return response()->json([
             'message' => $status === Password::RESET_LINK_SENT
-                ? 'Şifre sıfırlama linki gönderildi.'
-                : 'Şifre sıfırlama linki gönderilemedi.',
+                ? __('api.password_reset_sent')
+                : __('api.password_reset_failed'),
         ], $status === Password::RESET_LINK_SENT ? 200 : 422);
     }
 
@@ -154,14 +154,14 @@ class UserController extends Controller
         // Admin kullanıcıyı silemez
         if ($user->adminUser) {
             return response()->json([
-                'message' => 'Admin kullanıcılar bu yöntemle silinemez.',
+                'message' => __('api.admin_no_delete_here'),
             ], 403);
         }
 
         $user->dealer->update(['status' => 'suspended']);
         $user->update([
             'email' => "deleted_{$user->id}_{$user->email}",
-            'name'  => 'Silinmiş Kullanıcı',
+            'name'  => __('api.deleted_user'),
         ]);
 
         $adminUser = $request->attributes->get('adminUser');
@@ -174,7 +174,7 @@ class UserController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Kullanıcı başarıyla silindi.',
+            'message' => __('api.user_deleted'),
         ]);
     }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/routing";
+
 import {
   LayoutDashboard,
   Package,
@@ -30,7 +30,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label={t("mobile_nav")}
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-strong border-t border-border-subtle"
+      className="fixed bottom-0 start-0 end-0 z-50 md:hidden glass-strong border-t border-border-subtle"
     >
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {

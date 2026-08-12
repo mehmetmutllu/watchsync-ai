@@ -21,18 +21,30 @@ class TeamInvitationNotification extends Notification
         return ['mail'];
     }
 
+    /**
+     * Davetin dili: davetiyede kayıtlı tercih → yoksa isteğin dili.
+     * Laravel, HasLocalePreference uygulayan alıcılar için dili kendi ayarlar;
+     * davetli henüz kullanıcı olmadığından burada açıkça belirtiyoruz.
+     */
     public function toMail(object $notifiable): MailMessage
     {
+        $locale = $this->invitation->locale ?: app()->getLocale();
+
         $dealerName = $this->invitation->dealer->company_name
             ?? $this->invitation->dealer->name;
 
+        $role = __('notifications.roles.' . $this->invitation->role, [], $locale);
+
         return (new MailMessage)
-            ->subject("{$dealerName} sizi ekibine davet etti")
-            ->greeting('Merhaba,')
-            ->line("{$dealerName}, WatchSync AI ekibine katılmanız için sizi davet etti.")
-            ->line("Rolünüz: {$this->invitation->role}")
-            ->action('Daveti Kabul Et', $this->acceptUrl)
-            ->line("Bu davet {$this->invitation->expires_at->format('d.m.Y H:i')} tarihine kadar geçerlidir.")
-            ->line('Eğer bu daveti beklemiyorsanız bu e-postayı yok sayabilirsiniz.');
+            ->locale($locale)
+            ->subject(__('notifications.invitation.subject', ['dealer' => $dealerName], $locale))
+            ->greeting(__('notifications.greeting_generic', [], $locale))
+            ->line(__('notifications.invitation.intro', ['dealer' => $dealerName], $locale))
+            ->line(__('notifications.invitation.role', ['role' => $role], $locale))
+            ->action(__('notifications.invitation.action', [], $locale), $this->acceptUrl)
+            ->line(__('notifications.invitation.expires', [
+                'date' => $this->invitation->expires_at->translatedFormat('d MMMM yyyy, HH:mm'),
+            ], $locale))
+            ->line(__('notifications.invitation.ignore', [], $locale));
     }
 }

@@ -41,7 +41,7 @@ export function CustomerAiInsights({ customer, language = "de" }: CustomerAiInsi
 
   return (
     <div className="bg-accent-blue/5 border border-accent-blue/20 rounded-2xl p-5 relative overflow-hidden group shadow-lg">
-      <div className="absolute top-0 left-0 w-full h-1 bg-accent-blue/60" />
+      <div className="absolute top-0 start-0 w-full h-1 bg-accent-blue/60" />
       
       <div className="flex justify-between items-start mb-3">
         <h3 className="font-bold text-primary-text flex items-center gap-2">

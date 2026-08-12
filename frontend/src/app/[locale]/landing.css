@@ -452,3 +452,47 @@
   [data-reveal] { opacity: 1; transform: none; transition: none; }
   .ws-eyebrow[data-live]::before { animation: none; }
 }
+
+/* ============================================================
+   RTL (Arapça) — landing sahnesinin aynalanması
+   ============================================================ */
+[dir="rtl"] .ws-frame::before {
+  left: auto;
+  right: -1px;
+  border-left-width: 0;
+  border-right-width: 1px;
+}
+
+[dir="rtl"] .ws-frame::after {
+  right: auto;
+  left: -1px;
+  border-right-width: 0;
+  border-left-width: 1px;
+}
+
+/* Kopya sütunu sağa geçer, dolgu aynalanır */
+[dir="rtl"] .ws-vj-col {
+  left: auto;
+  right: 0;
+  padding: 0 clamp(1.5rem, 5vw, 4.5rem) 0 1.5rem;
+}
+
+[dir="rtl"] .ws-vj-rail {
+  left: auto;
+  right: clamp(1.5rem, 5vw, 4.5rem);
+}
+
+@media (max-width: 860px) {
+  [dir="rtl"] .ws-vj-col {
+    right: 0;
+    left: 0;
+    padding: 0 1.5rem 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [dir="rtl"] .ws-vj-video {
+    left: auto;
+    right: 0;
+  }
+}

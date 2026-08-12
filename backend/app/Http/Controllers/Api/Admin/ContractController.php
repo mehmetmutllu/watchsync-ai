@@ -61,7 +61,7 @@ class ContractController extends Controller
         ]);
 
         return response()->json([
-            'message'  => 'Sözleşme oluşturuldu.',
+            'message'  => __('api.contract_created'),
             'contract' => $contract,
         ], 201);
     }
@@ -84,7 +84,7 @@ class ContractController extends Controller
         $contract->update($validated);
 
         return response()->json([
-            'message'  => 'Sözleşme güncellendi.',
+            'message'  => __('api.contract_updated'),
             'contract' => $contract->fresh(),
         ]);
     }
@@ -119,7 +119,7 @@ class ContractController extends Controller
         ]);
 
         return response()->json([
-            'message'  => 'Sözleşme yayınlandı.',
+            'message'  => __('api.contract_published'),
             'contract' => $contract->fresh(),
         ]);
     }

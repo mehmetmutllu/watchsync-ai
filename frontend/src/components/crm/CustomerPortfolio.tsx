@@ -222,7 +222,7 @@ export function CustomerPortfolio({ customer, onUpdate }: CustomerPortfolioProps
                     <span className="font-medium text-primary-text text-sm">{Number(watch.purchase_price).toLocaleString("de-DE")} €</span>
                     <span className="text-[10px] text-secondary-text block mt-0.5">{new Date(watch.purchase_date).toLocaleDateString("de-DE")}</span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <span className="text-xs text-secondary-text uppercase block">{t("portfolio_current_value")}</span>
                     <span className="font-semibold text-primary-text text-sm">{Number(watch.current_value).toLocaleString("de-DE")} €</span>
                     <span className={`text-xs font-medium flex items-center justify-end gap-1 mt-0.5 ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>

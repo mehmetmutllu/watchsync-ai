@@ -21,11 +21,11 @@ class InvitationController extends Controller
         $invitation = $this->findByToken($token);
 
         if (! $invitation || $invitation->accepted_at || $invitation->revoked_at) {
-            return response()->json(['message' => 'Geçersiz veya kullanılmış davet.'], 404);
+            return response()->json(['message' => __('requests.invitation_invalid')], 404);
         }
 
         if ($invitation->isExpired()) {
-            return response()->json(['message' => 'Davetin süresi dolmuş.'], 410);
+            return response()->json(['message' => __('api.invitation_expired')], 410);
         }
 
         return response()->json([
@@ -44,16 +44,16 @@ class InvitationController extends Controller
         $invitation = $this->findByToken($token);
 
         if (! $invitation || $invitation->accepted_at || $invitation->revoked_at) {
-            return response()->json(['message' => 'Geçersiz veya kullanılmış davet.'], 404);
+            return response()->json(['message' => __('requests.invitation_invalid')], 404);
         }
 
         if ($invitation->isExpired()) {
-            return response()->json(['message' => 'Davetin süresi dolmuş.'], 410);
+            return response()->json(['message' => __('api.invitation_expired')], 410);
         }
 
         // E-posta bu arada başka bir yerde kayıt olduysa çakışmayı engelle
         if (User::whereRaw('LOWER(email) = ?', [strtolower($invitation->email)])->exists()) {
-            return response()->json(['message' => 'Bu e-posta adresi zaten kayıtlı.'], 422);
+            return response()->json(['message' => __('api.email_already_registered')], 422);
         }
 
         $validated = $request->validated();
@@ -65,10 +65,11 @@ class InvitationController extends Controller
             $locked = Invitation::whereKey($invitation->id)->lockForUpdate()->first();
 
             if (! $locked || $locked->accepted_at || $locked->revoked_at) {
-                abort(response()->json(['message' => 'Geçersiz veya kullanılmış davet.'], 404));
+                abort(response()->json(['message' => __('requests.invitation_invalid')], 404));
             }
 
             $user = User::create([
+                'locale'      => $locked->locale ?: app()->getLocale(),
                 'dealer_id'   => $locked->dealer_id,
                 'name'        => $validated['name'],
                 'email'       => $locked->email,
@@ -97,7 +98,7 @@ class InvitationController extends Controller
         $user->forceFill(['last_login_at' => now()])->save();
 
         return response()->json([
-            'message' => 'Hesabınız oluşturuldu.',
+            'message' => __('api.account_created'),
             'user'    => $user->load('dealer'),
         ], 201);
     }

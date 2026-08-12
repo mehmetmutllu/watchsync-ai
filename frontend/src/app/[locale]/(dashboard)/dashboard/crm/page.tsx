@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { localeList } from "@/i18n/config";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Users,
@@ -400,7 +401,7 @@ export default function CrmPage() {
                         : "text-secondary-text hover:text-primary-text hover:bg-background/40"
                       }`}
                   >
-                    <Sparkles className="w-4 h-4 inline-block mr-1 text-accent-blue" />
+                    <Sparkles className="w-4 h-4 inline-block me-1 text-accent-blue" />
                     {t("tab_matches")}
                   </button>
                 )}
@@ -533,7 +534,7 @@ export default function CrmPage() {
                       </button>
                     </div>
 
-                    <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    <div className="space-y-3 max-h-96 overflow-y-auto pe-1">
                       {selectedCustomer.notes?.map((note) => (
                         <div
                           key={note.id}
@@ -572,11 +573,11 @@ export default function CrmPage() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="text-left text-secondary-text border-b border-border-subtle bg-background/50">
+                              <tr className="text-start text-secondary-text border-b border-border-subtle bg-background/50">
                                 <th className="px-5 py-3 font-semibold">{t("th_invoice_num")}</th>
                                 <th className="px-5 py-3 font-semibold">{t("th_invoice_date")}</th>
                                 <th className="px-5 py-3 font-semibold">{t("th_invoice_status")}</th>
-                                <th className="px-5 py-3 font-semibold text-right">{t("th_invoice_total")}</th>
+                                <th className="px-5 py-3 font-semibold text-end">{t("th_invoice_total")}</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-border-subtle/30">
@@ -594,7 +595,7 @@ export default function CrmPage() {
                                   <td className="px-5 py-3">
                                     <StatusBadge status={inv.status} />
                                   </td>
-                                  <td className="px-5 py-3 text-right font-semibold text-primary-text">
+                                  <td className="px-5 py-3 text-end font-semibold text-primary-text">
                                     {Number(inv.total).toLocaleString("de-DE", {
                                       minimumFractionDigits: 2,
                                     })}{" "}
@@ -629,7 +630,7 @@ export default function CrmPage() {
                     {/* Header */}
                     <div className="border-b border-border-subtle pb-3">
                       <h3 className="text-lg font-bold text-primary-text flex items-center">
-                        <Sparkles className="w-5 h-5 mr-2 text-accent-blue" />
+                        <Sparkles className="w-5 h-5 me-2 text-accent-blue" />
                         {t("radar_title", { query: selectedCustomer.metadata?.desired_watch ?? "" })}
                       </h3>
                       <p className="text-sm text-secondary-text mt-1">{t("radar_subtitle")}</p>
@@ -644,7 +645,7 @@ export default function CrmPage() {
                         {/* 1. Local Inventory */}
                         <div className="space-y-4">
                           <h4 className="text-sm font-bold text-secondary-text uppercase tracking-wider flex items-center">
-                            <Building2 className="w-4 h-4 mr-2" /> {t("own_inventory")}
+                            <Building2 className="w-4 h-4 me-2" /> {t("own_inventory")}
                           </h4>
                           {matches?.local_inventory && matches.local_inventory.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -670,9 +671,9 @@ export default function CrmPage() {
                                       className="text-xs bg-accent-blue/10 text-accent-blue px-3 py-1.5 rounded-lg flex items-center font-medium hover:bg-accent-blue/20 transition-colors"
                                     >
                                       {pitchLoading === watch.id ? (
-                                        <div className="w-3 h-3 border-2 border-accent-blue border-t-transparent rounded-full animate-spin mr-1.5" />
+                                        <div className="w-3 h-3 border-2 border-accent-blue border-t-transparent rounded-full animate-spin me-1.5" />
                                       ) : (
-                                        <Mail className="w-3 h-3 mr-1.5" />
+                                        <Mail className="w-3 h-3 me-1.5" />
                                       )}
                                       {t("pitch_customer")}
                                     </button>
@@ -682,7 +683,7 @@ export default function CrmPage() {
                             </div>
                           ) : (
                             <div className="flex items-center p-4 text-sm text-secondary-text bg-background/30 rounded-xl border border-dashed border-border-subtle">
-                              <Search className="w-4 h-4 mr-2 opacity-50" />
+                              <Search className="w-4 h-4 me-2 opacity-50" />
                               {t("no_local_matches")}
                             </div>
                           )}
@@ -691,7 +692,7 @@ export default function CrmPage() {
                         {/* 2. Arbitrage Deals */}
                         <div className="space-y-4">
                           <h4 className="text-sm font-bold text-secondary-text uppercase tracking-wider flex items-center">
-                            <Sparkles className="w-4 h-4 mr-2" /> {t("arbitrage_deals")}
+                            <Sparkles className="w-4 h-4 me-2" /> {t("arbitrage_deals")}
                           </h4>
                           {matches?.arbitrage_deals && matches.arbitrage_deals.length > 0 ? (
                             <div className="grid grid-cols-1 gap-4">
@@ -700,7 +701,7 @@ export default function CrmPage() {
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-accent-blue/20 text-accent-blue uppercase tracking-wider">{deal.platform}</span>
-                                      <span className="text-xs text-secondary-text flex items-center"><Search className="w-3 h-3 mr-1" /> {deal.location}</span>
+                                      <span className="text-xs text-secondary-text flex items-center"><Search className="w-3 h-3 me-1" /> {deal.location}</span>
                                     </div>
                                     <p className="font-bold text-primary-text">{deal.title}</p>
                                     <p className="text-xs text-secondary-text mt-1">{t("condition_label")} {deal.condition}</p>
@@ -720,7 +721,7 @@ export default function CrmPage() {
                                     </div>
                                   </div>
 
-                                  <div className="mt-2 md:mt-0 md:ml-4">
+                                  <div className="mt-2 md:mt-0 md:ms-4">
                                     <a href={deal.url} target="_blank" rel="noreferrer" className="block text-center w-full md:w-auto px-4 py-2 bg-surface text-primary-text border border-border-subtle rounded-lg text-sm font-medium hover:bg-background/80 transition-colors">
                                       {t("view_deal")}
                                     </a>
@@ -730,7 +731,7 @@ export default function CrmPage() {
                             </div>
                           ) : (
                             <div className="flex items-center p-4 text-sm text-secondary-text bg-background/30 rounded-xl border border-dashed border-border-subtle">
-                              <Search className="w-4 h-4 mr-2 opacity-50" />
+                              <Search className="w-4 h-4 me-2 opacity-50" />
                               {t("no_arbitrage")}
                             </div>
                           )}
@@ -750,7 +751,7 @@ export default function CrmPage() {
             <div className="bg-surface w-full max-w-md rounded-2xl p-6 shadow-2xl border border-border-subtle">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold flex items-center">
-                  <Sparkles className="w-5 h-5 mr-2 text-accent-blue" />
+                  <Sparkles className="w-5 h-5 me-2 text-accent-blue" />
                   {t("ai_message")}
                 </h3>
                 <select
@@ -766,9 +767,11 @@ export default function CrmPage() {
                     }
                   }}
                 >
-                  <option value="de">Deutsch</option>
-                  <option value="en">English</option>
-                  <option value="tr">Türkçe</option>
+                  {localeList.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.nativeName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <textarea
@@ -787,7 +790,7 @@ export default function CrmPage() {
                   href={`mailto:${selectedCustomer?.email || ''}?subject=${encodeURIComponent(pitchResult.isBirthday ? t("email_subject_birthday") : t("email_subject_watch"))}&body=${encodeURIComponent(pitchResult.text)}`}
                   className="flex-1 py-2 rounded-xl bg-accent-blue text-white flex items-center justify-center font-medium text-sm hover:opacity-90 transition-opacity"
                 >
-                  <Mail className="w-4 h-4 mr-2" />
+                  <Mail className="w-4 h-4 me-2" />
                   {t("email_btn")}
                 </a>
                 <a
@@ -796,7 +799,7 @@ export default function CrmPage() {
                   rel="noreferrer"
                   className="flex-1 py-2 rounded-xl bg-[#25D366] text-white flex items-center justify-center font-medium text-sm hover:opacity-90 transition-opacity"
                 >
-                  <Send className="w-4 h-4 mr-2" />
+                  <Send className="w-4 h-4 me-2" />
                   WhatsApp
                 </a>
               </div>
@@ -858,7 +861,7 @@ export default function CrmPage() {
               <Users className="w-6 h-6" />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 start-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
         {/* Birthdays This Month */}
@@ -872,7 +875,7 @@ export default function CrmPage() {
               <Gift className="w-6 h-6" />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 start-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
         {/* Total Revenue */}
@@ -892,7 +895,7 @@ export default function CrmPage() {
               <Euro className="w-6 h-6" />
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-0 start-0 w-full h-1 bg-accent-blue/50 opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
 
@@ -942,7 +945,7 @@ export default function CrmPage() {
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-center mb-2 mt-4">
         {/* Search */}
         <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
           <input
             type="text"
             value={search}
@@ -951,7 +954,7 @@ export default function CrmPage() {
               setCurrentPage(1);
             }}
             placeholder={t("search_placeholder")}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-surface border border-border-subtle rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/40 shadow-sm"
+            className="w-full ps-10 pe-4 py-2.5 text-sm bg-surface border border-border-subtle rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-blue/40 shadow-sm"
           />
         </div>
 
@@ -1006,14 +1009,14 @@ export default function CrmPage() {
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-secondary-text border-b border-border-subtle bg-background/50">
+                  <tr className="text-start text-secondary-text border-b border-border-subtle bg-background/50">
                     <th className="px-6 py-4 font-semibold">{t("th_name")}</th>
                     <th className="px-6 py-4 font-semibold">{t("th_email")}</th>
                     <th className="px-6 py-4 font-semibold">{t("th_phone")}</th>
                     <th className="px-6 py-4 font-semibold">{t("th_company")}</th>
                     <th className="px-6 py-4 font-semibold">{t("th_tags")}</th>
-                    <th className="px-6 py-4 font-semibold text-right">{t("th_invoices")}</th>
-                    <th className="px-6 py-4 font-semibold text-right"></th>
+                    <th className="px-6 py-4 font-semibold text-end">{t("th_invoices")}</th>
+                    <th className="px-6 py-4 font-semibold text-end"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle/30">
@@ -1090,10 +1093,10 @@ export default function CrmPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-right text-secondary-text font-mono">
+                      <td className="px-6 py-4 text-end text-secondary-text font-mono">
                         {c.invoices_count ?? 0}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-end">
                         <div className="flex justify-end" onClick={e => e.stopPropagation()}>
                           <CustomerQuickActions customer={c} />
                         </div>
@@ -1405,7 +1408,7 @@ function CustomerFormModal({
                     checked={form.auto_send_birthday_mail}
                     onChange={(e) => setForm(f => ({ ...f, auto_send_birthday_mail: e.target.checked }))}
                   />
-                  <div className="w-11 h-6 bg-border-subtle peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-blue"></div>
+                  <div className="w-11 h-6 bg-border-subtle peer-focus:outline-none rounded-full peer ltr:peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-blue"></div>
                 </label>
               </div>
             </div>
@@ -1461,7 +1464,7 @@ function FormField({
       </label>
       <div className="relative">
         {icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text">
+          <span className="absolute start-3 top-1/2 -translate-y-1/2 text-secondary-text">
             {icon}
           </span>
         )}
@@ -1471,7 +1474,7 @@ function FormField({
           onChange={(e) => onChange(e.target.value)}
           required={required}
           placeholder={placeholder}
-          className={`w-full ${icon ? "pl-9" : "pl-3"} pr-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue/40 transition-shadow`}
+          className={`w-full ${icon ? "ps-9" : "ps-3"} pe-3 py-2 text-sm bg-background border border-border-subtle rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-blue/40 transition-shadow`}
         />
       </div>
     </div>

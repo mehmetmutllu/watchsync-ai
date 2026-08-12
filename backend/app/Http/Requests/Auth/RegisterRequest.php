@@ -26,6 +26,7 @@ class RegisterRequest extends FormRequest
             'email'        => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password'     => ['required', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/'],
             'company_name' => ['nullable', 'string', 'max:255'],
+            'terms_accepted' => ['accepted'],
         ];
     }
 
@@ -35,14 +36,15 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'       => 'Ad soyad zorunludur.',
-            'email.required'      => 'E-posta adresi zorunludur.',
-            'email.email'         => 'Geçerli bir e-posta adresi giriniz.',
-            'email.unique'        => 'Bu e-posta adresi zaten kayıtlı.',
-            'password.required'   => 'Şifre zorunludur.',
-            'password.min'        => 'Şifre en az 8 karakter olmalıdır.',
-            'password.regex'      => 'Şifre en az bir büyük harf, bir küçük harf ve bir rakam içermelidir.',
-            'password.confirmed'  => 'Şifre tekrarı uyuşmuyor.',
+            'name.required'           => __('requests.name_required'),
+            'email.required'          => __('requests.email_required'),
+            'email.email'             => __('requests.email_invalid'),
+            'email.unique'            => __('requests.email_unique'),
+            'password.required'       => __('requests.password_required'),
+            'password.min'            => __('requests.password_min'),
+            'password.regex'          => __('requests.password_regex'),
+            'password.confirmed'      => __('requests.password_confirmed'),
+            'terms_accepted.accepted' => __('requests.terms_accepted'),
         ];
     }
 }

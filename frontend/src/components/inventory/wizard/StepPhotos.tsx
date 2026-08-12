@@ -151,13 +151,13 @@ export default function StepPhotos({
             <div key={`existing-${img.id}`} className="relative group aspect-square rounded-lg overflow-hidden border border-border-subtle">
               <img src={img.thumb_url || img.url} alt={`Saat fotoğrafı ${i + 1}`} className="w-full h-full object-cover" />
               {img.is_primary && (
-                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[10px] font-medium bg-accent-blue text-white rounded">
+                <span className="absolute top-1.5 start-1.5 px-1.5 py-0.5 text-[10px] font-medium bg-accent-blue text-white rounded">
                   Ana
                 </span>
               )}
               <button
                 onClick={() => removeExisting(img.id)}
-                className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1.5 end-1.5 w-6 h-6 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -173,7 +173,7 @@ export default function StepPhotos({
               <img src={pendingPreviews[i]} alt={file.name} className="w-full h-full object-cover" />
               <button
                 onClick={() => removePending(i)}
-                className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-1.5 end-1.5 w-6 h-6 flex items-center justify-center bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

@@ -16,7 +16,7 @@ export default function TableSkeleton() {
                 <div className="w-10 h-4 rounded bg-surface-elevated animate-pulse-soft" />
               </th>
               {['w-28', 'w-20', 'w-16', 'w-20', 'w-24', 'w-20'].map((w, i) => (
-                <th key={i} className="px-4 py-3 text-left">
+                <th key={i} className="px-4 py-3 text-start">
                   <div className={`${w} h-3 rounded bg-surface-elevated animate-pulse-soft`} />
                 </th>
               ))}
@@ -54,7 +54,7 @@ export default function TableSkeleton() {
                   <div className="w-16 h-3 rounded bg-surface-elevated animate-pulse-soft" />
                 </td>
                 <td className="px-4 py-3">
-                  <div className="w-6 h-6 rounded bg-surface-elevated animate-pulse-soft ml-auto" />
+                  <div className="w-6 h-6 rounded bg-surface-elevated animate-pulse-soft ms-auto" />
                 </td>
               </tr>
             ))}

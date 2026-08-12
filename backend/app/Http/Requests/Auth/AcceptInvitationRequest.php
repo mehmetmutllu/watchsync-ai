@@ -22,11 +22,11 @@ class AcceptInvitationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'      => 'İsim alanı zorunludur.',
-            'password.required'  => 'Şifre alanı zorunludur.',
-            'password.min'       => 'Şifre en az 8 karakter olmalıdır.',
-            'password.regex'     => 'Şifre en az bir büyük harf, bir küçük harf ve bir rakam içermelidir.',
-            'password.confirmed' => 'Şifre tekrarı eşleşmiyor.',
+            'name.required'      => __('requests.name_required_short'),
+            'password.required'  => __('requests.password_required'),
+            'password.min'       => __('requests.password_min'),
+            'password.regex'     => __('requests.password_regex'),
+            'password.confirmed' => __('requests.password_confirmed'),
         ];
     }
 }

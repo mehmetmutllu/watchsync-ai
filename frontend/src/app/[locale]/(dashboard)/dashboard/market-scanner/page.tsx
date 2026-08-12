@@ -208,14 +208,14 @@ export default function MarketScannerPage() {
       {/* Search */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
           <input
             type="text"
             value={searchRef}
             onChange={(e) => setSearchRef(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder={t("search_placeholder")}
-            className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-secondary-text focus:outline-none focus:border-accent-blue transition-colors"
+            className="w-full ps-10 pe-4 py-2.5 bg-surface border border-border-subtle rounded-lg text-sm text-primary-text placeholder:text-secondary-text focus:outline-none focus:border-accent-blue transition-colors"
           />
         </div>
         <button
@@ -284,7 +284,7 @@ export default function MarketScannerPage() {
               {ebayStatus.sample_items.slice(0, 3).map((item, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
                   <span className="text-primary-text truncate max-w-xs">{item.title}</span>
-                  <span className="font-mono text-secondary-text shrink-0 ml-2">{item.price}</span>
+                  <span className="font-mono text-secondary-text shrink-0 ms-2">{item.price}</span>
                 </div>
               ))}
             </div>
@@ -339,7 +339,7 @@ export default function MarketScannerPage() {
                     {t("fair_market_desc", { price: formatPrice(wcTrend.fair_market_value, wcTrend.currency) })}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-end">
                   <TrendBadge trend={wcTrend.trend} />
                   {wcTrend.price_change_pct !== 0 && (
                     <p className={`mt-1 text-sm font-medium ${wcTrend.price_change_pct > 0 ? "text-semantic-success" : "text-semantic-error"}`}>
@@ -376,8 +376,9 @@ export default function MarketScannerPage() {
                 <button
                   onClick={handleScan}
                   disabled={isScanning}
-                  className="ml-2 p-1.5 rounded-md text-secondary-text hover:text-primary-text hover:bg-surface-elevated transition-colors"
-                  title="Yeni tarama başlat"
+                  className="ms-2 p-1.5 rounded-md text-secondary-text hover:text-primary-text hover:bg-surface-elevated transition-colors"
+                  title={t("start_new_scan")}
+                  aria-label={t("start_new_scan")}
                 >
                   <RefreshCw className={`w-4 h-4 ${isScanning ? "animate-spin" : ""}`} />
                 </button>
@@ -396,7 +397,7 @@ export default function MarketScannerPage() {
                         <span className="w-20 text-xs text-secondary-text font-mono shrink-0">{point.date.slice(5)}</span>
                         <div className="flex-1 h-6 bg-surface-elevated rounded overflow-hidden">
                           <div
-                            className="h-full bg-accent-blue/60 rounded flex items-center justify-end pr-2"
+                            className="h-full bg-accent-blue/60 rounded flex items-center justify-end pe-2"
                             style={{ width: `${width}%` }}
                           >
                             <span className="text-xs text-white font-medium whitespace-nowrap">
@@ -404,7 +405,7 @@ export default function MarketScannerPage() {
                             </span>
                           </div>
                         </div>
-                        <span className="w-8 text-xs text-secondary-text text-right">{point.count}</span>
+                        <span className="w-8 text-xs text-secondary-text text-end">{point.count}</span>
                       </div>
                     );
                   })}
@@ -446,7 +447,7 @@ export default function MarketScannerPage() {
               {wcLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 animate-spin text-accent-gold" />
-                  <span className="ml-2 text-sm text-secondary-text">{t("watchcharts_loading")}</span>
+                  <span className="ms-2 text-sm text-secondary-text">{t("watchcharts_loading")}</span>
                 </div>
               ) : wcTrend && wcTrend.data_points.length > 0 ? (
                 <div className="space-y-3">
@@ -458,7 +459,7 @@ export default function MarketScannerPage() {
                         <span className="w-20 text-xs text-secondary-text font-mono shrink-0">{point.date.slice(0, 7)}</span>
                         <div className="flex-1 h-6 bg-surface-elevated rounded overflow-hidden">
                           <div
-                            className="h-full bg-accent-gold/60 rounded flex items-center justify-end pr-2"
+                            className="h-full bg-accent-gold/60 rounded flex items-center justify-end pe-2"
                             style={{ width: `${width}%` }}
                           >
                             <span className="text-xs text-white font-medium whitespace-nowrap">
@@ -469,7 +470,7 @@ export default function MarketScannerPage() {
                       </div>
                     );
                   })}
-                  <p className="text-xs text-secondary-text text-right mt-2">
+                  <p className="text-xs text-secondary-text text-end mt-2">
                     {t("source_updated", { date: new Date(wcTrend.updated_at).toLocaleDateString() })}
                   </p>
                 </div>
@@ -496,7 +497,7 @@ export default function MarketScannerPage() {
                 <thead>
                   <tr className="border-b border-border-subtle">
                     {[t("th_platform"), t("th_price"), t("th_condition"), t("th_seller"), t("th_country"), t("th_date"), ""].map((h, i) => (
-                      <th key={i} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-secondary-text">
+                      <th key={i} className="px-6 py-3 text-start text-xs font-medium uppercase tracking-wider text-secondary-text">
                         {h}
                       </th>
                     ))}

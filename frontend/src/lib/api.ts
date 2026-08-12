@@ -10,7 +10,18 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Explicitly read XSRF-TOKEN cookie and set header on every mutating request
+/** Adres çubuğundaki dil önekinden aktif dili çıkarır (/tr/... → 'tr'). */
+function currentLocale(): string {
+  if (typeof window === 'undefined') return routing.defaultLocale;
+  const match = window.location.pathname.match(
+    new RegExp(`^/(${routing.locales.join('|')})(?=/|$)`)
+  );
+  return match ? match[1] : routing.defaultLocale;
+}
+
+// Her istekte: XSRF-TOKEN çerezi + aktif arayüz dili.
+// Backend X-Locale başlığını okuyup doğrulama mesajlarını ve e-postaları
+// kullanıcının diline göre üretir (App\Http\Middleware\SetLocale).
 api.interceptors.request.use((config) => {
   if (typeof document !== 'undefined') {
     const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
@@ -18,6 +29,7 @@ api.interceptors.request.use((config) => {
       config.headers['X-XSRF-TOKEN'] = decodeURIComponent(match[1]);
     }
   }
+  config.headers['X-Locale'] = currentLocale();
   return config;
 });
 

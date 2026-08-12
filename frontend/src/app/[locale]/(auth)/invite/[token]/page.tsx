@@ -257,7 +257,7 @@ export default function InviteAcceptPage({
               autoComplete="new-password"
               placeholder={t("password_min")}
               {...register("password")}
-              className={`w-full h-11 px-4 pr-11 rounded-lg bg-surface text-sm text-primary-text
+              className={`w-full h-11 px-4 pe-11 rounded-lg bg-surface text-sm text-primary-text
                 placeholder-disabled-text border transition-all duration-150 outline-none
                 ${
                   errors.password
@@ -268,7 +268,7 @@ export default function InviteAcceptPage({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
+              className="absolute end-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
               tabIndex={-1}
               aria-label={showPassword ? tc("hide_password") : tc("show_password")}
             >

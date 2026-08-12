@@ -1,63 +1,73 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
+import PublicHeader from "@/components/layout/PublicHeader";
+import LegalNotice from "@/components/legal/LegalNotice";
 import "../landing.css";
 
-export const metadata: Metadata = {
-  title: "Datenschutzerklärung — WatchSync AI",
-  robots: { index: false },
-};
+const SECTION_COUNT = 7;
 
-// DSGVO-Gerüst; [..]-Platzhalter werden vor dem Livegang befüllt und der
-// Text von einer fachkundigen Stelle geprüft.
-export default function DatenschutzPage() {
-  const sections = [
-    {
-      t: "1. Verantwortlicher",
-      p: "Verantwortlich für die Datenverarbeitung auf dieser Website ist: [Firmenname, Anschrift, E-Mail]. Siehe auch unser Impressum.",
-    },
-    {
-      t: "2. Welche Daten wir verarbeiten",
-      p: "Bei der Nutzung von WatchSync verarbeiten wir Konto- und Bestandsdaten, die Sie selbst eingeben (z. B. Uhren, Preise, Kundendaten), sowie technische Zugriffsdaten (IP-Adresse, Zeitpunkt, Browser), die zur sicheren Bereitstellung des Dienstes erforderlich sind.",
-    },
-    {
-      t: "3. Zwecke und Rechtsgrundlagen",
-      p: "Die Verarbeitung erfolgt zur Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO), zur Wahrung berechtigter Interessen wie Sicherheit und Missbrauchsvermeidung (Art. 6 Abs. 1 lit. f DSGVO) und — soweit erteilt — auf Grundlage Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).",
-    },
-    {
-      t: "4. Marktplatz-Anbindungen",
-      p: "Wenn Sie eBay, Chrono24 oder Shopify verbinden, werden Angebots- und Bestandsdaten zwischen WatchSync und dem jeweiligen Marktplatz übertragen. Es gelten zusätzlich die Datenschutzbestimmungen des jeweiligen Anbieters.",
-    },
-    {
-      t: "5. Speicherdauer",
-      p: "Wir speichern personenbezogene Daten nur so lange, wie es für die genannten Zwecke erforderlich ist oder gesetzliche Aufbewahrungspflichten bestehen.",
-    },
-    {
-      t: "6. Ihre Rechte",
-      p: "Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie Widerspruch (Art. 15–21 DSGVO). Außerdem können Sie sich bei einer Aufsichtsbehörde beschweren.",
-    },
-    {
-      t: "7. Kontakt",
-      p: "Für Datenschutzanfragen erreichen Sie uns unter: hello@watchsync.ai",
-    },
-  ];
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Privacy" });
+  return { title: `${t("title")} — WatchSync AI`, robots: { index: true, follow: true } };
+}
+
+export default async function DatenschutzPage() {
+  const t = await getTranslations("Privacy");
+  const tc = await getTranslations("Legal");
+
+  const sections = Array.from({ length: SECTION_COUNT }, (_, i) => ({
+    id: i + 1,
+    title: t(`s${i + 1}_title`),
+    body: t(`s${i + 1}_body`),
+  }));
 
   return (
-    <div className="ws-landing min-h-screen px-6 py-24 lg:px-12">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/" className="ws-mono text-xs tracking-[0.15em] uppercase" style={{ color: "var(--ws-text-dim)" }}>
-          ← WatchSync AI
-        </Link>
-        <h1 className="ws-display mt-8 text-4xl">Datenschutzerklärung</h1>
+    <>
+      <PublicHeader />
+      <div className="ws-landing min-h-screen px-6 py-16 lg:px-12">
+        <div className="mx-auto max-w-3xl">
+          <Link
+            href="/"
+            className="ws-mono text-xs tracking-[0.15em] uppercase hover:underline"
+            style={{ color: "var(--ws-text-dim)" }}
+          >
+            {tc("back_home")}
+          </Link>
+          <h1 className="ws-display mt-8 text-4xl">{t("title")}</h1>
+          <p className="mt-2 text-sm" style={{ color: "var(--ws-text-dim)" }}>
+            {t("subtitle")}
+          </p>
 
-        <div className="mt-10 flex flex-col gap-8 text-sm leading-relaxed" style={{ color: "var(--ws-text-dim)" }}>
-          {sections.map((s) => (
-            <section key={s.t}>
-              <h2 className="ws-display mb-3 text-lg" style={{ color: "var(--ws-text)" }}>{s.t}</h2>
-              <p>{s.p}</p>
-            </section>
-          ))}
+          <div
+            className="mt-10 flex flex-col gap-8 text-sm leading-relaxed"
+            style={{ color: "var(--ws-text-dim)" }}
+          >
+            {sections.map((s) => (
+              <section
+                key={s.id}
+                className="rounded-xl border p-6"
+                style={{
+                  borderColor: "rgba(255,255,255,0.08)",
+                  backgroundColor: "rgba(255,255,255,0.02)",
+                }}
+              >
+                <h2 className="ws-display mb-3 text-lg" style={{ color: "var(--ws-text)" }}>
+                  {s.id}. {s.title}
+                </h2>
+                <p className="whitespace-pre-line">{s.body}</p>
+              </section>
+            ))}
+          </div>
+
+          <LegalNotice />
         </div>
       </div>
-    </div>
+    </>
   );
 }

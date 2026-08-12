@@ -365,7 +365,7 @@ class PlatformController extends Controller
         if (!$connection) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bu platform henüz bağlanmamış.',
+                'message' => __('api.platform_not_connected'),
             ], 422);
         }
 
@@ -374,7 +374,7 @@ class PlatformController extends Controller
                 'ebay'     => $this->testEbayConnection($connection),
                 'shopify'  => $this->testShopifyConnection($connection),
                 'chrono24' => $this->testChrono24Connection($connection),
-                default    => ['success' => false, 'message' => 'Bu platform için test desteği yok.'],
+                default    => ['success' => false, 'message' => __('api.platform_no_test')],
             };
 
             return response()->json($result, $result['success'] ? 200 : 422);
@@ -386,7 +386,7 @@ class PlatformController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Bağlantı testi sırasında hata oluştu: ' . $e->getMessage(),
+                'message' => __('api.platform_test_error', ['error' => $e->getMessage()]),
             ], 500);
         }
     }
@@ -404,11 +404,11 @@ class PlatformController extends Controller
                 ->get("{$baseUrl}/sell/account/v1/privilege");
 
             if ($response->successful()) {
-                return ['success' => true, 'message' => 'eBay bağlantısı başarılı! OAuth token geçerli.'];
+                return ['success' => true, 'message' => __('api.ebay_connection_ok')];
             }
 
             if ($response->status() === 401) {
-                return ['success' => false, 'message' => 'eBay OAuth token süresi dolmuş. Yeniden bağlanın.'];
+                return ['success' => false, 'message' => __('api.ebay_token_expired')];
             }
         }
 
@@ -417,10 +417,10 @@ class PlatformController extends Controller
         $clientSecret = config('services.ebay.client_secret');
 
         if ($clientId && $clientSecret) {
-            return ['success' => true, 'message' => 'eBay API anahtarları yapılandırılmış. OAuth ile bağlanabilirsiniz.'];
+            return ['success' => true, 'message' => __('api.ebay_keys_ready')];
         }
 
-        return ['success' => false, 'message' => 'eBay API anahtarları eksik. .env dosyasını kontrol edin.'];
+        return ['success' => false, 'message' => __('api.ebay_keys_missing')];
     }
 
     private function testShopifyConnection(PlatformConnection $connection): array
@@ -429,7 +429,7 @@ class PlatformController extends Controller
         $shopDomain = $connection->settings['shop_domain'] ?? '';
 
         if (!$accessToken || !$shopDomain) {
-            return ['success' => false, 'message' => 'Shopify API anahtarı veya shop domain eksik.'];
+            return ['success' => false, 'message' => __('api.shopify_keys_missing')];
         }
 
         $response = Http::withHeaders([
@@ -444,14 +444,14 @@ class PlatformController extends Controller
             return ['success' => true, 'message' => "Shopify bağlantısı başarılı! Mağaza: {$shopName}"];
         }
 
-        return ['success' => false, 'message' => 'Shopify API yanıt vermedi. Credentials kontrol edin.'];
+        return ['success' => false, 'message' => __('api.shopify_no_response')];
     }
 
     private function testChrono24Connection(PlatformConnection $connection): array
     {
         // Chrono24 uses XML Feed — we just verify credentials exist
         if ($connection->api_key || $connection->status === 'connected') {
-            return ['success' => true, 'message' => 'Chrono24 bağlantısı aktif. XML Feed hazır.'];
+            return ['success' => true, 'message' => __('api.chrono24_active')];
         }
 
         return ['success' => false, 'message' => 'Chrono24 credentials eksik.'];

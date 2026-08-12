@@ -17,6 +17,7 @@ const registerSchemaBase = z
     company_name: z.string().optional(),
     password: z.string().min(8),
     password_confirmation: z.string(),
+    terms_accepted: z.boolean(),
   })
   .refine((data) => data.password === data.password_confirmation, {
     path: ["password_confirmation"],
@@ -42,6 +43,9 @@ export default function RegisterPage() {
         .min(8, t("password_too_short"))
         .regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, t("password_requirements")),
       password_confirmation: z.string(),
+      terms_accepted: z.boolean().refine((val) => val === true, {
+        message: "Lütfen hizmet sözleşmesini ve komisyon şartlarını onaylayınız.",
+      }),
     })
     .refine((data) => data.password === data.password_confirmation, {
       message: t("passwords_mismatch"),
@@ -200,7 +204,7 @@ export default function RegisterPage() {
               autoComplete="new-password"
               placeholder={t("password_min_length")}
               {...register("password")}
-              className={`w-full h-11 px-4 pr-11 rounded-lg bg-surface text-sm text-primary-text
+              className={`w-full h-11 px-4 pe-11 rounded-lg bg-surface text-sm text-primary-text
                 placeholder-disabled-text border transition-all duration-150 outline-none
                 ${
                   errors.password
@@ -211,7 +215,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
+              className="absolute end-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text transition-colors"
               tabIndex={-1}
               aria-label={showPassword ? tc("hide_password") : tc("show_password")}
             >
@@ -255,6 +259,30 @@ export default function RegisterPage() {
             <p className="text-xs text-semantic-error">
               {errors.password_confirmation.message}
             </p>
+          )}
+        </div>
+
+        {/* Mandatory Legal & Commission Terms Checkbox */}
+        <div className="space-y-1">
+          <label className="flex items-start gap-3 cursor-pointer text-xs text-secondary-text leading-snug">
+            <input
+              type="checkbox"
+              {...register("terms_accepted")}
+              className="mt-0.5 h-4 w-4 rounded border-border-subtle bg-surface text-accent-blue focus:ring-accent-blue"
+            />
+            <span>
+              <Link href="/agb" target="_blank" className="text-accent-blue hover:underline font-semibold">
+                AGB (Kullanım Şartları & Komisyon Esasları)
+              </Link>
+              , abonelik yenileme kuralları ve{" "}
+              <Link href="/datenschutz" target="_blank" className="text-accent-blue hover:underline font-semibold">
+                Gizlilik Politikasını
+              </Link>{" "}
+              okudum, %3 (Max $150 Cap) platform şartlarını kabul ediyorum.
+            </span>
+          </label>
+          {errors.terms_accepted && (
+            <p className="text-xs text-semantic-error font-medium">{errors.terms_accepted.message}</p>
           )}
         </div>
 

@@ -21,6 +21,7 @@ class AuthTest extends TestCase
                 'password'              => 'Password123',
                 'password_confirmation' => 'Password123',
                 'company_name'          => 'Test Watch Co.',
+                'terms_accepted'        => true,
             ]);
 
         $response->assertStatus(201)
@@ -53,7 +54,21 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['email', 'password']);
+                 ->assertJsonValidationErrors(['email', 'password', 'terms_accepted']);
+    }
+
+    public function test_register_fails_without_terms_accepted()
+    {
+        $response = $this->postJson('/api/auth/register', [
+            'name'                  => 'Test Owner',
+            'email'                 => 'owner-noterms@watchsync.ai',
+            'password'              => 'Password123',
+            'password_confirmation' => 'Password123',
+            'terms_accepted'        => false,
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['terms_accepted']);
     }
 
     public function test_user_can_login()

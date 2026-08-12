@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 import { use } from 'react';
 import WatchWizard from '@/components/inventory/wizard/WatchWizard';
 import WatchSyncPanel from '@/components/inventory/WatchSyncPanel';

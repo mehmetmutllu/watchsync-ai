@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Sidebar from "@/components/layout/Sidebar";
 import TopBar from "@/components/layout/TopBar";
 import BottomNav from "@/components/layout/BottomNav";
@@ -16,6 +17,7 @@ export default function DashboardLayout({
 }) {
   // Masaüstü daraltma ve mobil drawer ayrı durumlar: aynı state'i paylaşırlarsa
   // mobilde varsayılan "açık" olur ve içeriği tamamen kapatır (blocker).
+  const t = useTranslations("Common");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -36,7 +38,7 @@ export default function DashboardLayout({
           className={`
             flex flex-col min-h-screen
             transition-all duration-200 ease-in-out
-            ${sidebarCollapsed ? "md:ml-sidebar-collapsed" : "md:ml-sidebar"}
+            ${sidebarCollapsed ? "md:ms-sidebar-collapsed" : "md:ms-sidebar"}
           `}
         >
           <TopBar
@@ -44,7 +46,7 @@ export default function DashboardLayout({
             sidebarCollapsed={sidebarCollapsed}
           />
 
-          <main id="main-content" role="main" aria-label="Sayfa içeriği" className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
+          <main id="main-content" role="main" aria-label={t("page_content")} className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
             <div className="max-w-content mx-auto">
               <ErrorBoundary>
                 <PageTransition>{children}</PageTransition>

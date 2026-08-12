@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   Users,
   Package,
@@ -16,24 +17,19 @@ import { getAdminDashboardStats, getRecentAdminActivities } from "@/lib/admin-ap
 import { useAdminAuthStore } from "@/stores/adminAuth";
 import type { AdminDashboardStats, AdminActivity } from "@/types/admin";
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
-const actionLabels: Record<string, string> = {
-  "auth.login": "Giriş yaptı",
-  "auth.logout": "Çıkış yaptı",
-  "manager.create": "Yönetici oluşturdu",
-  "manager.update": "Yönetici güncelledi",
-  "manager.delete": "Yönetici sildi",
+const ACTION_KEYS: Record<string, string> = {
+  "auth.login": "action_login",
+  "auth.logout": "action_logout",
+  "manager.create": "action_manager_create",
+  "manager.update": "action_manager_update",
+  "manager.delete": "action_manager_delete",
 };
 
 export default function AdminDashboardPage() {
+  const t = useTranslations("AdminDashboard");
+  const format = useFormatter();
+  const formatCurrency = (value: number) =>
+    format.number(value, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
   const user = useAdminAuthStore((s) => s.user);
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [activities, setActivities] = useState<AdminActivity[]>([]);
@@ -50,7 +46,7 @@ export default function AdminDashboardPage() {
         setStats(statsRes.data.stats);
         setActivities(activitiesRes.data.activities);
       } catch {
-        setError("Dashboard verileri yüklenemedi.");
+        setError(t("load_error"));
       } finally {
         setLoading(false);
       }
@@ -61,31 +57,31 @@ export default function AdminDashboardPage() {
   const kpiCards = stats
     ? [
         {
-          label: "Toplam Bayi",
+          label: t("kpi_dealers"),
           value: stats.total_dealers.toString(),
-          sub: `${stats.active_dealers} aktif`,
+          sub: t("kpi_dealers_sub", { count: stats.active_dealers }),
           icon: Building2,
           color: "text-accent-blue",
           bg: "bg-accent-blue/10",
         },
         {
-          label: "Toplam Kullanıcı",
+          label: t("kpi_users"),
           value: stats.total_users.toString(),
-          sub: `+${stats.new_users_this_month} bu ay`,
+          sub: t("kpi_users_sub", { count: stats.new_users_this_month }),
           icon: Users,
           color: "text-accent-green",
           bg: "bg-accent-green/10",
         },
         {
-          label: "Aktif Saatler",
+          label: t("kpi_active_watches"),
           value: stats.active_watches.toString(),
-          sub: `${stats.total_watches} toplam`,
+          sub: t("kpi_active_watches_sub", { count: stats.total_watches }),
           icon: Package,
           color: "text-accent-gold",
           bg: "bg-accent-gold/10",
         },
         {
-          label: "Bu Ay Satış",
+          label: t("kpi_sold_this_month"),
           value: stats.sold_this_month.toString(),
           sub: formatCurrency(stats.revenue_this_month),
           icon: ShoppingCart,
@@ -93,17 +89,17 @@ export default function AdminDashboardPage() {
           bg: "bg-semantic-success/10",
         },
         {
-          label: "Toplam Envanter Değeri",
+          label: t("kpi_inventory_value"),
           value: formatCurrency(stats.total_inventory_value),
-          sub: "Aktif envanter",
+          sub: t("kpi_inventory_value_sub"),
           icon: TrendingUp,
           color: "text-accent-blue",
           bg: "bg-accent-blue/10",
         },
         {
-          label: "Toplam Gelir",
+          label: t("kpi_total_revenue"),
           value: formatCurrency(stats.total_revenue),
-          sub: `${formatCurrency(stats.revenue_this_month)} bu ay`,
+          sub: t("kpi_total_revenue_sub", { amount: formatCurrency(stats.revenue_this_month) }),
           icon: DollarSign,
           color: "text-accent-gold",
           bg: "bg-accent-gold/10",
@@ -116,10 +112,10 @@ export default function AdminDashboardPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-primary-text">
-          Admin Dashboard
+          {t("title")}
         </h1>
         <p className="mt-1 text-sm text-secondary-text">
-          Hoş geldin, {user?.name || "Admin"}. Sistemin genel durumu aşağıda.
+          {t("welcome", { name: user?.name || t("admin_fallback") })}
         </p>
       </div>
 
@@ -173,13 +169,13 @@ export default function AdminDashboardPage() {
           <div className="bg-surface/50 backdrop-blur-sm border border-border-subtle rounded-xl">
             <div className="px-6 py-4 border-b border-border-subtle">
               <h2 className="text-lg font-semibold text-primary-text">
-                Son Admin Aktiviteleri
+                {t("recent_activities")}
               </h2>
             </div>
             <div className="divide-y divide-border-subtle">
               {activities.length === 0 ? (
                 <p className="px-6 py-8 text-center text-sm text-secondary-text">
-                  Henüz aktivite bulunmuyor.
+                  {t("no_activities")}
                 </p>
               ) : (
                 activities.map((activity) => (
@@ -196,16 +192,16 @@ export default function AdminDashboardPage() {
                           <span className="font-medium">
                             {activity.admin_name}
                           </span>{" "}
-                          {actionLabels[activity.action] || activity.action}
+                          {ACTION_KEYS[activity.action] ? t(ACTION_KEYS[activity.action]) : activity.action}
                         </p>
                         {activity.ip_address && (
                           <p className="text-xs text-disabled-text">
-                            IP: {activity.ip_address}
+                            {t("ip_label")}: <span dir="ltr" className="ltr-nums">{activity.ip_address}</span>
                           </p>
                         )}
                       </div>
                     </div>
-                    <span className="text-xs text-disabled-text whitespace-nowrap ml-4">
+                    <span className="text-xs text-disabled-text whitespace-nowrap ms-4">
                       {activity.time_ago}
                     </span>
                   </div>

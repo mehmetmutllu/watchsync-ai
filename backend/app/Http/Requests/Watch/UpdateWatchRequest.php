@@ -38,14 +38,14 @@ class UpdateWatchRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'brand.required'     => 'Marka alanı zorunludur.',
-            'model.required'     => 'Model alanı zorunludur.',
-            'condition.required' => 'Durum (condition) alanı zorunludur.',
-            'condition.in'       => 'Geçersiz durum değeri.',
-            'year.min'           => 'Yıl en az 1800 olmalıdır.',
-            'cost_price.numeric' => 'Maliyet fiyatı geçerli bir sayı olmalıdır.',
-            'sale_price.numeric' => 'Satış fiyatı geçerli bir sayı olmalıdır.',
-            'currency.in'       => 'Geçersiz para birimi.',
+            'brand.required'     => __('requests.brand_required'),
+            'model.required'     => __('requests.model_required'),
+            'condition.required' => __('requests.condition_required'),
+            'condition.in'       => __('requests.condition_in'),
+            'year.min'           => __('requests.year_min'),
+            'cost_price.numeric' => __('requests.cost_price_numeric'),
+            'sale_price.numeric' => __('requests.sale_price_numeric'),
+            'currency.in'        => __('requests.currency_in'),
         ];
     }
 }

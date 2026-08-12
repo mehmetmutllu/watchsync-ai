@@ -104,7 +104,7 @@ class ReportController extends Controller
                 $inv->updated_at->toDateString(),
             ]);
         } elseif ($type === 'watches') {
-            $headers = ['Marka', 'Model', 'Referans', 'Fiyat', 'Durum', 'Doğrulama', 'Bayi'];
+            $headers = ['Marka', 'Model', 'Referans', 'Fiyat', 'Durum', __('api.col_validation'), 'Bayi'];
             $query = Watch::with('dealer:id,name');
             if ($from) $query->where('created_at', '>=', $from);
             if ($to) $query->where('created_at', '<=', $to);
@@ -119,7 +119,7 @@ class ReportController extends Controller
                 $w->dealer->name ?? '-',
             ]);
         } elseif ($type === 'users') {
-            $headers = ['İsim', 'E-posta', 'Rol', 'Kayıt Tarihi', 'Bayi'];
+            $headers = ['İsim', 'E-posta', 'Rol', __('api.col_registered_at'), 'Bayi'];
             $query = \App\Models\User::with('dealer:id,name');
             if ($from) $query->where('created_at', '>=', $from);
             if ($to) $query->where('created_at', '<=', $to);

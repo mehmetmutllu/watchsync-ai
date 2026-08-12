@@ -218,7 +218,7 @@ export default function StepReviewPublish({
                 disabled={!isConnected}
                 onClick={() => togglePlatform(platform.id)}
                 className={`
-                  flex items-center gap-3 p-4 rounded-lg border transition-all text-left
+                  flex items-center gap-3 p-4 rounded-lg border transition-all text-start
                   ${!isConnected
                     ? 'opacity-40 cursor-not-allowed border-border-subtle'
                     : isSelected

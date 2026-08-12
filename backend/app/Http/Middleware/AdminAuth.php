@@ -20,7 +20,7 @@ class AdminAuth
         $user = $request->user();
 
         if (! $user) {
-            return response()->json(['message' => 'Kimlik doğrulama gerekli.'], 401);
+            return response()->json(['message' => __('api.auth_required')], 401);
         }
 
         $adminUser = $user->adminUser()->with('role')->first();
@@ -33,7 +33,7 @@ class AdminAuth
         if ($roles) {
             $allowedRoles = explode(',', $roles);
             if (! in_array($adminUser->role->slug, $allowedRoles, true)) {
-                return response()->json(['message' => 'Bu işlem için yetkiniz bulunmuyor.'], 403);
+                return response()->json(['message' => __('api.no_permission')], 403);
             }
         }
 

@@ -58,13 +58,13 @@ export default function StepPricing() {
         <div>
           <label className="block text-sm font-medium text-secondary-text mb-1.5">{t('cost_label')}</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-secondary-text">{currencySymbol}</span>
+            <span className="absolute start-3 top-1/2 -translate-y-1/2 text-sm text-secondary-text">{currencySymbol}</span>
             <input
               {...register('cost_price')}
               type="number"
               step="0.01"
               placeholder="0.00"
-              className="w-full pl-8 pr-4 py-2.5 bg-surface-secondary border border-border-subtle rounded-lg text-primary-text placeholder:text-tertiary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue text-sm"
+              className="w-full ps-8 pe-4 py-2.5 bg-surface-secondary border border-border-subtle rounded-lg text-primary-text placeholder:text-tertiary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue text-sm"
             />
           </div>
           {errors.cost_price && <p className="mt-1 text-xs text-semantic-error">{errors.cost_price.message}</p>}
@@ -74,13 +74,13 @@ export default function StepPricing() {
         <div>
           <label className="block text-sm font-medium text-secondary-text mb-1.5">{t('sale_label')}</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-secondary-text">{currencySymbol}</span>
+            <span className="absolute start-3 top-1/2 -translate-y-1/2 text-sm text-secondary-text">{currencySymbol}</span>
             <input
               {...register('sale_price')}
               type="number"
               step="0.01"
               placeholder="0.00"
-              className="w-full pl-8 pr-4 py-2.5 bg-surface-secondary border border-border-subtle rounded-lg text-primary-text placeholder:text-tertiary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue text-sm"
+              className="w-full ps-8 pe-4 py-2.5 bg-surface-secondary border border-border-subtle rounded-lg text-primary-text placeholder:text-tertiary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue text-sm"
             />
           </div>
           {errors.sale_price && <p className="mt-1 text-xs text-semantic-error">{errors.sale_price.message}</p>}

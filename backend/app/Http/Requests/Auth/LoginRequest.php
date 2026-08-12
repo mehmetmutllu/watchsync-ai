@@ -33,9 +33,9 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required'    => 'E-posta adresi zorunludur.',
-            'email.email'       => 'Geçerli bir e-posta adresi giriniz.',
-            'password.required' => 'Şifre zorunludur.',
+            'email.required'    => __('requests.email_required'),
+            'email.email'       => __('requests.email_invalid'),
+            'password.required' => __('requests.password_required'),
         ];
     }
 }

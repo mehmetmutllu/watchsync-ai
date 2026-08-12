@@ -25,7 +25,7 @@ class SettingsController extends Controller
         $user->update($validated);
 
         return response()->json([
-            'message' => 'Profil başarıyla güncellendi.',
+            'message' => __('api.profile_updated'),
             'user'    => $user->fresh()->load('dealer'),
         ]);
     }
@@ -39,23 +39,23 @@ class SettingsController extends Controller
             'current_password' => ['required', 'string'],
             'password'         => ['required', 'confirmed', 'string', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/'],
         ], [
-            'password.min'   => 'Şifre en az 8 karakter olmalıdır.',
-            'password.regex' => 'Şifre en az bir büyük harf, bir küçük harf ve bir rakam içermelidir.',
+            'password.min'   => __('api.password_min'),
+            'password.regex' => __('api.password_regex'),
         ]);
 
         $user = $request->user();
 
         if (! Hash::check($validated['current_password'], $user->password)) {
             return response()->json([
-                'message' => 'Mevcut şifre hatalı.',
-                'errors'  => ['current_password' => ['Mevcut şifre hatalı.']],
+                'message' => __('api.current_password_wrong'),
+                'errors'  => ['current_password' => [__('api.current_password_wrong')]],
             ], 422);
         }
 
         $user->update(['password' => $validated['password']]);
 
         return response()->json([
-            'message' => 'Şifre başarıyla değiştirildi.',
+            'message' => __('api.password_changed'),
         ]);
     }
 
@@ -81,7 +81,7 @@ class SettingsController extends Controller
         $dealer->update($validated);
 
         return response()->json([
-            'message' => 'Şirket bilgileri başarıyla güncellendi.',
+            'message' => __('api.company_updated'),
             'dealer'  => $dealer->fresh(),
         ]);
     }
@@ -105,7 +105,7 @@ class SettingsController extends Controller
         ]);
 
         return response()->json([
-            'message'       => 'Bildirim tercihleri güncellendi.',
+            'message'       => __('api.notifications_updated'),
             'preferences'   => $validated,
         ]);
     }
@@ -158,7 +158,7 @@ class SettingsController extends Controller
         $dealer->update($validated);
 
         return response()->json([
-            'message'                => 'Ekip ayarları güncellendi.',
+            'message'                => __('api.team_settings_updated'),
             'invitation_expiry_days' => $dealer->invitation_expiry_days,
         ]);
     }

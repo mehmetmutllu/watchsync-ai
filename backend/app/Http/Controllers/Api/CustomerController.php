@@ -121,9 +121,9 @@ class CustomerController extends Controller
             return [
                 'id' => 'note_' . $note->id,
                 'type' => 'note',
-                'title' => 'Notiz hinzugefügt',
+                'title' => __('api.note_added'),
                 'description' => $note->content,
-                'user_name' => $note->user->name ?? 'System',
+                'user_name' => $note->user->name ?? __('api.system_user'),
                 'date' => $note->created_at,
             ];
         });
@@ -174,7 +174,7 @@ class CustomerController extends Controller
 
         $customer->delete();
 
-        return response()->json(['message' => 'Müşteri silindi.']);
+        return response()->json(['message' => __('api.customer_deleted')]);
     }
 
     public function upcomingBirthdays(Request $request): JsonResponse

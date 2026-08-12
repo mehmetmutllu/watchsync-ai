@@ -124,7 +124,7 @@ class AdminWatchController extends Controller
 
         return response()->json([
             'message' => $request->validation_status === 'validated'
-                ? 'Saat onaylandı.'
+                ? __('api.watch_validated')
                 : 'Saat reddedildi.',
             'watch' => $watch->fresh(),
         ]);

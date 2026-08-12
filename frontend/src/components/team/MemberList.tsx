@@ -23,14 +23,14 @@ export default function MemberList({
   return (
     <div className="bg-surface border border-border-subtle rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left">
+        <table className="w-full text-start">
           <thead>
             <tr className="border-b border-border-subtle text-xs uppercase tracking-wide text-secondary-text">
               <th className="px-4 py-3 font-medium">{t('col_member')}</th>
               <th className="px-4 py-3 font-medium">{t('col_role')}</th>
               <th className="px-4 py-3 font-medium">{t('col_status')}</th>
               <th className="px-4 py-3 font-medium">{t('col_last_login')}</th>
-              <th className="px-4 py-3 font-medium text-right">{t('col_actions')}</th>
+              <th className="px-4 py-3 font-medium text-end">{t('col_actions')}</th>
             </tr>
           </thead>
           <tbody>

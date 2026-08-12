@@ -15,6 +15,10 @@ vi.mock('next-intl', async (importOriginal) => {
         namespace: namespace as never,
       })) as typeof actual.useTranslations,
     useLocale: () => 'tr',
+    // Bileşenler tarih/para biçimlendirmesi için useFormatter() kullanıyor;
+    // testlerde de gerçek Intl davranışını verelim.
+    useFormatter: (() =>
+      actual.createFormatter({ locale: 'tr' })) as typeof actual.useFormatter,
   }
 })
 

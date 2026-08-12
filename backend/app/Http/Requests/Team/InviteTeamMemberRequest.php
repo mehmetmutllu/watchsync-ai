@@ -21,15 +21,15 @@ class InviteTeamMemberRequest extends FormRequest
             'role'            => ['required', Rule::in(config('permissions.invitable_roles'))],
             'permissions'     => ['nullable', 'array'],
             'permissions.*'   => [Rule::in($validPermissions)],
-            'expires_in_days' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'expires_in_days' => ['nullable', 'integer', 'min:0', 'max:365'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'email.required' => 'E-posta adresi zorunludur.',
-            'role.in'        => 'Yalnızca yönetici veya çalışan rolü davet edilebilir.',
+            'email.required' => __('requests.email_required'),
+            'role.in'        => __('requests.role_in'),
         ];
     }
 }

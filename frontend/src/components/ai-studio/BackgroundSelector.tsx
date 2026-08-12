@@ -48,7 +48,7 @@ export default function BackgroundSelector({ selected, onSelect, disabled }: Bac
               {t(`bg_${preset.id as 'white_studio' | 'black_velvet' | 'marble' | 'gradient_gray'}`)}
             </span>
             {selected === preset.id && (
-              <Check className="absolute top-2 right-2 w-3.5 h-3.5 text-accent-blue" />
+              <Check className="absolute top-2 end-2 w-3.5 h-3.5 text-accent-blue" />
             )}
           </button>
         ))}

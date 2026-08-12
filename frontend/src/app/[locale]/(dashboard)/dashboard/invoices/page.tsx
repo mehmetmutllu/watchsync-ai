@@ -205,12 +205,12 @@ export default function InvoicesPage() {
           {/* Items Table */}
           <table className="w-full text-sm mb-6">
             <thead>
-              <tr className="text-left text-secondary-text border-b border-border-subtle">
+              <tr className="text-start text-secondary-text border-b border-border-subtle">
                 <th className="pb-2 font-medium">#</th>
                 <th className="pb-2 font-medium">{t("th_description")}</th>
-                <th className="pb-2 font-medium text-right">{t("th_qty")}</th>
-                <th className="pb-2 font-medium text-right">{t("th_unit_price")}</th>
-                <th className="pb-2 font-medium text-right">{t("total")}</th>
+                <th className="pb-2 font-medium text-end">{t("th_qty")}</th>
+                <th className="pb-2 font-medium text-end">{t("th_unit_price")}</th>
+                <th className="pb-2 font-medium text-end">{t("total")}</th>
               </tr>
             </thead>
             <tbody>
@@ -223,18 +223,18 @@ export default function InvoicesPage() {
                   <td className="py-2.5">
                     {item.description}
                     {item.watch && (
-                      <span className="text-xs text-secondary-text ml-2">
+                      <span className="text-xs text-secondary-text ms-2">
                         Ref: {item.watch.reference_number}
                       </span>
                     )}
                   </td>
-                  <td className="py-2.5 text-right">{item.quantity}</td>
-                  <td className="py-2.5 text-right">
+                  <td className="py-2.5 text-end">{item.quantity}</td>
+                  <td className="py-2.5 text-end">
                     {Number(item.unit_price).toLocaleString("de-DE", {
                       minimumFractionDigits: 2,
                     })}
                   </td>
-                  <td className="py-2.5 text-right font-medium">
+                  <td className="py-2.5 text-end font-medium">
                     {Number(item.total).toLocaleString("de-DE", {
                       minimumFractionDigits: 2,
                     })}
@@ -345,13 +345,13 @@ export default function InvoicesPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-secondary-text border-b border-border-subtle bg-background/50">
+              <tr className="text-start text-secondary-text border-b border-border-subtle bg-background/50">
                 <th className="px-4 py-3 font-medium">{t("th_invoice_num")}</th>
                 <th className="px-4 py-3 font-medium">{t("th_customer")}</th>
                 <th className="px-4 py-3 font-medium">{t("th_date")}</th>
                 <th className="px-4 py-3 font-medium">{t("th_status")}</th>
-                <th className="px-4 py-3 font-medium text-right">{t("th_total")}</th>
-                <th className="px-4 py-3 font-medium text-right">{t("th_actions")}</th>
+                <th className="px-4 py-3 font-medium text-end">{t("th_total")}</th>
+                <th className="px-4 py-3 font-medium text-end">{t("th_actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -374,13 +374,13 @@ export default function InvoicesPage() {
                   <td className="px-4 py-3">
                     <StatusBadge status={inv.status} />
                   </td>
-                  <td className="px-4 py-3 text-right font-medium text-primary-text">
+                  <td className="px-4 py-3 text-end font-medium text-primary-text">
                     {Number(inv.total).toLocaleString("de-DE", {
                       minimumFractionDigits: 2,
                     })}{" "}
                     {inv.currency}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-end">
                     <div className="flex justify-end gap-1">
                       <button
                         onClick={() => openDetail(inv.id)}

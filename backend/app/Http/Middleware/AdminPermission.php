@@ -21,7 +21,7 @@ class AdminPermission
         }
 
         if (! $adminUser->hasPermission($permission)) {
-            return response()->json(['message' => 'Bu işlem için yetkiniz bulunmuyor.'], 403);
+            return response()->json(['message' => __('api.no_permission')], 403);
         }
 
         return $next($request);

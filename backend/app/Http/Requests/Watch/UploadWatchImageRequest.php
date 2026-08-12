@@ -23,11 +23,11 @@ class UploadWatchImageRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'images.required'  => 'En az bir görsel yüklemelisiniz.',
-            'images.max'       => 'En fazla 10 görsel yükleyebilirsiniz.',
-            'images.*.image'   => 'Dosya geçerli bir görsel olmalıdır.',
-            'images.*.mimes'   => 'Görsel formatı jpeg, jpg, png veya webp olmalıdır.',
-            'images.*.max'     => 'Her görsel en fazla 10 MB olabilir.',
+            'images.required'  => __('requests.images_required'),
+            'images.max'       => __('requests.images_max'),
+            'images.*.image'   => __('requests.image_invalid'),
+            'images.*.mimes'   => __('requests.image_mimes'),
+            'images.*.max'     => __('requests.image_max_size'),
         ];
     }
 }

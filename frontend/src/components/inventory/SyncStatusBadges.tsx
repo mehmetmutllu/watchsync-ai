@@ -1,6 +1,7 @@
 'use client';
 
 import { CheckCircle, Clock, XCircle } from 'lucide-react';
+import { useFormatter, useTranslations } from 'next-intl';
 import type { PlatformSyncStatus, SyncStatus } from '@/types';
 
 interface SyncStatusBadgesProps {
@@ -9,37 +10,20 @@ interface SyncStatusBadgesProps {
 
 const STATUS_CONFIG: Record<SyncStatus, {
   icon: typeof CheckCircle;
-  label: string;
+  labelKey: string;
   color: string;
   bg: string;
 }> = {
-  success: {
-    icon: CheckCircle,
-    label: 'Synced',
-    color: 'text-semantic-success',
-    bg: 'bg-semantic-success/10',
-  },
-  pending: {
-    icon: Clock,
-    label: 'Pending',
-    color: 'text-semantic-warning',
-    bg: 'bg-semantic-warning/10',
-  },
-  failed: {
-    icon: XCircle,
-    label: 'Error',
-    color: 'text-semantic-error',
-    bg: 'bg-semantic-error/10',
-  },
-  never: {
-    icon: Clock,
-    label: '—',
-    color: 'text-disabled-text',
-    bg: 'bg-transparent',
-  },
+  success: { icon: CheckCircle, labelKey: 'sync_success', color: 'text-semantic-success', bg: 'bg-semantic-success/10' },
+  pending: { icon: Clock, labelKey: 'sync_pending', color: 'text-semantic-warning', bg: 'bg-semantic-warning/10' },
+  failed: { icon: XCircle, labelKey: 'sync_failed', color: 'text-semantic-error', bg: 'bg-semantic-error/10' },
+  never: { icon: Clock, labelKey: 'sync_never', color: 'text-disabled-text', bg: 'bg-transparent' },
 };
 
 export default function SyncStatusBadges({ syncStatuses }: SyncStatusBadgesProps) {
+  const t = useTranslations('Inventory');
+  const format = useFormatter();
+
   if (!syncStatuses) {
     return <span className="text-xs text-disabled-text">—</span>;
   }
@@ -68,10 +52,10 @@ export default function SyncStatusBadges({ syncStatuses }: SyncStatusBadgesProps
             {/* Tooltip — hata detayı & son sync zamanı */}
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-surface-elevated border border-border-subtle shadow-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30 whitespace-nowrap">
               <p className="font-medium text-primary-text">{syncStatus.platform_name}</p>
-              <p className={`mt-0.5 ${config.color}`}>{config.label}</p>
+              <p className={`mt-0.5 ${config.color}`}>{t(config.labelKey)}</p>
               {syncStatus.last_synced_at && (
                 <p className="text-disabled-text mt-0.5">
-                  Son: {new Date(syncStatus.last_synced_at).toLocaleString('tr-TR')}
+                  {t('last_synced', { date: format.dateTime(new Date(syncStatus.last_synced_at), 'long') })}
                 </p>
               )}
               {syncStatus.error_message && (

@@ -11,6 +11,8 @@ import {
   BarChart3,
   Users,
   UsersRound,
+  CreditCard,
+  Scale,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -31,12 +33,14 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const t = useTranslations("Sidebar");
+  const tc = useTranslations("Common");
   const { canManageTeam } = usePermission();
 
   const navItems = [
     { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
     { href: "/dashboard/inventory", label: t("inventory"), icon: Package },
     { href: "/dashboard/market-scanner", label: t("market_scanner"), icon: BarChart3 },
+    { href: "/dashboard/billing", label: t("billing"), icon: CreditCard },
     { href: "/dashboard/crm", label: t("crm"), icon: Users },
     { href: "/dashboard/invoices", label: t("invoices"), icon: FileText },
     ...(canManageTeam() ? [{ href: "/dashboard/team", label: t("team"), icon: UsersRound }] : []),
@@ -59,7 +63,7 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
         role="navigation"
         aria-label={t("nav_main")}
         className={`
-          fixed top-0 left-0 z-50 h-full
+          fixed top-0 start-0 z-50 h-full
           glass-strong
           flex flex-col
           transition-all duration-200 ease-in-out
@@ -117,7 +121,7 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
                 {isActive && (
                   <span
                     aria-hidden="true"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-accent-blue"
+                    className="absolute start-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-e-full bg-accent-blue"
                   />
                 )}
                 <Icon
@@ -140,7 +144,7 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
 
                 {/* Tooltip for collapsed state */}
                 {collapsed && hoveredItem === item.href && (
-                  <div className="absolute left-full ml-3 px-3 py-1.5 rounded-lg bg-surface-elevated text-primary-text text-sm font-medium shadow-[var(--shadow-elevated)] whitespace-nowrap z-50 animate-fade-in">
+                  <div className="absolute start-full ms-3 px-3 py-1.5 rounded-lg bg-surface-elevated text-primary-text text-sm font-medium shadow-[var(--shadow-elevated)] whitespace-nowrap z-50 animate-fade-in">
                     {item.label}
                   </div>
                 )}
@@ -149,8 +153,17 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
           })}
         </nav>
 
-        {/* Bottom Area: Language Switcher & Collapse Toggle */}
+        {/* Bottom Area: Legal Links, Language Switcher & Collapse Toggle */}
         <div className="flex flex-col border-t border-border-subtle">
+          {!collapsed && (
+            <div className="px-4 py-2 border-b border-border-subtle flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-secondary-text">
+              <Link href="/agb" className="hover:underline hover:text-accent-blue">{tc("terms_link")}</Link>
+              <span>•</span>
+              <Link href="/impressum" className="hover:underline hover:text-accent-blue">{tc("imprint_link")}</Link>
+              <span>•</span>
+              <Link href="/datenschutz" className="hover:underline hover:text-accent-blue">{tc("privacy_link")}</Link>
+            </div>
+          )}
           <div className={`px-3 py-3 ${collapsed ? "hidden" : "block"}`}>
             <LanguageSwitcher />
           </div>

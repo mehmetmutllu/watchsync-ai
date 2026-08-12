@@ -30,14 +30,14 @@ class EmailVerificationController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
-                'message' => 'E-posta zaten doğrulanmış.',
+                'message' => __('api.email_already_verified'),
             ]);
         }
 
         $request->user()->sendEmailVerificationNotification();
 
         return response()->json([
-            'message' => 'Doğrulama e-postası gönderildi.',
+            'message' => __('api.verification_sent'),
         ]);
     }
 
@@ -55,17 +55,17 @@ class EmailVerificationController extends Controller
         }
 
         if (! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
-            return response()->json(['message' => 'Geçersiz doğrulama linki.'], 403);
+            return response()->json(['message' => __('api.verification_invalid')], 403);
         }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'E-posta zaten doğrulanmış.']);
+            return response()->json(['message' => __('api.email_already_verified')]);
         }
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
 
-        return response()->json(['message' => 'E-posta başarıyla doğrulandı.']);
+        return response()->json(['message' => __('api.email_verified')]);
     }
 }

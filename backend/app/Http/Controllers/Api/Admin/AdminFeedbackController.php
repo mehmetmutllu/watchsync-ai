@@ -85,7 +85,7 @@ class AdminFeedbackController extends Controller
         ]);
 
         return response()->json([
-            'message'  => 'Geri bildirim güncellendi.',
+            'message'  => __('api.feedback_updated'),
             'feedback' => $feedback->fresh(),
         ]);
     }

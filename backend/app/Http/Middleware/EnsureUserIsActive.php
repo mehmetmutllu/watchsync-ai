@@ -18,7 +18,7 @@ class EnsureUserIsActive
         $user = $request->user('sanctum');
 
         if ($user && method_exists($user, 'isDisabled') && $user->isDisabled()) {
-            return response()->json(['message' => 'Hesabınız devre dışı bırakılmış.'], 403);
+            return response()->json(['message' => __('api.account_disabled')], 403);
         }
 
         return $next($request);

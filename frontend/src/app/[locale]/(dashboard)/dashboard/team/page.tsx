@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Users, UserPlus, Loader2, ShieldAlert, X, Save } from 'lucide-react';
 import { teamApi } from '@/lib/team-api';
@@ -17,6 +18,7 @@ import axios from 'axios';
 export default function TeamPage() {
   const t = useTranslations('Team');
   const { user, canManageTeam } = usePermission();
+  const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<TeamResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [defaultExpiry, setDefaultExpiry] = useState(7);
@@ -24,6 +26,10 @@ export default function TeamPage() {
   const [editing, setEditing] = useState<TeamMember | null>(null);
   const [editPerms, setEditPerms] = useState<string[]>([]);
   const [savingPerms, setSavingPerms] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -179,48 +185,58 @@ export default function TeamPage() {
       )}
 
       {/* Edit permissions modal */}
-      {editing && data && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-border-strong rounded-xl shadow-[var(--shadow-elevated)]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle sticky top-0 bg-surface">
+      {editing && data && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditing(null)} />
+          <div className="relative w-full max-w-xl max-h-[85vh] bg-surface border border-border-strong rounded-xl shadow-[var(--shadow-elevated)] overflow-hidden flex flex-col">
+            {/* Header - Fixed */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle shrink-0 bg-surface">
               <div>
                 <h2 className="text-lg font-semibold text-primary-text">{t('edit_permissions_title')}</h2>
                 <p className="text-xs text-secondary-text">{editing.name} · {editing.email}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setEditing(null)}
-                className="text-secondary-text hover:text-primary-text"
+                className="text-secondary-text hover:text-primary-text rounded-md p-1 hover:bg-surface-elevated transition-colors"
                 aria-label={t('close')}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+
+            {/* Content Body - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <PermissionMatrix
                 catalog={data.catalog.permissions}
                 selected={editPerms}
                 onChange={setEditPerms}
                 grantable={user && user.role === 'owner' ? null : user?.effective_permissions ?? []}
               />
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setEditing(null)}
-                  className="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text"
-                >
-                  {t('cancel')}
-                </button>
-                <button
-                  onClick={handleSavePerms}
-                  disabled={savingPerms}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
-                >
-                  {savingPerms ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {t('save')}
-                </button>
-              </div>
+            </div>
+
+            {/* Footer - Fixed */}
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border-subtle shrink-0 bg-surface">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                className="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text hover:bg-surface-elevated rounded-lg transition-colors"
+              >
+                {t('cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePerms}
+                disabled={savingPerms}
+                className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 disabled:opacity-50 transition-colors"
+              >
+                {savingPerms ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {t('save')}
+              </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

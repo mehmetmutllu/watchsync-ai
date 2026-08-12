@@ -26,12 +26,20 @@ class Dealer extends Model
         'notification_preferences',
         'status',
         'invitation_expiry_days',
+        'stripe_customer_id',
+        'stripe_subscription_id',
+        'plan_type',
+        'subscription_status',
+        'current_period_end',
+        'cancel_at_period_end',
     ];
 
     protected function casts(): array
     {
         return [
             'notification_preferences' => 'array',
+            'current_period_end'       => 'datetime',
+            'cancel_at_period_end'     => 'boolean',
         ];
     }
 

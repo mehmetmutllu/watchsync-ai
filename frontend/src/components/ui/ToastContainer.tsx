@@ -58,7 +58,7 @@ function ToastItem({
         backdrop-blur-lg
         transition-all duration-200 ease-out
         max-w-sm w-full
-        ${isVisible && !isExiting ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
+        ${isVisible && !isExiting ? "translate-x-0 opacity-100" : "ltr:translate-x-full rtl:-translate-x-full opacity-0"}
       `}
       role="alert"
     >
@@ -90,7 +90,7 @@ export default function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2">
+    <div className="fixed top-4 end-4 z-[100] flex flex-col gap-2">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onDismiss={removeToast} />
       ))}

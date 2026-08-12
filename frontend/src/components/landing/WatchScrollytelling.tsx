@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
@@ -184,11 +184,14 @@ export default function WatchScrollytelling() {
         shiftX = 0;
         shiftY = -vh * 0.23;
       } else {
-        // horizontal split: watch centered in the space right of the column
-        const colW = col.offsetWidth + col.offsetLeft;
-        const right = vw - colW;
-        scale = Math.min(vh / VIDEO_H, (right * 0.92) / WATCH_W);
-        shiftX = colW + right / 2 - vw / 2;
+        // horizontal split: watch centered in the space beside the copy column.
+        // RTL'de kopya sütunu sağa geçer, bu yüzden kaydırma aynalanır.
+        const rtl = document.documentElement.dir === "rtl";
+        const colW = col.offsetWidth + (rtl ? vw - col.offsetLeft - col.offsetWidth : col.offsetLeft);
+        const free = vw - colW;
+        scale = Math.min(vh / VIDEO_H, (free * 0.92) / WATCH_W);
+        shiftX = colW + free / 2 - vw / 2;
+        if (rtl) shiftX = -shiftX;
         shiftY = 0;
       }
       canvas.style.transform = `translate(calc(-50% + ${shiftX.toFixed(1)}px), calc(-50% + ${shiftY.toFixed(1)}px)) scale(${scale.toFixed(4)})`;

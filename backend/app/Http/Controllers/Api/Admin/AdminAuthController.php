@@ -28,7 +28,7 @@ class AdminAuthController extends Controller
             'password' => $request->password,
         ])) {
             return response()->json([
-                'message' => 'E-posta adresi veya şifre hatalı.',
+                'message' => __('api.login_invalid'),
             ], 401);
         }
 
@@ -58,7 +58,7 @@ class AdminAuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Giriş başarılı.',
+            'message' => __('api.login_success'),
             'user'    => $user->load('dealer'),
             'admin'   => [
                 'id'   => $adminUser->id,
@@ -89,7 +89,7 @@ class AdminAuthController extends Controller
         $request->session()->regenerateToken();
 
         return response()->json([
-            'message' => 'Çıkış başarılı.',
+            'message' => __('api.logout_success'),
         ]);
     }
 

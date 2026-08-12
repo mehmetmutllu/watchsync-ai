@@ -131,7 +131,7 @@ export default function DashboardPage() {
                 className="group relative glass-strong glass-hover rounded-2xl p-6 shadow-lg overflow-hidden"
               >
                 {/* Subtle background glow depending on type */}
-                <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[40px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-30 ${
+                <div className={`absolute -top-10 -end-10 w-32 h-32 rounded-full blur-[40px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-30 ${
                   card.key === 'total_inventory_value' ? 'bg-accent-gold' : 
                   card.key === 'active_watches' ? 'bg-accent-blue' :
                   card.key === 'sync_success_rate' ? 'bg-semantic-success' : 'bg-accent-blue'
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                 <p className="relative z-10 mt-2 text-2xl font-bold font-mono text-primary-text">
                   {card.value}
                 </p>
-                <div className="absolute bottom-4 right-4 opacity-10 group-hover:opacity-30 transition-opacity">
+                <div className="absolute bottom-4 end-4 opacity-10 group-hover:opacity-30 transition-opacity">
                   <Icon className="w-10 h-10" strokeWidth={1} />
                 </div>
               </div>

@@ -84,7 +84,7 @@ export default function StepBrandModel() {
               type="button"
               onClick={() => setValue('condition', opt.value as WatchWizardFormData['condition'], { shouldValidate: true })}
               className={`
-                flex flex-col items-start p-3 rounded-lg border transition-colors text-left
+                flex flex-col items-start p-3 rounded-lg border transition-colors text-start
                 ${selectedCondition === opt.value
                   ? 'border-accent-blue bg-accent-blue/10'
                   : 'border-border-subtle hover:border-border-strong'

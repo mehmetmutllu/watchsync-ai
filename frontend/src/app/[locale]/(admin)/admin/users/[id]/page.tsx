@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
+
 import {
   ArrowLeft,
   Mail,
@@ -15,10 +16,14 @@ import {
 } from "lucide-react";
 import { getAdminUser, updateUserStatus, resetUserPassword, deleteAdminUser } from "@/lib/admin-api";
 import type { AdminUserDetail } from "@/types/admin";
+import { useRouter } from "@/i18n/routing";
 
 export default function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const t = useTranslations("AdminUserDetail");
+  const tu = useTranslations("AdminUsers");
+  const format = useFormatter();
   const [data, setData] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -45,9 +50,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
         await updateUserStatus(Number(id), newStatus);
       } else if (action === "reset-password") {
         await resetUserPassword(Number(id));
-        alert("Şifre sıfırlama linki gönderildi.");
+        alert(t("reset_password_sent"));
       } else if (action === "delete") {
-        if (!confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
+        if (!confirm(t("delete_confirm"))) {
           setActionLoading(null);
           return;
         }
@@ -74,7 +79,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
   }
 
   if (!data) {
-    return <div className="text-center py-20 text-secondary-text">Kullanıcı bulunamadı.</div>;
+    return <div className="text-center py-20 text-secondary-text">{tu("empty")}</div>;
   }
 
   const { user, sales_count, total_sales_value } = data;
@@ -86,8 +91,8 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
         onClick={() => router.push("/admin/users")}
         className="inline-flex items-center gap-2 text-sm text-secondary-text hover:text-primary-text transition-colors"
       >
-        <ArrowLeft className="w-4 h-4" />
-        Kullanıcılara Dön
+        <ArrowLeft className="w-4 h-4 rtl-flip" />
+        {t("back_to_users")}
       </button>
 
       {/* Header */}
@@ -109,7 +114,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                     ? "bg-semantic-success/10 text-semantic-success"
                     : "bg-semantic-error/10 text-semantic-error"
                 }`}>
-                  {user.dealer?.status === "active" ? "Aktif" : "Askıda"}
+                  {user.dealer?.status === "active" ? tu("status_active") : tu("status_suspended")}
                 </span>
                 {user.dealer?.company_name && (
                   <span className="text-xs text-secondary-text">{user.dealer.company_name}</span>
@@ -130,7 +135,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               }`}
             >
               {user.dealer?.status === "active" ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-              {user.dealer?.status === "active" ? "Askıya Al" : "Aktif Et"}
+              {user.dealer?.status === "active" ? tu("action_suspend") : tu("action_activate")}
             </button>
             <button
               onClick={() => handleAction("reset-password")}
@@ -138,7 +143,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 transition-colors"
             >
               <KeyRound className="w-4 h-4" />
-              Şifre Sıfırla
+              {t("reset_password")}
             </button>
             <button
               onClick={() => handleAction("delete")}
@@ -146,7 +151,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-semantic-error/10 text-semantic-error hover:bg-semantic-error/20 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
-              Sil
+              {t("delete")}
             </button>
           </div>
         </div>
@@ -161,7 +166,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             </div>
             <div>
               <p className="text-2xl font-bold text-primary-text">{user.watches_count ?? 0}</p>
-              <p className="text-xs text-secondary-text">Toplam Saat</p>
+              <p className="text-xs text-secondary-text">{t("stat_watches")}</p>
             </div>
           </div>
         </div>
@@ -172,7 +177,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             </div>
             <div>
               <p className="text-2xl font-bold text-primary-text">{sales_count}</p>
-              <p className="text-xs text-secondary-text">Satış Adedi</p>
+              <p className="text-xs text-secondary-text">{t("stat_sales_count")}</p>
             </div>
           </div>
         </div>
@@ -183,9 +188,9 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
             </div>
             <div>
               <p className="text-2xl font-bold text-primary-text">
-                €{total_sales_value.toLocaleString("tr-TR")}
+                {format.number(total_sales_value, { style: "currency", currency: "EUR", maximumFractionDigits: 0 })}
               </p>
-              <p className="text-xs text-secondary-text">Toplam Satış</p>
+              <p className="text-xs text-secondary-text">{t("stat_sales_value")}</p>
             </div>
           </div>
         </div>
@@ -194,14 +199,14 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
       {/* Watches */}
       {user.watches && user.watches.length > 0 && (
         <div className="glass-strong rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-primary-text mb-4">Son Saatler</h2>
+          <h2 className="text-lg font-semibold text-primary-text mb-4">{t("recent_watches")}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle text-secondary-text">
-                  <th className="text-left px-4 py-2 font-medium">Marka / Model</th>
-                  <th className="text-center px-4 py-2 font-medium">Durum</th>
-                  <th className="text-right px-4 py-2 font-medium">Fiyat</th>
+                  <th className="text-start px-4 py-2 font-medium">{t("col_brand_model")}</th>
+                  <th className="text-center px-4 py-2 font-medium">{tu("col_status")}</th>
+                  <th className="text-end px-4 py-2 font-medium">{t("col_price")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -215,8 +220,8 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
                         {w.status}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-right text-secondary-text">
-                      {w.sale_price ? `€${w.sale_price.toLocaleString("tr-TR")}` : "-"}
+                    <td className="px-4 py-2 text-end text-secondary-text">
+                      {w.sale_price ? format.number(w.sale_price, { style: "currency", currency: "EUR", maximumFractionDigits: 0 }) : "—"}
                     </td>
                   </tr>
                 ))}

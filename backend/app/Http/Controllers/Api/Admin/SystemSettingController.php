@@ -78,7 +78,7 @@ class SystemSettingController extends Controller
         }
 
         return response()->json([
-            'message' => 'Ayarlar güncellendi.',
+            'message' => __('api.settings_updated'),
         ]);
     }
 

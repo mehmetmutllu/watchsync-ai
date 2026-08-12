@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Settings,
   Save,
@@ -16,18 +17,18 @@ import {
 import { getSystemSettings, updateSystemSettings, getSystemHealth } from "@/lib/admin-api";
 import type { SystemHealth } from "@/types/admin";
 
-const settingLabels: Record<string, { label: string; description: string; type: "text" | "toggle" | "number" }> = {
-  site_name: { label: "Site Adı", description: "Platform adı", type: "text" },
-  site_description: { label: "Site Açıklaması", description: "Platform açıklaması", type: "text" },
-  maintenance_mode: { label: "Bakım Modu", description: "Siteyi bakım moduna al", type: "toggle" },
-  registration_enabled: { label: "Kayıt Aktif", description: "Yeni kullanıcı kaydına izin ver", type: "toggle" },
-  email_verification_required: { label: "E-posta Doğrulama", description: "Kayıtta e-posta doğrulaması zorunlu", type: "toggle" },
-  max_watches_per_dealer: { label: "Maks Saat/Bayi", description: "Bayi başına maksimum saat sayısı", type: "number" },
-  ai_auto_process: { label: "AI Otomatik İşleme", description: "Yeni saatleri otomatik AI ile işle", type: "toggle" },
-  ai_confidence_threshold: { label: "AI Güven Eşiği", description: "Minimum AI güven skoru (0-1)", type: "number" },
-  commission_rate: { label: "Komisyon Oranı (%)", description: "Platform komisyon oranı", type: "number" },
-  support_email: { label: "Destek E-posta", description: "Destek e-posta adresi", type: "text" },
-  default_currency: { label: "Varsayılan Para Birimi", description: "Sistemde kullanılan para birimi", type: "text" },
+const settingTypes: Record<string, "text" | "toggle" | "number"> = {
+  site_name: "text",
+  site_description: "text",
+  maintenance_mode: "toggle",
+  registration_enabled: "toggle",
+  email_verification_required: "toggle",
+  max_watches_per_dealer: "number",
+  ai_auto_process: "toggle",
+  ai_confidence_threshold: "number",
+  commission_rate: "number",
+  support_email: "text",
+  default_currency: "text",
 };
 
 const healthIcons: Record<string, React.ReactNode> = {
@@ -47,6 +48,7 @@ const healthStatusIcon = (status: string) => {
 };
 
 export default function AdminSettingsPage() {
+  const t = useTranslations("AdminSettings");
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
@@ -102,8 +104,8 @@ export default function AdminSettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary-text">Sistem Ayarları</h1>
-          <p className="text-sm text-secondary-text mt-1">Platform yapılandırması ve sistem durumu</p>
+          <h1 className="text-2xl font-bold text-primary-text">{t("title")}</h1>
+          <p className="text-sm text-secondary-text mt-1">{t("subtitle")}</p>
         </div>
         <button
           onClick={handleSave}
@@ -111,7 +113,7 @@ export default function AdminSettingsPage() {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-accent-blue text-white hover:bg-accent-blue/90 disabled:opacity-40 transition-colors"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-          {saved ? "Kaydedildi" : "Kaydet"}
+          {saved ? t("saved") : t("save")}
         </button>
       </div>
 
@@ -120,11 +122,11 @@ export default function AdminSettingsPage() {
         <div className="glass-strong rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <Activity className="w-5 h-5 text-accent-blue" />
-            <h2 className="text-lg font-semibold text-primary-text">Sistem Durumu</h2>
+            <h2 className="text-lg font-semibold text-primary-text">{t("health_title")}</h2>
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
               health.status === "healthy" ? "bg-semantic-success/10 text-semantic-success" : "bg-semantic-warning/10 text-semantic-warning"
             }`}>
-              {health.status === "healthy" ? "Sağlıklı" : "Sorunlu"}
+              {health.status === "healthy" ? t("health_ok") : t("health_degraded")}
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -134,10 +136,10 @@ export default function AdminSettingsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-primary-text capitalize">{key}</p>
                   {check.used_percent !== undefined && (
-                    <p className="text-xs text-secondary-text">%{check.used_percent} kullanım</p>
+                    <p className="text-xs text-secondary-text">{t("usage_percent", { percent: check.used_percent })}</p>
                   )}
                   {check.failed_jobs !== undefined && (
-                    <p className="text-xs text-secondary-text">{check.failed_jobs} başarısız iş</p>
+                    <p className="text-xs text-secondary-text">{t("failed_jobs", { count: check.failed_jobs })}</p>
                   )}
                 </div>
                 {healthStatusIcon(check.status)}
@@ -151,38 +153,41 @@ export default function AdminSettingsPage() {
       <div className="glass-strong rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-6">
           <Settings className="w-5 h-5 text-accent-blue" />
-          <h2 className="text-lg font-semibold text-primary-text">Ayarlar</h2>
+          <h2 className="text-lg font-semibold text-primary-text">{t("settings_title")}</h2>
         </div>
 
         <div className="space-y-5">
-          {Object.entries(settingLabels).map(([key, config]) => (
+          {Object.entries(settingTypes).map(([key, type]) => (
             <div key={key} className="flex items-center justify-between gap-4 py-3 border-b border-border-subtle/50 last:border-0">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-primary-text">{config.label}</p>
-                <p className="text-xs text-secondary-text">{config.description}</p>
+                <p className="text-sm font-medium text-primary-text">{t(`field_${key}_label`)}</p>
+                <p className="text-xs text-secondary-text">{t(`field_${key}_desc`)}</p>
               </div>
               <div className="flex-shrink-0">
-                {config.type === "toggle" ? (
+                {type === "toggle" ? (
                   <button
                     onClick={() => updateSetting(key, settings[key] === "1" ? "0" : "1")}
+                    aria-label={t(`field_${key}_label`)}
                     className={`w-12 h-6 rounded-full transition-colors relative ${
                       settings[key] === "1" ? "bg-accent-blue" : "bg-surface-elevated border border-border-subtle"
                     }`}
                   >
-                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                      settings[key] === "1" ? "translate-x-6" : "translate-x-0.5"
+                    <div className={`absolute top-0.5 start-0 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                      settings[key] === "1" ? "ltr:translate-x-6 rtl:-translate-x-6" : "ltr:translate-x-0.5 rtl:-translate-x-0.5"
                     }`} />
                   </button>
-                ) : config.type === "number" ? (
+                ) : type === "number" ? (
                   <input
                     type="number"
+                    aria-label={t(`field_${key}_label`)}
                     value={settings[key] ?? ""}
                     onChange={(e) => updateSetting(key, e.target.value)}
-                    className="w-28 px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle text-primary-text text-sm text-right focus:outline-none focus:ring-2 focus:ring-accent-blue/40"
+                    className="w-28 px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle text-primary-text text-sm text-end focus:outline-none focus:ring-2 focus:ring-accent-blue/40"
                   />
                 ) : (
                   <input
                     type="text"
+                    aria-label={t(`field_${key}_label`)}
                     value={settings[key] ?? ""}
                     onChange={(e) => updateSetting(key, e.target.value)}
                     className="w-48 px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle text-primary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/40"

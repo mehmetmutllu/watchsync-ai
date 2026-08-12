@@ -1,10 +1,11 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Script from "next/script";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight } from "lucide-react";
 import WatchScrollytelling from "@/components/landing/WatchScrollytelling";
 import Reveal from "@/components/landing/Reveal";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "./landing.css";
 
 export const metadata: Metadata = {
@@ -85,6 +86,7 @@ export default async function LandingPage() {
           >
             {t("nav_pricing")}
           </Link>
+          <LanguageSwitcher variant="compact" />
           <Link href="/login" className="ws-btn ws-btn-ghost !h-9 !px-4 text-sm">
             {t("nav_start")}
           </Link>
@@ -248,7 +250,7 @@ export default async function LandingPage() {
             {metrics.map((m) => (
               <div
                 key={m.label}
-                className="border-b border-[var(--ws-line)] px-6 py-9 lg:border-b-0 lg:border-r lg:last:border-r-0"
+                className="border-b border-[var(--ws-line)] px-6 py-9 lg:border-b-0 lg:border-e lg:last:border-e-0"
               >
                 <p className="ws-gauge-value">
                   {m.value}
@@ -401,16 +403,20 @@ export default async function LandingPage() {
             <WatchMark />
             <span className="ws-display text-sm">WatchSync AI</span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/impressum" className="ws-mono text-[11px] tracking-[0.1em]" style={{ color: "var(--ws-text-dim)" }}>
+          <div className="flex flex-wrap items-center gap-6">
+            <Link href="/agb" className="ws-mono text-[11px] tracking-[0.1em] hover:underline" style={{ color: "var(--ws-text-dim)" }}>
+              AGB & Hizmet Şartları
+            </Link>
+            <Link href="/impressum" className="ws-mono text-[11px] tracking-[0.1em] hover:underline" style={{ color: "var(--ws-text-dim)" }}>
               {t("footer_imprint")}
             </Link>
-            <Link href="/datenschutz" className="ws-mono text-[11px] tracking-[0.1em]" style={{ color: "var(--ws-text-dim)" }}>
+            <Link href="/datenschutz" className="ws-mono text-[11px] tracking-[0.1em] hover:underline" style={{ color: "var(--ws-text-dim)" }}>
               {t("footer_privacy")}
             </Link>
             <p className="ws-mono text-[11px]" style={{ color: "var(--ws-text-faint)" }}>
               {t("footer_rights")}
             </p>
+            <LanguageSwitcher variant="inline" dropUp />
           </div>
         </div>
       </footer>

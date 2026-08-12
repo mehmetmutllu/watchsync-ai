@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Translation\HasLocalePreference;
+
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -20,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'dealer_id',
         'name',
         'email',
+        'locale',
         'password',
         'role',
         'status',
@@ -28,6 +31,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'invited_at',
         'last_login_at',
         'notifications_read_at',
+        'accepted_terms_at',
+        'accepted_ip',
     ];
 
     protected $hidden = [
@@ -58,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'invited_at'            => 'datetime',
             'last_login_at'         => 'datetime',
             'notifications_read_at' => 'datetime',
+            'accepted_terms_at'     => 'datetime',
         ];
     }
 
@@ -163,5 +169,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getEffectivePermissionsAttribute(): array
     {
         return $this->effectivePermissions();
+    }
+
+    /**
+     * Bildirimler bu kullanıcının kendi dilinde gönderilir.
+     * Tercih kayıtlı değilse uygulamanın varsayılan dili kullanılır.
+     */
+    public function preferredLocale(): string
+    {
+        return $this->locale ?: config('app.locale', 'en');
     }
 }

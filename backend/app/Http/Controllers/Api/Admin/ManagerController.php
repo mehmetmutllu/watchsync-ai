@@ -68,7 +68,7 @@ class ManagerController extends Controller
         $targetRole = Role::findOrFail($validated['role_id']);
         if ($targetRole->slug === 'super_admin' && ! $currentAdmin->isSuperAdmin()) {
             return response()->json([
-                'message' => 'Super Admin rolünü sadece Super Admin atayabilir.',
+                'message' => __('api.super_admin_only_assign'),
             ], 403);
         }
 
@@ -111,7 +111,7 @@ class ManagerController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Yönetici başarıyla oluşturuldu.',
+            'message' => __('api.manager_created'),
             'manager' => $adminUser->load(['user:id,name,email', 'role:id,name,slug']),
         ], 201);
     }
@@ -129,7 +129,7 @@ class ManagerController extends Controller
         // Super admin'i sadece super admin düzenleyebilir
         if ($adminUser->isSuperAdmin() && ! $currentAdmin->isSuperAdmin()) {
             return response()->json([
-                'message' => 'Super Admin hesabını düzenleme yetkiniz yok.',
+                'message' => __('api.super_admin_no_edit'),
             ], 403);
         }
 
@@ -146,7 +146,7 @@ class ManagerController extends Controller
             $targetRole = Role::findOrFail($validated['role_id']);
             if ($targetRole->slug === 'super_admin' && ! $currentAdmin->isSuperAdmin()) {
                 return response()->json([
-                    'message' => 'Super Admin rolünü sadece Super Admin atayabilir.',
+                    'message' => __('api.super_admin_only_assign'),
                 ], 403);
             }
         }
@@ -185,7 +185,7 @@ class ManagerController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Yönetici başarıyla güncellendi.',
+            'message' => __('api.manager_updated'),
             'manager' => $adminUser->fresh()->load(['user:id,name,email', 'role:id,name,slug']),
         ]);
     }
@@ -203,14 +203,14 @@ class ManagerController extends Controller
         // Kendini silme engeli
         if ($adminUser->id === $currentAdmin->id) {
             return response()->json([
-                'message' => 'Kendi hesabınızı silemezsiniz.',
+                'message' => __('api.cannot_delete_self'),
             ], 403);
         }
 
         // Super admin'i sadece super admin silebilir
         if ($adminUser->isSuperAdmin() && ! $currentAdmin->isSuperAdmin()) {
             return response()->json([
-                'message' => 'Super Admin hesabını silme yetkiniz yok.',
+                'message' => __('api.super_admin_no_delete'),
             ], 403);
         }
 
@@ -230,7 +230,7 @@ class ManagerController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Yönetici başarıyla silindi.',
+            'message' => __('api.manager_deleted'),
         ]);
     }
 

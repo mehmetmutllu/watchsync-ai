@@ -500,3 +500,89 @@ sudo supervisorctl status
 pm2 status
 tail -f /var/www/watchsync/backend/storage/logs/laravel.log
 ```
+
+---
+
+## Dil Desteği (i18n) — Üretim Notları
+
+Uygulama dört dili destekler: **Türkçe (tr), Almanca (de), İngilizce (en), Arapça (ar)**.
+Arapça sağdan-sola (RTL) çalışır; `<html dir="rtl">` ve mantıksal Tailwind yardımcıları
+(`ms-/me-/ps-/pe-/start-/end-/text-start`) ile düzen otomatik aynalanır.
+
+### Ülkeye göre otomatik dil seçimi
+
+`src/middleware.ts` ziyaretçinin dilini şu sırayla belirler:
+
+1. `NEXT_LOCALE` çerezi — kullanıcı bilinçli seçim yaptıysa buna dokunulmaz.
+2. URL'deki dil öneki (`/tr/...`, `/ar/...`).
+3. **Ülke** — reverse proxy / CDN başlığı, yoksa IP sorgusu.
+4. `Accept-Language` başlığı.
+5. Varsayılan dil (`en`).
+
+Ülke → dil eşlemesi `src/i18n/config.ts` içindedir
+(TR → tr · DE/AT/CH/LI/LU → de · 24 Arap ülkesi → ar · diğerleri → en).
+
+#### En hızlı yol: nginx GeoIP2 ile başlık üretmek
+
+Kendi sunucunuzda çalıştığınız için başlık üretmek IP sorgusundan çok daha hızlıdır.
+`nginx` GeoIP2 modülüyle:
+
+```nginx
+# http bloğu
+geoip2 /etc/nginx/geoip/GeoLite2-Country.mmdb {
+    auto_reload 5m;
+    $geoip2_country_code country iso_code;
+}
+
+# server / location bloğu — Next.js'e ilet
+proxy_set_header X-Geo-Country $geoip2_country_code;
+proxy_set_header X-Real-IP     $remote_addr;
+```
+
+Middleware `X-Geo-Country` başlığını doğrudan kullanır; ayrıca Cloudflare
+(`cf-ipcountry`), Vercel, AWS CloudFront, Fastly ve Akamai başlıklarını da tanır.
+
+#### Başlık yoksa: IP → ülke sorgusu
+
+Başlık gelmezse middleware, anahtar gerektirmeyen HTTPS sağlayıcılara
+(geojs.io, ipwho.is) tek bir sorgu atar. Sonuç 24 saat bellekte ve 30 gün
+`WS_COUNTRY` çerezinde saklanır; yani sorgu yalnızca ilk ziyarette çalışır.
+
+Ortam değişkenleri:
+
+| Değişken | Varsayılan | Açıklama |
+| --- | --- | --- |
+| `GEO_IP_LOOKUP` | (açık) | `off` yazılırsa IP sorgusu tamamen kapanır. |
+| `GEO_LOOKUP_TIMEOUT_MS` | `1200` | Sağlayıcı zaman aşımı (ms). |
+
+> Yerel/özel IP'ler (127.x, 10.x, 192.168.x …) sorgulanmaz — geliştirmede
+> doğrudan `Accept-Language`'a düşülür.
+
+### Backend (Laravel)
+
+Frontend her API isteğinde `X-Locale` başlığı gönderir; `App\Http\Middleware\SetLocale`
+bunu okuyup `App::setLocale()` uygular. Doğrulama mesajları ve bildirim e-postaları
+`backend/lang/{tr,de,en,ar}/` altındaki dosyalardan gelir. Kullanıcı ve davetlerde
+`locale` sütunu tutulur; e-postalar alıcının kendi dilinde gönderilir.
+
+Yeni kurulumda migration çalıştırmayı unutmayın:
+
+```bash
+php artisan migrate    # users.locale, invitations.locale, customers.locale
+```
+
+### Çeviri katalogları
+
+`frontend/messages/{tr,de,en,ar}.json` — dört dosya da aynı anahtar kümesine sahip
+olmalıdır. Doğrulamak için:
+
+```bash
+cd frontend && npm run i18n:check
+```
+
+Script; eksik/fazla anahtarları, boş değerleri ve ICU değişken uyuşmazlıklarını
+(`{name}`, `{count}`) hata olarak raporlar, çevrilmemiş görünen değerleri uyarı olarak listeler.
+
+> **Dil eklerken:** `src/i18n/config.ts` (locales + ülke eşlemesi),
+> `messages/<yeni>.json` ve `src/middleware.ts` içindeki **statik** `matcher`
+> satırı birlikte güncellenmelidir.

@@ -17,25 +17,25 @@ export function CustomerQuickActions({ customer }: CustomerQuickActionsProps) {
   const templates: { key: WhatsAppTemplateKey; icon: React.ReactNode; label: string; text: string }[] = [
     {
       key: "birthday",
-      icon: <Gift className="w-4 h-4 mr-3" />,
+      icon: <Gift className="w-4 h-4 me-3" />,
       label: t("wa_template_birthday"),
       text: t("wa_text_birthday", { name: customer.first_name }),
     },
     {
       key: "followUp",
-      icon: <Clock className="w-4 h-4 mr-3" />,
+      icon: <Clock className="w-4 h-4 me-3" />,
       label: t("wa_template_followup"),
       text: t("wa_text_followup", { name: customer.first_name }),
     },
     {
       key: "offer",
-      icon: <Tag className="w-4 h-4 mr-3" />,
+      icon: <Tag className="w-4 h-4 me-3" />,
       label: t("wa_template_offer"),
       text: t("wa_text_offer", { name: customer.first_name }),
     },
     {
       key: "custom",
-      icon: <MessageSquare className="w-4 h-4 mr-3" />,
+      icon: <MessageSquare className="w-4 h-4 me-3" />,
       label: t("wa_template_custom"),
       text: t("wa_text_custom", { name: customer.first_name }),
     },
@@ -68,7 +68,7 @@ export function CustomerQuickActions({ customer }: CustomerQuickActionsProps) {
           >
             <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center bg-[#151518]">
               <div className="flex items-center text-[#25D366] font-medium">
-                <MessageCircle className="w-5 h-5 mr-2" />
+                <MessageCircle className="w-5 h-5 me-2" />
                 WhatsApp an {customer.first_name}
               </div>
               <button onClick={() => setIsOpen(false)} className="text-white/40 hover:text-white transition-colors">
@@ -84,7 +84,7 @@ export function CustomerQuickActions({ customer }: CustomerQuickActionsProps) {
                 <button
                   key={tpl.key}
                   onClick={() => handleSelectTemplate(tpl.text)}
-                  className="flex items-center w-full px-3 py-3 text-sm text-left hover:bg-white/5 rounded-xl transition-colors group"
+                  className="flex items-center w-full px-3 py-3 text-sm text-start hover:bg-white/5 rounded-xl transition-colors group"
                 >
                   <div className="text-white/40 group-hover:text-[#25D366] transition-colors">
                     {tpl.icon}

@@ -1,45 +1,28 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface TourStep {
   target: string;       // CSS selector
-  title: string;
-  description: string;
-  position?: 'top' | 'bottom' | 'left' | 'right';
+  key: string;          // çeviri anahtarı
+  position?: 'top' | 'bottom' | 'start' | 'end';
 }
 
 const TOUR_STEPS: TourStep[] = [
-  {
-    target: '[data-tour="sidebar"]',
-    title: 'Navigasyon Menüsü',
-    description: 'Sol menüden envanter, siparişler, CRM ve diğer modüllere hızlıca erişebilirsiniz.',
-    position: 'right',
-  },
-  {
-    target: '[data-tour="inventory"]',
-    title: 'Envanter Yönetimi',
-    description: 'Saatlerinizi ekleyin, düzenleyin ve tüm platformlarda stok durumunu takip edin.',
-    position: 'bottom',
-  },
-  {
-    target: '[data-tour="sync-status"]',
-    title: 'Senkronizasyon Durumu',
-    description: 'Platform senkronizasyon durumlarını gerçek zamanlı olarak buradan izleyebilirsiniz.',
-    position: 'bottom',
-  },
-  {
-    target: '[data-tour="notifications"]',
-    title: 'Bildirimler',
-    description: 'Stok uyarıları, sipariş bildirimleri ve sistem güncellemelerini burada göreceksiniz.',
-    position: 'bottom',
-  },
+  { target: '[data-tour="sidebar"]', key: 'sidebar', position: 'end' },
+  { target: '[data-tour="inventory"]', key: 'inventory', position: 'bottom' },
+  { target: '[data-tour="sync-status"]', key: 'sync_status', position: 'bottom' },
+  { target: '[data-tour="notifications"]', key: 'notifications', position: 'bottom' },
 ];
 
 const STORAGE_KEY = 'watchsync_onboarding_completed';
 
 export default function OnboardingTour() {
+  const t = useTranslations('Onboarding');
+  const locale = useLocale();
+  const isRtl = locale === 'ar';
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
@@ -61,9 +44,15 @@ export default function OnboardingTour() {
     const pos = step.position || 'bottom';
     const gap = 12;
 
-    let style: React.CSSProperties = { position: 'fixed', zIndex: 9999 };
+    const style: React.CSSProperties = { position: 'fixed', zIndex: 9999 };
 
-    switch (pos) {
+    // 'start'/'end' mantıksal yönlerdir: RTL'de otomatik aynalanır.
+    const physical =
+      pos === 'start' ? (isRtl ? 'right' : 'left')
+      : pos === 'end' ? (isRtl ? 'left' : 'right')
+      : pos;
+
+    switch (physical) {
       case 'right':
         style.top = rect.top + rect.height / 2;
         style.left = rect.right + gap;
@@ -88,13 +77,18 @@ export default function OnboardingTour() {
     }
 
     setTooltipStyle(style);
-  }, [currentStep]);
+  }, [currentStep, isRtl]);
 
   useEffect(() => {
     if (!isVisible) return;
-    positionTooltip();
+    // Konumlandırmayı bir sonraki çerçeveye ertele: efekt gövdesinde doğrudan
+    // setState çağrısı zincirleme render'a yol açıyor.
+    const frame = requestAnimationFrame(positionTooltip);
     window.addEventListener('resize', positionTooltip);
-    return () => window.removeEventListener('resize', positionTooltip);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', positionTooltip);
+    };
   }, [isVisible, currentStep, positionTooltip]);
 
   const dismiss = () => {
@@ -133,7 +127,11 @@ export default function OnboardingTour() {
       {/* Tooltip */}
       <div
         role="dialog"
-        aria-label={`Adım ${currentStep + 1} / ${TOUR_STEPS.length}: ${step.title}`}
+        aria-label={t('step_aria', {
+          current: currentStep + 1,
+          total: TOUR_STEPS.length,
+          title: t(`${step.key}_title`),
+        })}
         style={tooltipStyle}
         className="w-72 bg-surface-elevated border border-border-subtle rounded-xl shadow-elevated p-4 animate-scale-in"
       >
@@ -145,7 +143,7 @@ export default function OnboardingTour() {
           <button
             onClick={dismiss}
             className="p-1 rounded-md hover:bg-surface text-secondary-text hover:text-primary-text transition-colors"
-            aria-label="Turu kapat"
+            aria-label={t('close')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -153,10 +151,10 @@ export default function OnboardingTour() {
 
         {/* Content */}
         <h4 className="text-sm font-semibold text-primary-text mb-1">
-          {step.title}
+          {t(`${step.key}_title`)}
         </h4>
         <p className="text-xs text-secondary-text leading-relaxed mb-4">
-          {step.description}
+          {t(`${step.key}_desc`)}
         </p>
 
         {/* Progress dots */}
@@ -181,7 +179,7 @@ export default function OnboardingTour() {
             onClick={dismiss}
             className="text-xs text-secondary-text hover:text-primary-text transition-colors"
           >
-            Atla
+            {t('skip')}
           </button>
           <div className="flex items-center gap-2">
             {currentStep > 0 && (
@@ -189,16 +187,16 @@ export default function OnboardingTour() {
                 onClick={prev}
                 className="btn-press inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-text bg-surface rounded-md transition-colors"
               >
-                <ChevronLeft className="w-3 h-3" />
-                Geri
+                <ChevronLeft className="w-3 h-3 rtl-flip" />
+                {t('back')}
               </button>
             )}
             <button
               onClick={next}
               className="btn-press inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-accent-blue hover:bg-accent-blue-hover rounded-md transition-colors"
             >
-              {isLast ? 'Bitir' : 'İleri'}
-              {!isLast && <ChevronRight className="w-3 h-3" />}
+              {isLast ? t('finish') : t('next')}
+              {!isLast && <ChevronRight className="w-3 h-3 rtl-flip" />}
             </button>
           </div>
         </div>

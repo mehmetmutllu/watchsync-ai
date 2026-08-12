@@ -369,3 +369,65 @@ body::after {
     scroll-behavior: auto !important;
   }
 }
+/* ===================================================================== */
+/* ===== RTL (Arapça) desteği ========================================== */
+/* ===================================================================== */
+
+/* Arapça'da gövde fontu Noto Sans Arabic olur (Inter'de Arapça glif yok). */
+[dir="rtl"] body,
+html[lang="ar"] body {
+  font-family: var(--font-arabic), var(--font-inter), system-ui, sans-serif;
+}
+
+/* Arapça'da rakamlar Latin kalsın (fiyat/SKU okunabilirliği için). */
+[dir="rtl"] {
+  font-variant-numeric: lining-nums;
+}
+
+/* Arka plan parıltıları yönle birlikte aynalansın. */
+[dir="rtl"] body::before {
+  left: auto;
+  right: -10%;
+}
+
+[dir="rtl"] body::after {
+  right: auto;
+  left: -10%;
+}
+
+/* Sağdan sola kayan panel animasyonu (bildirim çekmecesi vb.). */
+[dir="rtl"] .animate-slide-in-right {
+  animation-name: slideInRightRtl;
+}
+
+@keyframes slideInRightRtl {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Yön belirten ikonlar (ok, chevron, geri/ileri) RTL'de aynalanır.
+   İçeriği yön bağımsız olan ikonlar `data-no-flip` ile hariç tutulabilir. */
+[dir="rtl"] .rtl-flip,
+[dir="rtl"] [data-rtl-flip="true"] {
+  transform: scaleX(-1);
+}
+
+/* Sayısal alanlar (fiyat, tarih, SKU) RTL'de de soldan sağa yazılır. */
+[dir="rtl"] .ltr-nums,
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="url"] {
+  direction: ltr;
+  text-align: right;
+}
+
+/* Tailwind'in mantıksal yardımcıları (ms-/me-/ps-/pe-/start-/end-/text-start)
+   dir özniteliğini otomatik izler; ek kural gerekmez. */

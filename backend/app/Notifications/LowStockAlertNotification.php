@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Models\Watch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -24,12 +23,15 @@ class LowStockAlertNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $locale = $notifiable->locale ?? app()->getLocale();
+
         return (new MailMessage)
-            ->subject('⚠️ Düşük Stok Uyarısı — WatchSync AI')
-            ->greeting("Merhaba {$notifiable->name},")
-            ->line("Aktif envanter sayınız **{$this->activeCount}** adede düştü.")
-            ->line("Stok seviyeniz belirlenen eşik değerinin ({$this->threshold}) altına indi.")
-            ->action('Envanteri Görüntüle', url('/dashboard/inventory'))
-            ->line('Yeni saat ekleyerek stok seviyenizi güncelleyebilirsiniz.');
+            ->locale($locale)
+            ->subject(__('notifications.low_stock.subject', [], $locale))
+            ->greeting(__('notifications.greeting', ['name' => $notifiable->name], $locale))
+            ->line(__('notifications.low_stock.intro', ['count' => $this->activeCount], $locale))
+            ->line(__('notifications.low_stock.threshold', ['threshold' => $this->threshold], $locale))
+            ->action(__('notifications.low_stock.action', [], $locale), url("/{$locale}/dashboard/inventory"))
+            ->line(__('notifications.low_stock.outro', [], $locale));
     }
 }

@@ -139,7 +139,7 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
             value={language}
             onChange={(e) => setLanguage(e.target.value as Language)}
             disabled={isGenerating || isStreaming}
-            className="appearance-none pl-8 pr-7 py-1.5 rounded-lg border border-border-subtle bg-surface-elevated text-xs font-medium text-primary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 disabled:opacity-50"
+            className="appearance-none ps-8 pe-7 py-1.5 rounded-lg border border-border-subtle bg-surface-elevated text-xs font-medium text-primary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 disabled:opacity-50"
           >
             {LANGUAGE_OPTIONS.map((lang) => (
               <option key={lang.value} value={lang.value}>
@@ -147,8 +147,8 @@ export default function AiDescriptionGenerator({ watch, onDescriptionReady }: Ai
               </option>
             ))}
           </select>
-          <Languages className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
-          <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-secondary-text" />
+          <Languages className="pointer-events-none absolute start-2 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+          <ChevronDown className="pointer-events-none absolute end-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-secondary-text" />
         </div>
       </div>
 

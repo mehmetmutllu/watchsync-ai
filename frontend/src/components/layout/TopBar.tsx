@@ -8,6 +8,7 @@ import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { GlobalSearch } from "./GlobalSearch";
 import NotificationDrawer from "./NotificationDrawer";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 interface TopBarProps {
   onMenuToggle: () => void;
@@ -75,6 +76,9 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
 
       {/* Right Section */}
       <div className="flex items-center gap-3">
+        {/* Language Switcher — her sayfadan erişilebilir */}
+        <LanguageSwitcher variant="compact" />
+
         {/* Notification Bell */}
         <button
           data-tour="notifications"
@@ -86,7 +90,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
         >
           <Bell className="w-5 h-5" strokeWidth={1.5} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-semantic-error text-white text-[10px] font-bold leading-none">
+            <span className="absolute -top-0.5 -end-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-semantic-error text-white text-[10px] font-bold leading-none">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -115,7 +119,7 @@ export default function TopBar({ onMenuToggle, sidebarCollapsed }: TopBarProps) 
               {initials}
             </span>
           </div>
-          <div className="hidden lg:block text-left">
+          <div className="hidden lg:block text-start">
             <p className="text-sm font-medium text-primary-text leading-none">
               {user?.name || t("user_fallback")}
             </p>

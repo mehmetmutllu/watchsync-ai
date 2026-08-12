@@ -1,23 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Eye, EyeOff, Loader2, Shield } from "lucide-react";
 import { useAdminAuthStore } from "@/stores/adminAuth";
 import axios from "axios";
+import { useRouter } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 const loginSchema = z.object({
-  email: z.string().email("Geçerli bir e-posta adresi giriniz."),
-  password: z.string().min(1, "Şifre gereklidir."),
+  email: z.string().email("errors.email_invalid"),
+  password: z.string().min(1, "errors.password_required"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const t = useTranslations("AdminLogin");
   const login = useAdminAuthStore((s) => s.login);
   const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -38,25 +42,28 @@ export default function AdminLoginPage() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setApiError(
-          err.response?.data?.message || "Giriş başarısız. Lütfen tekrar deneyin."
+          err.response?.data?.message || t("login_failed")
         );
       } else {
-        setApiError("Giriş başarısız. Lütfen tekrar deneyin.");
+        setApiError(t("login_failed"));
       }
     }
   };
 
   return (
-    <div className="min-h-screen bg-midnight flex items-center justify-center p-4">
+    <div className="min-h-screen bg-midnight flex items-center justify-center p-4 relative">
+      <div className="absolute top-4 end-4 z-50">
+        <LanguageSwitcher variant="compact" />
+      </div>
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-semantic-error/10 mb-6">
             <Shield className="w-8 h-8 text-semantic-error" strokeWidth={1.5} />
           </div>
-          <h1 className="text-2xl font-bold text-primary-text">Admin Panel</h1>
+          <h1 className="text-2xl font-bold text-primary-text">{t("title")}</h1>
           <p className="mt-2 text-sm text-secondary-text">
-            Yönetici hesabınızla giriş yapın.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -75,7 +82,7 @@ export default function AdminLoginPage() {
               htmlFor="email"
               className="block text-sm font-medium text-secondary-text"
             >
-              E-posta
+              {t("email")}
             </label>
             <input
               id="email"
@@ -93,7 +100,7 @@ export default function AdminLoginPage() {
             />
             {errors.email && (
               <p className="text-xs text-semantic-error">
-                {errors.email.message}
+                {t(errors.email.message as "errors.email_invalid")}
               </p>
             )}
           </div>
@@ -104,7 +111,7 @@ export default function AdminLoginPage() {
               htmlFor="password"
               className="block text-sm font-medium text-secondary-text"
             >
-              Şifre
+              {t("password")}
             </label>
             <div className="relative">
               <input
@@ -113,7 +120,7 @@ export default function AdminLoginPage() {
                 autoComplete="current-password"
                 placeholder="••••••••"
                 {...register("password")}
-                className={`w-full h-11 px-4 pr-11 rounded-lg bg-surface text-sm text-primary-text
+                className={`w-full h-11 px-4 pe-11 rounded-lg bg-surface text-sm text-primary-text
                   placeholder-disabled-text border transition-all duration-150 outline-none
                   ${
                     errors.password
@@ -124,8 +131,8 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-disabled-text hover:text-secondary-text transition-colors"
-                aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-disabled-text hover:text-secondary-text transition-colors"
+                aria-label={showPassword ? t("hide_password") : t("show_password")}
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -136,7 +143,7 @@ export default function AdminLoginPage() {
             </div>
             {errors.password && (
               <p className="text-xs text-semantic-error">
-                {errors.password.message}
+                {t(errors.password.message as "errors.password_required")}
               </p>
             )}
           </div>
@@ -153,16 +160,16 @@ export default function AdminLoginPage() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Giriş yapılıyor...
+                {t("submitting")}
               </>
             ) : (
-              "Giriş Yap"
+              t("submit")
             )}
           </button>
         </form>
 
         <p className="text-center text-xs text-disabled-text">
-          Bu sayfa sadece yetkili yöneticiler içindir.
+          {t("restricted_notice")}
         </p>
       </div>
     </div>

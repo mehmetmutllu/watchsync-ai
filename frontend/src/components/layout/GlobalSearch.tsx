@@ -81,7 +81,7 @@ export function GlobalSearch() {
   return (
     <div className="relative hidden sm:block" ref={wrapperRef}>
       <Search
-        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text"
+        className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text"
         strokeWidth={1.5}
       />
       <input
@@ -92,7 +92,7 @@ export function GlobalSearch() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsFocused(true)}
-        className="w-64 lg:w-80 h-9 pl-10 pr-4 rounded-lg
+        className="w-64 lg:w-80 h-9 ps-10 pe-4 rounded-lg
           bg-black/20 text-sm text-primary-text placeholder-disabled-text
           border border-white/10
           focus:border-accent-blue focus:shadow-[var(--shadow-focus)]
@@ -121,7 +121,7 @@ export function GlobalSearch() {
                     <button
                       key={w.id}
                       onClick={() => handleSelectWatch(w.id)}
-                      className="w-full text-left px-3 py-2 hover:bg-white/5 transition-colors flex items-center gap-3"
+                      className="w-full text-start px-3 py-2 hover:bg-white/5 transition-colors flex items-center gap-3"
                     >
                       {w.thumbnail_url || w.primary_image_url ? (
                         <Image src={(w.thumbnail_url || w.primary_image_url) as string} alt={w.model} width={32} height={32} className="rounded object-cover" />
@@ -148,7 +148,7 @@ export function GlobalSearch() {
                     <button
                       key={c.id}
                       onClick={() => handleSelectCustomer(c.id)}
-                      className="w-full text-left px-3 py-2 hover:bg-white/5 transition-colors flex items-center gap-3"
+                      className="w-full text-start px-3 py-2 hover:bg-white/5 transition-colors flex items-center gap-3"
                     >
                       <div className="w-8 h-8 rounded-full bg-accent-blue/10 flex items-center justify-center text-accent-blue font-medium text-xs">
                         {c.first_name[0]}{c.last_name[0]}

@@ -16,9 +16,22 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sanctum SPA stateful authentication (httpOnly cookie)
         $middleware->statefulApi();
 
-        // Global API middleware — tüm API yanıtlarına güvenlik header'ları ekle
+        $middleware->validateCsrfTokens(except: [
+            'api/auth/login',
+            'api/auth/register',
+            'api/subscriptions/stripe-webhook',
+            'api/webhooks/*',
+        ]);
+
+        // Global API middleware — güvenlik header'ları + istek dili
         $middleware->api(prepend: [
             \App\Http\Middleware\SecurityHeaders::class,
+            \App\Http\Middleware\SetLocale::class,
+        ]);
+
+        // Web rotaları (e-posta doğrulama, fatura PDF vb.) da dili izlesin
+        $middleware->web(prepend: [
+            \App\Http\Middleware\SetLocale::class,
         ]);
 
         // Disabled kullanıcı hiçbir API rotasına erişemez (oturumu olsa bile)

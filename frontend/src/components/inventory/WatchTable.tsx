@@ -249,13 +249,13 @@ export default function WatchTable({
                   className="rounded border-white/20 bg-white/5 text-accent-blue focus:ring-accent-blue focus:ring-offset-0 focus:ring-offset-transparent"
                 />
               </th>
-              <th className="w-14 px-2 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
+              <th className="w-14 px-2 py-3 text-start text-xs uppercase tracking-wider text-secondary-text font-medium">
                 {t("th_image")}
               </th>
               {visibleColumns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium cursor-pointer hover:text-primary-text transition-colors"
+                  className="px-4 py-3 text-start text-xs uppercase tracking-wider text-secondary-text font-medium cursor-pointer hover:text-primary-text transition-colors"
                   onClick={() => handleSort(col.key)}
                 >
                   <div className="flex items-center gap-1.5">
@@ -270,13 +270,13 @@ export default function WatchTable({
                   </div>
                 </th>
               ))}
-              <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
+              <th className="px-4 py-3 text-start text-xs uppercase tracking-wider text-secondary-text font-medium">
                 {t("th_platforms")}
               </th>
-              <th className="px-4 py-3 text-left text-xs uppercase tracking-wider text-secondary-text font-medium">
+              <th className="px-4 py-3 text-start text-xs uppercase tracking-wider text-secondary-text font-medium">
                 {t('th_sync')}
               </th>
-              <th className="w-16 px-4 py-3 text-right text-xs uppercase tracking-wider text-secondary-text font-medium">
+              <th className="w-16 px-4 py-3 text-end text-xs uppercase tracking-wider text-secondary-text font-medium">
                 {t("th_actions")}
               </th>
             </tr>
@@ -385,7 +385,7 @@ export default function WatchTable({
                 </td>
 
                 {/* Actions */}
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 text-end">
                   <button
                     onClick={(e) => openMenu(watch.id, e.currentTarget)}
                     aria-label={t("th_actions")}

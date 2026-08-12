@@ -22,8 +22,8 @@ class UpdateWatchStatusRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status.required' => 'Durum alanı zorunludur.',
-            'status.in'       => 'Geçersiz durum değeri.',
+            'status.required' => __('requests.status_required'),
+            'status.in'       => __('requests.status_in'),
         ];
     }
 }

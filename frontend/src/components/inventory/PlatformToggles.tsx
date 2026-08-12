@@ -82,8 +82,8 @@ export default function PlatformToggles({ watchId, platforms }: PlatformTogglesP
             >
               <div
                 className={`
-                  absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200
-                  ${enabled[platform.id] ? 'translate-x-4' : 'translate-x-0.5'}
+                  absolute top-0.5 start-0 w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200
+                  ${enabled[platform.id] ? 'ltr:translate-x-4 rtl:-translate-x-4' : 'ltr:translate-x-0.5 rtl:-translate-x-0.5'}
                 `}
               />
             </div>

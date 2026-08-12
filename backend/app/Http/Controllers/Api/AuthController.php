@@ -25,7 +25,8 @@ class AuthController extends Controller
         $validated = $request->validated();
 
         try {
-            $user = DB::transaction(function () use ($validated) {
+            $ipAddress = $request->ip();
+            $user = DB::transaction(function () use ($validated, $ipAddress) {
                 // Dealer oluştur
                 $dealer = Dealer::create([
                     'name'         => $validated['name'],
@@ -36,11 +37,14 @@ class AuthController extends Controller
 
                 // User oluştur (ilk kullanıcı = owner)
                 return User::create([
-                    'dealer_id' => $dealer->id,
-                    'name'      => $validated['name'],
-                    'email'     => $validated['email'],
-                    'password'  => $validated['password'], // Otomatik hash (casts)
-                    'role'      => 'owner',
+                    'dealer_id'          => $dealer->id,
+                    'name'               => $validated['name'],
+                    'email'              => $validated['email'],
+                    'locale'             => app()->getLocale(),
+                    'password'           => $validated['password'], // Otomatik hash (casts)
+                    'role'               => 'owner',
+                    'accepted_terms_at'  => now(),
+                    'accepted_ip'        => $ipAddress,
                 ]);
             });
 
@@ -52,14 +56,14 @@ class AuthController extends Controller
             event(new Registered($user));
 
             return response()->json([
-                'message' => 'Kayıt başarılı.',
+                'message' => __('api.register_success'),
                 'user'    => $user->load('dealer'),
             ], 201);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Registration Error: ' . $e->getMessage());
 
             return response()->json([
-                'message' => 'Kayıt işlemi sırasında bir sunucu hatası oluştu.',
+                'message' => __('api.register_server_error'),
             ], 500);
         }
     }
@@ -78,7 +82,7 @@ class AuthController extends Controller
             'password' => $validated['password'],
         ])) {
             return response()->json([
-                'message' => 'E-posta adresi veya şifre hatalı.',
+                'message' => __('api.login_invalid'),
             ], 401);
         }
 
@@ -90,7 +94,7 @@ class AuthController extends Controller
             Auth::guard('web')->logout();
 
             return response()->json([
-                'message' => 'Hesabınız devre dışı bırakılmış.',
+                'message' => __('api.account_disabled'),
             ], 401);
         }
 
@@ -99,7 +103,7 @@ class AuthController extends Controller
         $user->forceFill(['last_login_at' => now()])->save();
 
         return response()->json([
-            'message' => 'Giriş başarılı.',
+            'message' => __('api.login_success'),
             'user'    => $user->load('dealer'),
         ]);
     }
@@ -117,7 +121,7 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return response()->json([
-            'message' => 'Çıkış başarılı.',
+            'message' => __('api.logout_success'),
         ]);
     }
 

@@ -212,19 +212,22 @@ class DashboardController extends Controller
             'success' => "{$platformName} Senkronizasyon Başarılı",
             'failed'  => "{$platformName} Senkronizasyon Hatası",
             'pending' => "{$platformName} Senkronizasyon Bekliyor",
-            default   => "{$platformName} Bildirim",
+            default   => __('api.notif_title_generic', ['platform' => $platformName]),
         };
     }
 
     private function buildNotificationMessage(SyncLog $log): string
     {
-        $watchName = $log->watch?->full_name ?? 'Bilinmeyen saat';
+        $watchName = $log->watch?->full_name ?? __('api.unknown_watch');
 
         return match ($log->status) {
-            'success' => "{$watchName} başarıyla senkronize edildi.",
-            'failed'  => "{$watchName} senkronizasyonu başarısız: " . ($log->error_message ?? 'Bilinmeyen hata'),
-            'pending' => "{$watchName} senkronizasyonu kuyrukta bekliyor.",
-            default   => "{$watchName}",
+            'success' => __('api.sync_success_msg', ['watch' => $watchName]),
+            'failed'  => __('api.sync_failed_msg', [
+                'watch' => $watchName,
+                'error' => $log->error_message ?? __('api.unknown_error'),
+            ]),
+            'pending' => __('api.sync_pending_msg', ['watch' => $watchName]),
+            default   => $watchName,
         };
     }
 }

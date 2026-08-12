@@ -130,7 +130,7 @@ export default function AiStudioPage() {
               value={selectedWatchId ?? ''}
               onChange={(e) => setSelectedWatchId(e.target.value ? Number(e.target.value) : null)}
               disabled={isLoadingWatches || isProcessing}
-              className="w-full appearance-none rounded-lg border border-border-subtle bg-surface-elevated px-3 py-2 pr-8 text-sm text-primary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 disabled:opacity-50"
+              className="w-full appearance-none rounded-lg border border-border-subtle bg-surface-elevated px-3 py-2 pe-8 text-sm text-primary-text focus:outline-none focus:ring-2 focus:ring-accent-blue/40 disabled:opacity-50"
             >
               <option value="">
                 {isLoadingWatches ? t('select_watch_loading') : t('select_watch_placeholder')}
@@ -141,7 +141,7 @@ export default function AiStudioPage() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+            <ChevronDown className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
           </div>
         </div>
       </div>

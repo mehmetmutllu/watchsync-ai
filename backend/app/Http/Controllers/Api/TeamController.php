@@ -72,16 +72,22 @@ class TeamController extends Controller
         // Aynı e-posta zaten kayıtlı bir kullanıcıysa (herhangi bir bayide) → 422
         if (User::whereRaw('LOWER(email) = ?', [$email])->exists()) {
             throw ValidationException::withMessages([
-                'email' => 'Bu e-posta adresi zaten kayıtlı.',
+                'email' => __('api.email_already_registered'),
             ]);
         }
 
         // Privilege escalation koruması: davet eden sahip olmadığı izni veremez
         $this->assertGrantableBy($inviter, $granted, $role);
 
-        $expiresInDays = $request->input('expires_in_days')
-            ?? $inviter->dealer->invitation_expiry_days
-            ?? config('permissions.default_invitation_expiry_days');
+        $expiresInInput = $request->input('expires_in_days');
+        if ($expiresInInput === 0 || $expiresInInput === '0') {
+            $expiresAt = null;
+        } else {
+            $expiresInDays = $expiresInInput
+                ?? $inviter->dealer->invitation_expiry_days
+                ?? config('permissions.default_invitation_expiry_days');
+            $expiresAt = now()->addDays((int) $expiresInDays);
+        }
 
         // Aynı bayide bekleyen davet varsa güncelle (yeniden oluşturma yerine)
         $invitation = Invitation::where('dealer_id', $dealerId)
@@ -94,11 +100,13 @@ class TeamController extends Controller
         $attributes = [
             'dealer_id'   => $dealerId,
             'email'       => $email,
+            // Davet e-postası, davet edenin o anki arayüz dilinde gönderilir.
+            'locale'      => app()->getLocale(),
             'role'        => $role,
             'permissions' => $granted,
             'token_hash'  => hash('sha256', $token),
             'invited_by'  => $inviter->id,
-            'expires_at'  => now()->addDays((int) $expiresInDays),
+            'expires_at'  => $expiresAt,
             'accepted_at' => null,
             'revoked_at'  => null,
         ];
@@ -116,7 +124,7 @@ class TeamController extends Controller
             'email'      => $invitation->email,
             'role'       => $invitation->role,
             'permissions' => $invitation->permissions,
-            'expires_at' => $invitation->expires_at->toIso8601String(),
+            'expires_at' => $invitation->expires_at?->toIso8601String(),
         ];
 
         // Local/testing ortamında Playwright'ın token'ı alabilmesi için accept_url dön
@@ -136,7 +144,7 @@ class TeamController extends Controller
 
         if (! $invitation->isPending()) {
             throw ValidationException::withMessages([
-                'invitation' => 'Yalnızca bekleyen davetler yeniden gönderilebilir.',
+                'invitation' => __('api.only_pending_resend'),
             ]);
         }
 
@@ -152,7 +160,7 @@ class TeamController extends Controller
 
         $this->sendInvitationMail($invitation, $token);
 
-        $payload = ['message' => 'Davet yeniden gönderildi.'];
+        $payload = ['message' => __('api.invitation_resent')];
         if (app()->environment('local', 'testing')) {
             $payload['accept_url'] = $this->acceptUrl($token);
         }
@@ -181,7 +189,7 @@ class TeamController extends Controller
 
         if ($user->isOwner()) {
             throw ValidationException::withMessages([
-                'user' => 'Sahip kullanıcının izinleri değiştirilemez.',
+                'user' => __('api.owner_perms_locked'),
             ]);
         }
 
@@ -191,7 +199,7 @@ class TeamController extends Controller
         $user->update(['permissions' => $granted]);
 
         return response()->json([
-            'message' => 'İzinler güncellendi.',
+            'message' => __('api.perms_updated'),
             'member'  => $this->memberPayload($user->fresh()),
         ]);
     }
@@ -205,7 +213,7 @@ class TeamController extends Controller
 
         if ($user->id === $request->user()->id) {
             throw ValidationException::withMessages([
-                'user' => 'Kendi rolünüzü değiştiremezsiniz.',
+                'user' => __('api.cannot_change_own_role'),
             ]);
         }
 
@@ -226,7 +234,7 @@ class TeamController extends Controller
         $user->update(['role' => $validated['role']]);
 
         return response()->json([
-            'message' => 'Rol güncellendi.',
+            'message' => __('api.role_updated'),
             'member'  => $this->memberPayload($user->fresh()),
         ]);
     }
@@ -240,7 +248,7 @@ class TeamController extends Controller
 
         if ($user->id === $request->user()->id) {
             throw ValidationException::withMessages([
-                'user' => 'Kendi hesabınızı pasifleştiremezsiniz.',
+                'user' => __('api.cannot_deactivate_self'),
             ]);
         }
 
@@ -251,7 +259,7 @@ class TeamController extends Controller
 
         $user->update(['status' => 'disabled']);
 
-        return response()->json(['message' => 'Üye pasifleştirildi.']);
+        return response()->json(['message' => __('api.member_deactivated')]);
     }
 
     /**
@@ -263,7 +271,7 @@ class TeamController extends Controller
 
         $user->update(['status' => 'active']);
 
-        return response()->json(['message' => 'Üye aktifleştirildi.']);
+        return response()->json(['message' => __('api.member_activated')]);
     }
 
     /**
@@ -275,7 +283,7 @@ class TeamController extends Controller
 
         if ($user->id === $request->user()->id) {
             throw ValidationException::withMessages([
-                'user' => 'Kendi hesabınızı silemezsiniz.',
+                'user' => __('api.cannot_delete_self'),
             ]);
         }
 
@@ -286,7 +294,7 @@ class TeamController extends Controller
 
         $user->delete();
 
-        return response()->json(['message' => 'Üye silindi.']);
+        return response()->json(['message' => __('api.member_deleted')]);
     }
 
     // ─── Yardımcılar ───────────────────────────────────────────
@@ -354,7 +362,7 @@ class TeamController extends Controller
 
         if (! empty($excess)) {
             throw ValidationException::withMessages([
-                'permissions' => 'Sahip olmadığınız izinleri veremezsiniz: ' . implode(', ', $excess),
+                'permissions' => __('api.cannot_grant_perms', ['permissions' => implode(', ', $excess)]),
             ]);
         }
     }
@@ -362,14 +370,14 @@ class TeamController extends Controller
     private function assertOwnerActionAllowed(Request $request): void
     {
         if (! $request->user()->isOwner()) {
-            abort(403, 'Sahip kullanıcı üzerinde yalnızca sahipler işlem yapabilir.');
+            abort(403, __('api.owner_only_action'));
         }
     }
 
     private function assertSameDealer(Request $request, int $dealerId): void
     {
         if ($request->user()->dealer_id !== $dealerId) {
-            abort(403, 'Bu kaynağa erişim yetkiniz yok.');
+            abort(403, __('api.no_resource_access'));
         }
     }
 
@@ -382,7 +390,7 @@ class TeamController extends Controller
 
         if ($ownerCount <= 1) {
             throw ValidationException::withMessages([
-                'user' => 'Son sahip kullanıcı üzerinde bu işlem yapılamaz.',
+                'user' => __('api.last_owner_protected'),
             ]);
         }
     }
@@ -392,14 +400,16 @@ class TeamController extends Controller
         Notification::route('mail', $invitation->email)
             ->notify(new TeamInvitationNotification(
                 $invitation->load('dealer'),
-                $this->acceptUrl($token),
+                $this->acceptUrl($token, $invitation->locale),
             ));
     }
 
-    private function acceptUrl(string $token): string
+    private function acceptUrl(string $token, ?string $locale = null): string
     {
         $base = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000')), '/');
+        $locale = $locale ?: app()->getLocale();
 
-        return "{$base}/invite/{$token}";
+        // Frontend rotaları dil önekiyle çalışır (/tr/invite/..., /ar/invite/...).
+        return "{$base}/{$locale}/invite/{$token}";
     }
 }

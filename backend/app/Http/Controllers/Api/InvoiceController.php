@@ -104,7 +104,10 @@ class InvoiceController extends Controller
         if ($invoice->status !== 'draft') {
             $customer->notes()->create([
                 'user_id' => $request->user()->id,
-                'content' => "Rechnung {$invoice->invoice_number} über " . number_format($invoice->total, 2, ',', '.') . " € erstellt.",
+                'content' => __('api.invoice_note', [
+                    'number' => $invoice->invoice_number,
+                    'amount' => number_format((float) $invoice->total, 2) . ' ' . $invoice->currency,
+                ]),
                 'type' => 'invoice'
             ]);
         }
@@ -176,7 +179,7 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         if (!$invoice->customer || !$invoice->customer->email) {
-            return response()->json(['message' => 'Müşterinin e-posta adresi yok.'], 422);
+            return response()->json(['message' => __('api.customer_no_email')], 422);
         }
 
         // $invoice->customer->notify(new InvoiceSentNotification($invoice)); // Assuming this class is somewhere
@@ -185,6 +188,6 @@ class InvoiceController extends Controller
             $invoice->update(['status' => 'sent']);
         }
 
-        return response()->json(['message' => 'Fatura e-posta ile gönderildi.']);
+        return response()->json(['message' => __('api.invoice_emailed')]);
     }
 }

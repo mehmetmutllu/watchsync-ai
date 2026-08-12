@@ -16,7 +16,7 @@ return new class extends Migration
             $table->json('permissions')->nullable();
             $table->string('token_hash')->unique();
             $table->foreignId('invited_by')->constrained('users')->cascadeOnDelete();
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('revoked_at')->nullable();
             $table->timestamps();

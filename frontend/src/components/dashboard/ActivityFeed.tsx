@@ -191,7 +191,7 @@ export default function ActivityFeed() {
                 >
                   {t(config.labelKey)}
                 </span>
-                <span className="text-xs text-disabled-text whitespace-nowrap min-w-[70px] text-right">
+                <span className="text-xs text-disabled-text whitespace-nowrap min-w-[70px] text-end">
                   {activity.time}
                 </span>
               </div>

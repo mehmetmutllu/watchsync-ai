@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { X, Bell, CheckCheck, AlertCircle, CheckCircle, Clock, Info, Check } from 'lucide-react';
 import { useNotificationStore } from '@/stores/notificationStore';
 import type { NotificationType } from '@/types';
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
 
 const TYPE_CONFIG: Record<NotificationType, { icon: typeof CheckCircle; color: string; bg: string }> = {
   success: { icon: CheckCircle, color: 'text-semantic-success', bg: 'bg-semantic-success/10' },
@@ -76,7 +77,7 @@ export default function NotificationDrawer() {
         role="dialog"
         aria-label="Bildirimler"
         aria-modal="true"
-        className="fixed top-0 right-0 z-50 h-full w-96 max-w-[90vw] bg-surface border-l border-border-subtle shadow-2xl flex flex-col animate-slide-in-right"
+        className="fixed top-0 end-0 z-50 h-full w-96 max-w-[90vw] bg-surface border-s border-border-subtle shadow-2xl flex flex-col animate-slide-in-right"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
@@ -166,7 +167,8 @@ export default function NotificationDrawer() {
                                   markRead(notification.id);
                                 }}
                                 className="p-0.5 rounded text-disabled-text hover:text-accent-blue transition-colors"
-                                title="Okundu işaretle"
+                                title={t("mark_read")}
+                          aria-label={t("mark_read")}
                               >
                                 <Check className="w-3.5 h-3.5" />
                               </button>

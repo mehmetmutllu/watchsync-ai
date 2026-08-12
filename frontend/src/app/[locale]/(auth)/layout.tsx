@@ -1,7 +1,8 @@
 import { Watch } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -15,12 +16,17 @@ export default async function AuthLayout({
   const t = await getTranslations("Landing");
 
   return (
-    <div className="min-h-screen bg-midnight flex">
+    <div className="min-h-screen bg-midnight flex relative">
+      {/* Dil seçici — giriş/kayıt/davet sayfalarından da erişilebilir */}
+      <div className="absolute top-4 end-4 z-50">
+        <LanguageSwitcher variant="compact" />
+      </div>
+
       {/* Left side — Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden">
         {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-accent-blue/10 via-transparent to-accent-gold/5" />
-        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-accent-blue/5 blur-[120px]" />
+        <div className="absolute top-1/4 start-1/4 w-[400px] h-[400px] rounded-full bg-accent-blue/5 blur-[120px]" />
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">

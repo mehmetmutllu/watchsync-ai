@@ -11,6 +11,7 @@ class Invitation extends Model
     protected $fillable = [
         'dealer_id',
         'email',
+        'locale',
         'role',
         'permissions',
         'token_hash',
@@ -50,6 +51,10 @@ class Invitation extends Model
 
     public function isExpired(): bool
     {
+        if ($this->expires_at === null) {
+            return false;
+        }
+
         return $this->expires_at->isPast();
     }
 
@@ -66,6 +71,9 @@ class Invitation extends Model
     {
         return $query->whereNull('accepted_at')
             ->whereNull('revoked_at')
-            ->where('expires_at', '>', now());
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', now());
+            });
     }
 }

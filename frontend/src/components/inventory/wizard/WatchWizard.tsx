@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { watchesApi } from '@/lib/watches-api';
 import { useInventoryStore } from '@/stores/inventoryStore';
@@ -17,8 +17,7 @@ import StepAiProcessing from './StepAiProcessing';
 import StepReviewPublish from './StepReviewPublish';
 import type { Watch, WatchFormData, WatchImage } from '@/types';
 import { useTranslations } from 'next-intl';
-
-
+import { useRouter } from "@/i18n/routing";
 
 export interface WatchWizardFormData {
   brand: string;

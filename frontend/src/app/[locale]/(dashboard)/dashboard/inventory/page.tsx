@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useInventoryStore } from '@/stores/inventoryStore';
 import { usePlatformStore } from '@/stores/platformStore';
 import WatchTable from '@/components/inventory/WatchTable';
@@ -11,6 +11,7 @@ import TableSkeleton from '@/components/inventory/TableSkeleton';
 import BulkActions from '@/components/inventory/BulkActions';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from "@/i18n/routing";
 
 export default function InventoryPage() {
   const router = useRouter();

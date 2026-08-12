@@ -59,6 +59,7 @@ Route::prefix('webhooks')->middleware('throttle:30,1')->group(function () {
     Route::get('/ebay', [WebhookController::class, 'ebay']);
     Route::post('/ebay', [WebhookController::class, 'ebay']);
     Route::post('/shopify', [WebhookController::class, 'shopify']);
+    Route::post('/stripe', [\App\Http\Controllers\Api\StripeWebhookController::class, 'handleWebhook']);
 });
 
 // Davet kabul akışı — public, token ile; brute-force koruması için throttle
@@ -70,6 +71,13 @@ Route::middleware('throttle:20,1')->group(function () {
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/activities', [DashboardController::class, 'activities']);
+
+    // Subscription & Billing routes
+    Route::get('/subscriptions/current', [\App\Http\Controllers\Api\SubscriptionController::class, 'current']);
+    Route::post('/subscriptions/checkout-session', [\App\Http\Controllers\Api\SubscriptionController::class, 'createCheckoutSession']);
+    Route::post('/subscriptions/cancel', [\App\Http\Controllers\Api\SubscriptionController::class, 'cancel']);
+    Route::post('/subscriptions/resume', [\App\Http\Controllers\Api\SubscriptionController::class, 'resume']);
+    Route::post('/subscriptions/portal', [\App\Http\Controllers\Api\SubscriptionController::class, 'portal']);
 
     // Bulk operations — düşük limit (must be before {id} routes)
     Route::middleware('throttle:bulk-operations')->group(function () {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFormatter, useTranslations } from "next-intl";
 import {
   Search,
   Watch,
@@ -27,14 +28,10 @@ const statusIcons: Record<string, React.ReactNode> = {
   rejected: <XCircle className="w-3.5 h-3.5" />,
 };
 
-const statusLabels: Record<string, string> = {
-  pending: "Bekliyor",
-  validated: "Onaylı",
-  flagged: "Bayraklı",
-  rejected: "Reddedildi",
-};
-
 export default function AdminWatchesPage() {
+  const t = useTranslations("AdminWatches");
+  const tc = useTranslations("Common");
+  const format = useFormatter();
   const [watches, setWatches] = useState<AdminWatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -90,32 +87,34 @@ export default function AdminWatchesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-primary-text">Saat Doğrulama</h1>
-        <p className="text-sm text-secondary-text mt-1">{total} saat kayıtlı</p>
+        <h1 className="text-2xl font-bold text-primary-text">{t("title")}</h1>
+        <p className="text-sm text-secondary-text mt-1">{t("total_count", { count: total })}</p>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text" />
           <input
             type="text"
-            placeholder="Marka, model veya referans ara..."
+            placeholder={t("search_placeholder")}
+            aria-label={t("search_placeholder")}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-primary-text placeholder:text-secondary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/40"
+            className="w-full ps-10 pe-4 py-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-primary-text placeholder:text-secondary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/40"
           />
         </div>
         <select
           value={validationFilter}
           onChange={(e) => { setValidationFilter(e.target.value); setPage(1); }}
+          aria-label={t("filter_validation")}
           className="px-4 py-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-primary-text text-sm"
         >
-          <option value="">Tüm Durumlar</option>
-          <option value="pending">Bekliyor</option>
-          <option value="validated">Onaylı</option>
-          <option value="flagged">Bayraklı</option>
-          <option value="rejected">Reddedildi</option>
+          <option value="">{t("status_all")}</option>
+          <option value="pending">{t("status_pending")}</option>
+          <option value="validated">{t("status_validated")}</option>
+          <option value="flagged">{t("status_flagged")}</option>
+          <option value="rejected">{t("status_rejected")}</option>
         </select>
       </div>
 
@@ -128,19 +127,19 @@ export default function AdminWatchesPage() {
         ) : watches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-secondary-text">
             <Watch className="w-10 h-10 mb-3 opacity-40" />
-            <p>Saat bulunamadı</p>
+            <p>{t("empty")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle text-secondary-text">
-                  <th className="text-left px-5 py-3 font-medium">Saat</th>
-                  <th className="text-left px-5 py-3 font-medium">Bayi</th>
-                  <th className="text-right px-5 py-3 font-medium">Fiyat</th>
-                  <th className="text-center px-5 py-3 font-medium">Doğrulama</th>
-                  <th className="text-left px-5 py-3 font-medium">Tarih</th>
-                  <th className="text-right px-5 py-3 font-medium">İşlem</th>
+                  <th className="text-start px-5 py-3 font-medium">{t("col_watch")}</th>
+                  <th className="text-start px-5 py-3 font-medium">{t("col_dealer")}</th>
+                  <th className="text-end px-5 py-3 font-medium">{t("col_price")}</th>
+                  <th className="text-center px-5 py-3 font-medium">{t("col_validation")}</th>
+                  <th className="text-start px-5 py-3 font-medium">{t("col_date")}</th>
+                  <th className="text-end px-5 py-3 font-medium">{t("col_actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,39 +149,43 @@ export default function AdminWatchesPage() {
                       <div>
                         <p className="font-medium text-primary-text">{watch.brand} {watch.model}</p>
                         {watch.reference_number && (
-                          <p className="text-xs text-secondary-text">Ref: {watch.reference_number}</p>
+                          <p className="text-xs text-secondary-text">{t("ref_label")}: <span dir="ltr" className="ltr-nums">{watch.reference_number}</span></p>
                         )}
                       </div>
                     </td>
                     <td className="px-5 py-3 text-secondary-text">
                       {watch.dealer?.company_name || watch.dealer?.name || "-"}
                     </td>
-                    <td className="px-5 py-3 text-right text-secondary-text">
-                      {watch.sale_price ? `€${watch.sale_price.toLocaleString("tr-TR")}` : "-"}
+                    <td className="px-5 py-3 text-end text-secondary-text">
+                      {watch.sale_price ? format.number(watch.sale_price, { style: "currency", currency: "EUR", maximumFractionDigits: 0 }) : "—"}
                     </td>
                     <td className="px-5 py-3 text-center">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[watch.validation_status] || ""}`}>
                         {statusIcons[watch.validation_status]}
-                        {statusLabels[watch.validation_status] || watch.validation_status}
+                        {["pending", "validated", "flagged", "rejected"].includes(watch.validation_status)
+                          ? t(`status_${watch.validation_status}`)
+                          : watch.validation_status}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-secondary-text text-xs">
-                      {new Date(watch.created_at).toLocaleDateString("tr-TR")}
+                      {format.dateTime(new Date(watch.created_at), "short")}
                     </td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-5 py-3 text-end">
                       {(watch.validation_status === "pending" || watch.validation_status === "flagged") && (
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleValidate(watch.id, "validated")}
                             className="p-1.5 rounded-lg hover:bg-semantic-success/10 text-secondary-text hover:text-semantic-success transition-colors"
-                            title="Onayla"
+                            title={t("action_approve")}
+                            aria-label={t("action_approve")}
                           >
                             <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setSelectedWatch(watch)}
                             className="p-1.5 rounded-lg hover:bg-semantic-error/10 text-secondary-text hover:text-semantic-error transition-colors"
-                            title="Reddet"
+                            title={t("action_reject")}
+                            aria-label={t("action_reject")}
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
@@ -200,9 +203,9 @@ export default function AdminWatchesPage() {
       {/* Pagination */}
       {lastPage > 1 && (
         <div className="flex items-center justify-center gap-2">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-lg bg-surface-elevated text-sm text-secondary-text hover:text-primary-text disabled:opacity-40 transition-colors">Önceki</button>
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-lg bg-surface-elevated text-sm text-secondary-text hover:text-primary-text disabled:opacity-40 transition-colors">{tc("previous")}</button>
           <span className="text-sm text-secondary-text">{page} / {lastPage}</span>
-          <button disabled={page >= lastPage} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-lg bg-surface-elevated text-sm text-secondary-text hover:text-primary-text disabled:opacity-40 transition-colors">Sonraki</button>
+          <button disabled={page >= lastPage} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-lg bg-surface-elevated text-sm text-secondary-text hover:text-primary-text disabled:opacity-40 transition-colors">{tc("next")}</button>
         </div>
       )}
 
@@ -210,25 +213,26 @@ export default function AdminWatchesPage() {
       {selectedWatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectedWatch(null)}>
           <div className="glass-strong rounded-2xl p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-primary-text mb-1">Saati Reddet</h3>
+            <h3 className="text-lg font-semibold text-primary-text mb-1">{t("reject_modal_title")}</h3>
             <p className="text-sm text-secondary-text mb-4">{selectedWatch.brand} {selectedWatch.model}</p>
             <textarea
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Ret gerekçesi..."
+              placeholder={t("reject_reason_placeholder")}
+              aria-label={t("reject_reason_placeholder")}
               rows={3}
               className="w-full px-4 py-3 rounded-xl bg-surface-elevated border border-border-subtle text-primary-text placeholder:text-secondary-text text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue/40 resize-none"
             />
             <div className="flex justify-end gap-3 mt-4">
               <button onClick={() => { setSelectedWatch(null); setRejectReason(""); }} className="px-4 py-2 rounded-xl text-sm text-secondary-text hover:text-primary-text transition-colors">
-                İptal
+                {tc("cancel")}
               </button>
               <button
                 onClick={() => handleValidate(selectedWatch.id, "rejected")}
                 disabled={!rejectReason.trim() || actionLoading}
                 className="px-4 py-2 rounded-xl text-sm font-medium bg-semantic-error text-white hover:bg-semantic-error/90 disabled:opacity-40 transition-colors"
               >
-                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Reddet"}
+                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("action_reject")}
               </button>
             </div>
           </div>

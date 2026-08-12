@@ -18,15 +18,15 @@ class DealerPermission
         $user = $request->user();
 
         if (! $user) {
-            return response()->json(['message' => 'Kimlik doğrulaması gerekli.'], 401);
+            return response()->json(['message' => __('api.auth_required')], 401);
         }
 
         if ($user->isDisabled()) {
-            return response()->json(['message' => 'Hesabınız devre dışı bırakılmış.'], 403);
+            return response()->json(['message' => __('api.account_disabled')], 403);
         }
 
         if (! $user->hasPermission($permission)) {
-            return response()->json(['message' => 'Bu işlem için yetkiniz bulunmuyor.'], 403);
+            return response()->json(['message' => __('api.no_permission')], 403);
         }
 
         return $next($request);

@@ -154,7 +154,7 @@ class WatchController extends Controller
         $watch->load('images');
 
         return response()->json([
-            'message' => 'Saat başarıyla oluşturuldu.',
+            'message' => __('api.watch_created'),
             'watch'   => $watch,
         ], 201);
     }
@@ -199,7 +199,7 @@ class WatchController extends Controller
         $watch->load('images');
 
         return response()->json([
-            'message' => 'Saat başarıyla güncellendi.',
+            'message' => __('api.watch_updated'),
             'watch'   => $watch,
         ]);
     }
@@ -223,7 +223,7 @@ class WatchController extends Controller
         $watch->delete();
 
         return response()->json([
-            'message' => 'Saat başarıyla silindi.',
+            'message' => __('api.watch_deleted'),
         ]);
     }
 
@@ -247,14 +247,14 @@ class WatchController extends Controller
             );
         } catch (LockTimeoutException) {
             return response()->json([
-                'message' => 'Bu saat şu anda başka bir işlem tarafından güncelleniyor. Lütfen tekrar deneyin.',
+                'message' => __('api.watch_locked_retry'),
             ], 409);
         }
 
         $watch->allowed_transitions = $this->stateMachine->allowedTransitions($watch->status);
 
         return response()->json([
-            'message' => 'Durum başarıyla güncellendi.',
+            'message' => __('api.status_updated'),
             'watch'   => $watch,
         ]);
     }
@@ -298,7 +298,7 @@ class WatchController extends Controller
         }
 
         return response()->json([
-            'message' => count($uploadedImages) . ' görsel başarıyla yüklendi.',
+            'message' => __('api.images_uploaded', ['count' => count($uploadedImages)]),
             'images'  => $uploadedImages,
         ], 201);
     }
@@ -327,7 +327,7 @@ class WatchController extends Controller
         }
 
         return response()->json([
-            'message' => 'Görsel başarıyla silindi.',
+            'message' => __('api.image_deleted'),
         ]);
     }
 
@@ -344,7 +344,7 @@ class WatchController extends Controller
 
         if ($watch->images->isEmpty()) {
             return response()->json([
-                'message' => 'AI işlemi başlatmak için en az 1 fotoğraf gereklidir.',
+                'message' => __('api.ai_needs_photo'),
             ], 422);
         }
 
@@ -369,7 +369,7 @@ class WatchController extends Controller
         ProcessAiPipelineJob::dispatch($watch, $steps);
 
         return response()->json([
-            'message' => 'AI pipeline başlatıldı.',
+            'message' => __('api.ai_pipeline_started'),
             'watch_id' => $watch->id,
         ]);
     }
@@ -427,7 +427,7 @@ class WatchController extends Controller
         }
 
         return response()->json([
-            'message' => 'AI sonuçları güncellendi.',
+            'message' => __('api.ai_results_updated'),
             'watch' => $watch->fresh(),
         ]);
     }
@@ -459,7 +459,7 @@ class WatchController extends Controller
                 );
             } catch (LockTimeoutException) {
                 return response()->json([
-                    'message' => 'Saat şu anda başka bir işlem tarafından güncelleniyor.',
+                    'message' => __('api.watch_locked'),
                 ], 409);
             }
         }
@@ -477,7 +477,7 @@ class WatchController extends Controller
         }
 
         return response()->json([
-            'message' => count($dispatched) . ' platforma yayınlama başlatıldı.',
+            'message' => __('api.publish_started', ['count' => count($dispatched)]),
             'watch' => $watch->fresh(),
             'dispatched_platforms' => $dispatched,
         ]);

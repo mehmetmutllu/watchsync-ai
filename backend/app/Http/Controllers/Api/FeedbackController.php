@@ -40,7 +40,7 @@ class FeedbackController extends Controller
         ]);
 
         return response()->json([
-            'message'  => 'Geri bildiriminiz alındı. Teşekkür ederiz!',
+            'message'  => __('api.feedback_received'),
             'feedback' => $feedback,
         ], 201);
     }

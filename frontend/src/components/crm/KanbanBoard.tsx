@@ -53,7 +53,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
       <div
         {...attributes}
         {...listeners}
-        className={`absolute top-4 right-2 p-1 transition-opacity ${
+        className={`absolute top-4 end-2 p-1 transition-opacity ${
           isOverlay ? "text-white/60 cursor-grabbing opacity-100" : "text-white/20 hover:text-white/60 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -61,7 +61,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
         <GripVertical className="w-4 h-4" />
       </div>
       
-      <div className="flex justify-between items-start mb-2 pr-6 relative">
+      <div className="flex justify-between items-start mb-2 pe-6 relative">
         <h4 className="font-semibold text-white/90 truncate flex items-center gap-2">
           {customer.first_name} {customer.last_name}
           {customer.needs_follow_up && (
@@ -83,7 +83,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
         
         {customer.company && (
           <div className="flex items-center text-xs text-white/50">
-            <Building className="w-3 h-3 mr-1.5" />
+            <Building className="w-3 h-3 me-1.5" />
             <span className="truncate max-w-[120px]">{customer.company}</span>
           </div>
         )}
@@ -91,7 +91,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
       
       {customer.metadata?.desired_watch && (
         <div className="flex items-center text-xs text-amber-400/80 mb-2 bg-amber-400/10 rounded px-2 py-0.5 w-fit">
-          <Clock className="w-3 h-3 mr-1.5" />
+          <Clock className="w-3 h-3 me-1.5" />
           <span className="truncate max-w-[150px]">{customer.metadata.desired_watch}</span>
         </div>
       )}
@@ -100,7 +100,7 @@ function CustomerCardUI({ customer, isOverlay, listeners, attributes }: { custom
         <div className="flex gap-2 overflow-x-hidden">
           {customer.tags && customer.tags.slice(0, 2).map((tag: string) => (
             <span key={tag} className="text-[10px] bg-white/5 text-white/60 px-1.5 py-0.5 rounded flex items-center whitespace-nowrap">
-              <Tag className="w-2.5 h-2.5 mr-1" />
+              <Tag className="w-2.5 h-2.5 me-1" />
               {tag}
             </span>
           ))}

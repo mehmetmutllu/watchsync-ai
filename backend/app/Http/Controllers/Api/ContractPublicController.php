@@ -56,7 +56,7 @@ class ContractPublicController extends Controller
 
         if ($existing) {
             return response()->json([
-                'message' => 'Bu sözleşme zaten kabul edilmiş.',
+                'message' => __('api.contract_already_accepted'),
             ]);
         }
 
@@ -69,7 +69,7 @@ class ContractPublicController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Sözleşme kabul edildi.',
+            'message' => __('api.contract_accepted'),
         ]);
     }
 
